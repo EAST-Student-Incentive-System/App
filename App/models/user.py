@@ -3,10 +3,17 @@ from App.database import db
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), nullable=False, unique=True)
     username =  db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(256), nullable=False)
+    role = db.Column(db.String(50))
+    __mapper_args__ = {
+        'polymorphic_identity': 'user',
+        'polymorphic_on': role
+    }
 
-    def __init__(self, username, password):
+    def __init__(self, email, username, password):
+        self.email = email
         self.username = username
         self.set_password(password)
 
@@ -23,4 +30,3 @@ class User(db.Model):
     def check_password(self, password):
         """Check hashed password."""
         return check_password_hash(self.password, password)
-
