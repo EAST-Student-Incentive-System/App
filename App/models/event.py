@@ -16,3 +16,54 @@ class Event(db.Model):
         self.description = description
         self.start = start
         self.end = end
+
+    def get_json(self):
+        return {
+            'id': self.id,
+            'staffId': self.staffId,
+            'name': self.name,
+            'type': self.type,
+            'description': self.description,
+            'start': self.start.isoformat(),
+            'end': self.end.isoformat()
+        }
+    
+    def __repr__(self):
+        return f'<Event {self.name}> - {self.type} from {self.start} to {self.end}'
+    
+    def get_staff_id(self):
+        return self.staffId
+    
+    def get_name(self):
+        return self.name
+    
+    def get_type(self):
+        return self.type
+
+    def get_description(self):
+        return self.description
+    
+    def get_start(self):
+        return self.start
+    
+    def get_end(self):
+        return self.end
+    
+    def set_name(self, name):
+        self.name = name
+
+    def set_type(self, type):
+        self.type = type
+
+    def set_description(self, description):
+        self.description = description
+
+    def set_start(self, start):
+        self.start = start
+
+    def set_end(self, end): 
+        self.end = end
+
+    def isWithintTimeFrame(self):
+        return self.start <= datetime.now() <= self.end
+    
