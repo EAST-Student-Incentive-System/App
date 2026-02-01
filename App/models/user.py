@@ -20,6 +20,7 @@ class User(db.Model):
     def get_json(self):
         return{
             'id': self.id,
+            'email': self.email,
             'username': self.username
         }
 
@@ -30,3 +31,15 @@ class User(db.Model):
     def check_password(self, password):
         """Check hashed password."""
         return check_password_hash(self.password, password)
+    
+    def __repr__(self):
+        return f'<User {self.username}> - {self.email}'
+    
+    def set_username(self, username):
+        self.username = username
+
+    def get_email(self):
+        return self.email
+    
+    def get_username(self):
+        return self.username
