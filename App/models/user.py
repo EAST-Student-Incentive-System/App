@@ -1,5 +1,6 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 from App.database import db
+from sqlalchemy.exc import IntegrityError
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -37,6 +38,12 @@ class User(db.Model):
     
     def set_username(self, username):
         self.username = username
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback() 
+            return f'<Username already taken>'
 
     def get_email(self):
         return self.email
