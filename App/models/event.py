@@ -51,18 +51,28 @@ class Event(db.Model):
     
     def set_name(self, name):
         self.name = name
+        db.session.add(self)
+        db.session.commit()
 
     def set_type(self, type):
         self.type = type
+        db.session.add(self)
+        db.session.commit()
 
     def set_description(self, description):
         self.description = description
+        db.session.add(self)
+        db.session.commit()
 
     def set_start(self, start):
         self.start = start
+        db.session.add(self)
+        db.session.commit()
 
     def set_end(self, end): 
         self.end = end
+        db.session.add(self)
+        db.session.commit()
 
     def isWithintTimeFrame(self):
         return self.start <= datetime.now() <= self.end
