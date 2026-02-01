@@ -57,3 +57,5 @@ class Reward(db.Model):
         db.session.add(self)
         db.session.commit()
         
+    def isRedeemable(self, user_points):
+        return self.active and user_points >= self.pointCost
