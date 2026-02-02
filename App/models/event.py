@@ -9,6 +9,7 @@ class Event(db.Model):
     description = db.Column(db.String(300), nullable=True)
     start = db.Column(db.DateTime, nullable=False)
     end = db.Column(db.DateTime, nullable=False)
+    students = db.relationship('Student', secondary='attendance', backref=db.backref('event', lazy='True'))
 
     def __init__(self, name, type, description, start, end):
         self.name = name

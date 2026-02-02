@@ -6,6 +6,7 @@ class Reward(db.Model):
     description = db.Column(db.String(300), nullable=True)
     pointCost = db.Column(db.Integer, nullable=False)
     active = db.Column(db.Boolean, default=True)
+    students = db.relationship('Student', secondary='redeemed_reward', backref=db.backref('reward', lazy='True'))
 
     def __init__(self, name, description, pointCost, active=True):
         self.name = name
