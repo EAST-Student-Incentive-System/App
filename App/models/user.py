@@ -35,18 +35,3 @@ class User(db.Model):
     
     def __repr__(self):
         return f'<User {self.username}> - {self.email}'
-    
-    def set_username(self, username):
-        self.username = username
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError as e:
-            db.session.rollback() 
-            return f'<Username already taken>'
-
-    def get_email(self):
-        return self.email
-    
-    def get_username(self):
-        return self.username
