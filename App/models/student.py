@@ -34,9 +34,7 @@ class Student(User):
 
     def __repr__(self):
         return f'<Student {self.username}> - {self.points} points'
-    
-    def get_points(self):
-        return self.points
+
     
     def check_enough_points(self, amount):
         return self.points >= amount
@@ -50,7 +48,10 @@ class Student(User):
             return True
         return False
     
-    def get_badges(self):
-        return self.badges
+    def calculate_leaderboad_ranking(self):
+        students = Student.query.order_by(Student.points.desc()).all()
+        return students.index(self) + 1
+    
+
     
 

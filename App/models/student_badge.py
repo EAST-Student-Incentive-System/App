@@ -17,10 +17,3 @@ class StudentBadge(db.Model):
 
     def __repr__(self):
         return f'<StudentBadge Student:{self.student_id} Badge:{self.badge_id}>'
-
-    def get_earned_at(self):
-        return self.earned_at
-    
-    def get_badge_id(self):
-        return self.badge_id
-    
