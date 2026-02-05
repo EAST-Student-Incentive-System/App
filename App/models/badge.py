@@ -20,15 +20,6 @@ class Badge(db.Model):
     def __repr__(self):
         return f'<Badge {self.name}>'
     
-    def get_name(self):
-        return self.name
-    
-    def get_description(self):
-        return self.description
-    
-    def get_points_required(self):
-        return self.points_required
-    
     def meets_requirements(self, student):
         return student.points >= self.points_required
     
