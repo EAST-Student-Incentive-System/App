@@ -19,15 +19,4 @@ class Attendance(db.Model):
     def __repr__(self):
         return f'<Attendance Student:{self.student_id} Event:{self.event_id}>'
 
-    def get_student_id(self):
-        return self.student_id
-    
-    def get_event_id(self):
-        return self.event_id
-    
-    def get_timestamp(self):
-        return self.timestamp
-
-    def isfor_event(self, event_id):
-        return self.event_id == event_id
 
