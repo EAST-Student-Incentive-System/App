@@ -19,12 +19,4 @@ class RedeemedReward(db.Model):
     def __repr__(self):
         return f'<RedeemedReward Student:{self.student_id} Reward:{self.reward_id}>'
 
-    def get_redeemed_at(self):
-        return self.redeemed_at
-    
-    def get_reward_id(self):
-        return self.reward_id
-    
-    def get_student_id(self):
-        return self.student_id
     
