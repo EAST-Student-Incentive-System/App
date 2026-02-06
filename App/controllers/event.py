@@ -32,7 +32,7 @@ def create_event(staff_id, name, type, description, start, end):
     new_event.staffId = staff_id
     db.session.add(new_event)
     db.session.commit()
-    return new_event
+    return new_event.get_json()
 
 def update_event(event_id, name=None, type=None, description=None, start=None, end=None):
     event = db.session.get(Event, event_id)
@@ -44,7 +44,7 @@ def update_event(event_id, name=None, type=None, description=None, start=None, e
     event.start = start if start else event.start
     event.end = end if end else event.end
     db.session.commit()
-    return event
+    return event.get_json()
 
 def delete_event(event_id):
     event = db.session.get(Event, event_id)
@@ -81,7 +81,7 @@ def log_attendance(student_id, event_id):
     attendance = Attendance(student_id=student_id, event_id=event_id)
     db.session.add(attendance)
     db.session.commit()
-    return attendance
+    return attendance.get_json()
 
 # ---------------- QR Code & Attendance Management ----------------
 
@@ -97,14 +97,5 @@ def generate_qr_code(event_id):
     img.save(buffer, format="PNG")
     qr_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return qr_data  # you can embed this in HTML
-
-def close_attendance(event_id):
-    event = db.session.get(Event, event_id)
-    if not event:
-        return None
-    if datetime.now() == event.end:
-        event.closed = True
-    db.session.commit()
-    return event
 
 
