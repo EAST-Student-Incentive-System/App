@@ -20,6 +20,7 @@ class Event(db.Model):
         self.description = description
         self.start = start
         self.end = end
+    
 
     def get_json(self):
         return {
