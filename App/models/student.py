@@ -1,16 +1,20 @@
 from App.database import db
 from .user import User
+from .attendance import Attendance
+from .redeemed_reward import RedeemedReward
+from .student_badge import StudentBadge
+
 
 class Student(User):
     __tablename__ = 'student'
 
-    
+    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     points = db.Column(db.Integer, default=0, nullable=False)
 
-    attendances = db.relationship('Event', secondary='attendance', backref=db.backref('student', lazy=True))
-    redeemed_rewards = db.relationship('Reward', secondary='redeemed_reward', backref=db.backref('student', lazy=True))
-    badges = db.relationship('Badge', secondary='student_badge', backref=db.backref('student', lazy=True))
-    
+    attendances = db.relationship('Attendance', back_populates='student', cascade="all, delete-orphan")
+    redeemed_rewards = db.relationship('Reward', secondary=RedeemedReward.__table__, backref='redeeming_students')
+    badges = db.relationship('Badge', secondary=StudentBadge.__table__, backref='students')
+
     __mapper_args__ = {
         'polymorphic_identity': 'student',
     }
