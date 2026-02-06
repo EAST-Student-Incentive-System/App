@@ -10,6 +10,7 @@ class Event(db.Model):
     start = db.Column(db.DateTime, nullable=False)
     end = db.Column(db.DateTime, nullable=False)
     students = db.relationship('Student', secondary='attendance', backref=db.backref('event', lazy='True'))
+    closed = db.Column(db.Boolean, default=False) # added this so we can close attendance logging
 
     def __init__(self, name, type, description, start, end):
         self.name = name
@@ -17,6 +18,7 @@ class Event(db.Model):
         self.description = description
         self.start = start
         self.end = end
+    
 
     def get_json(self):
         return {
