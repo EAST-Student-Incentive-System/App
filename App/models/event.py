@@ -1,5 +1,6 @@
 from App.database import db
 from datetime import datetime
+from .attendance import Attendance
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -9,7 +10,9 @@ class Event(db.Model):
     description = db.Column(db.String(300), nullable=True)
     start = db.Column(db.DateTime, nullable=False)
     end = db.Column(db.DateTime, nullable=False)
-    students = db.relationship('Student', secondary='attendance', backref=db.backref('event', lazy='True'))
+    attendances = db.relationship('Attendance', back_populates='event', cascade="all, delete-orphan")
+
+
 
     def __init__(self, name, type, description, start, end):
         self.name = name
