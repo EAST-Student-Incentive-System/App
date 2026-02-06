@@ -1,4 +1,5 @@
 from App.database import db
+from .student_badge import StudentBadge
 
 class Badge(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -6,7 +7,7 @@ class Badge(db.Model):
     description = db.Column(db.Text, nullable=True)
     points_required = db.Column(db.Integer, nullable=False)
 
-    student_badges = db.relationship('Student', secondary='student_badge', backref=db.backref('badge', lazy=True))
+    student_badges = db.relationship('Student', secondary= StudentBadge.__table__, backref=db.backref('badge', lazy=True))
     
     def get_json(self):
         return {
