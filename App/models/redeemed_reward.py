@@ -4,7 +4,7 @@ from datetime import datetime
 class RedeemedReward(db.Model):
     __tablename__ ='redeemed_reward'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     reward_id = db.Column(db.Integer, db.ForeignKey('reward.id'), nullable=False)
     redeemed_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
