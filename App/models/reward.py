@@ -1,4 +1,5 @@
 from App.database import db
+from .redeemed_reward import RedeemedReward
 
 class Reward(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -6,7 +7,7 @@ class Reward(db.Model):
     description = db.Column(db.String(300), nullable=True)
     pointCost = db.Column(db.Integer, nullable=False)
     active = db.Column(db.Boolean, default=True)
-    students = db.relationship('Student', secondary='redeemed_reward', backref=db.backref('reward', lazy='True'))
+    students = db.relationship('Student', secondary=RedeemedReward.__table__, backref='rewards')
 
     def __init__(self, name, description, pointCost, active=True):
         self.name = name
