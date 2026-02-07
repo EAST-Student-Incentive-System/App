@@ -19,3 +19,14 @@ class Badge(db.Model):
 
     def __repr__(self):
         return f'<Badge {self.name}>'
+    
+    def meets_requirements(self, student):
+        return student.points >= self.points_required
+    
+    def award_to_student(self, student):
+        if self.meets_requirements(student):
+            student_badge = StudentBadge(student_id=student.id, badge_id=self.id)
+            db.session.add(student_badge)
+            db.session.commit()
+            return True
+        return False
