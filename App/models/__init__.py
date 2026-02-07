@@ -2,3 +2,8 @@ from .user import *
 from .staff import *
 from .event import *
 from .reward import *
+from .student import *
+from .attendance import *
+from .redeemed_reward import *
+from .badge import *
+from .student_badge import *

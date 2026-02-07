@@ -32,3 +32,10 @@ def update_user(id, username):
         db.session.commit()
         return True
     return None
+
+def view_profile(user_id):
+    user = get_user(user_id)
+    if user:
+        return user.get_json()
+    print ("User not found")
+    return None
