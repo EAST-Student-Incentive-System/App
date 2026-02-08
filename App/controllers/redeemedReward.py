@@ -11,7 +11,7 @@ def redeem_reward(student_id, reward_id):
     if student.balance < reward.pointsCost:
         return None
 
-    student.balance = subtract_points(student.balance, reward.pointsCost)
+    student.balance = student.balance - reward.pointsCost
     student.redeemed_rewards.append(reward)
     db.session.commit()
 
