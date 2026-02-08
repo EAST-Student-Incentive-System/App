@@ -29,16 +29,32 @@ def get_active_rewards():
     return db.session.scalars(db.select(Reward).filter_by(active=True)).all()
 
 
-def update_reward(reward_id, name=None, description=None, point_cost=None):
+def update_reward(reward_id, **kwargs):
+    """Update a Reward using keyword arguments.
+
+    Example: `update_reward(1, name='New', point_cost=50, active=False)`
+    Accepts snake_case keys and maps `point_cost` -> `pointCost`.
+    Keys with value `None` are skipped.
+    """
     reward = db.session.get(Reward, reward_id)
     if not reward:
         return None
-    if name is not None:
-        reward.name = name
-    if description is not None:
-        reward.description = description
-    if point_cost is not None:
-        reward.pointCost = point_cost
+
+    field_map = {
+        'point_cost': 'pointCost',
+        'created_by': 'created_by',
+        'active': 'active',
+        'name': 'name',
+        'description': 'description',
+    }
+
+    for key, value in kwargs.items():
+        if value is None:
+            continue
+        model_attr = field_map.get(key, key)
+        if hasattr(reward, model_attr):
+            setattr(reward, model_attr, value)
+
     db.session.commit()
     return reward
 
