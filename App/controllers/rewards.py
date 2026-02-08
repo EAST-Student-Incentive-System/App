@@ -115,3 +115,5 @@ def viewRewardHistory(staff_id):
     rewards = db.session.scalars(db.select(Reward).filter_by(created_by=staff_id)).all()
     return [r.get_json() for r in rewards] if rewards else []
 
+#test
+
