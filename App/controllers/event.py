@@ -34,15 +34,23 @@ def create_event(staff_id, name, type, description, start, end):
     db.session.commit()
     return new_event.get_json()
 
-def update_event(event_id, name=None, type=None, description=None, start=None, end=None):
+def update_event(event_id, **kwargs):
     event = db.session.get(Event, event_id)
     if not event:
         return None
-    event.name = name if name else event.name
-    event.type = type if type else event.type
-    event.description = description if description else event.description
-    event.start = start if start else event.start
-    event.end = end if end else event.end
+
+    allowed_fields = {
+        'name': 'name',
+        'type': 'type',
+        'description': 'description',
+        'start': 'start',
+        'end': 'end'
+    }
+
+    for key, value in kwargs.items():
+        if key in allowed_fields and value is not None:
+            setattr(event, allowed_fields[key], value)
+
     db.session.commit()
     return event.get_json()
 
