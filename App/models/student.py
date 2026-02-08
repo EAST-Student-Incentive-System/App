@@ -51,10 +51,6 @@ class Student(User):
     def __repr__(self):
         return f'<Student {self.username}> - {self.current_balance} points'
     
-    def calculate_leaderboad_ranking(self):
-        students = Student.query.order_by(Student.total_points.desc()).all()
-        return students.index(self) + 1
-    
     def check_enough_points(self, reward):
         return self.current_balance >= reward.pointCost
     
