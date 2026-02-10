@@ -13,8 +13,7 @@ def signUp(email, username, password):
     return {'error': 'Username already taken.'}
   # Create new user based on email domain
   user = create_user(email, username, password)
-  db.session.add(user)
-  db.session.commit()
+
   return {'success': True, 'user': user.get_json()}
 from App.database import db
 
