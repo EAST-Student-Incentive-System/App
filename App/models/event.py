@@ -1,5 +1,6 @@
 from App.database import db
 from datetime import datetime
+from .attendance import Attendance
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -9,7 +10,9 @@ class Event(db.Model):
     description = db.Column(db.String(300), nullable=True)
     start = db.Column(db.DateTime, nullable=False)
     end = db.Column(db.DateTime, nullable=False)
-    students = db.relationship('Student', secondary='attendance', backref=db.backref('event', lazy='True'))
+    attendances = db.relationship('Attendance', back_populates='event', cascade="all, delete-orphan")
+
+
 
     def __init__(self, name, type, description, start, end):
         self.name = name
@@ -17,6 +20,7 @@ class Event(db.Model):
         self.description = description
         self.start = start
         self.end = end
+    
 
     def get_json(self):
         return {
@@ -34,4 +38,11 @@ class Event(db.Model):
 
     def isWithintTimeFrame(self):
         return self.start <= datetime.now() <= self.end
+    
+    def calculate_point_value(self):
+        #points based on duration, 1 point per hour, rounded up, may add modifiers later based on event type or other factors
+        duration = self.end - self.start
+        hours = duration.total_seconds() / 3600
+        return max(1, int(hours + 0.5)) #round up to nearest hour, minimum 1 point
+
     

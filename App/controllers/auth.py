@@ -77,3 +77,7 @@ def add_auth_context(app):
           is_authenticated = False
           current_user = None
       return dict(is_authenticated=is_authenticated, current_user=current_user)
+  
+
+
+  #allow email to be parsed for uwi login, let signup use create used function from user, let the create user function determine role based on email pattern, reject non UWI emails, 
