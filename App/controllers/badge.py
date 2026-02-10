@@ -19,3 +19,10 @@ def awardBadge(student_id, badge_id):
 def viewBadges():
     badges = Badge.query.all()
     return [badge.get_json() for badge in badges]
+
+# Controller function to view badges earned by a specific student
+def viewStudentBadges(student_id):
+    student = Student.query.get(student_id)
+    if student:
+        return [badge.get_json() for badge in student.badges]
+    return []
