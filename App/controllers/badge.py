@@ -8,10 +8,11 @@ def awardBadge(student_id, badge_id):
     badge = Badge.query.get(badge_id)
 
     if badge and student:
-        if badge not in student.badges:
-            student.badges.append(badge)
-            db.session.commit()
-            return True
+        if badge.points_required <= student.total_points:
+            if badge not in student.badges:
+                student.badges.append(badge)
+                db.session.commit()
+                return True
     return False
 
 # Controller function to view all badges in the system
