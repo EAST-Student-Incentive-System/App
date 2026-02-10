@@ -86,6 +86,7 @@ def log_attendance(student_id, event_id):
         return False
     if not event.isWithintTimeFrame():
         return False
+    student.add_points(event.calculate_point_value())
     attendance = Attendance(student_id=student_id, event_id=event_id)
     db.session.add(attendance)
     db.session.commit()

@@ -39,3 +39,10 @@ class Event(db.Model):
     def isWithintTimeFrame(self):
         return self.start <= datetime.now() <= self.end
     
+    def calculate_point_value(self):
+        #points based on duration, 1 point per hour, rounded up, may add modifiers later based on event type or other factors
+        duration = self.end - self.start
+        hours = duration.total_seconds() / 3600
+        return max(1, int(hours + 0.5)) #round up to nearest hour, minimum 1 point
+
+    
