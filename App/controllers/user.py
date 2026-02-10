@@ -1,8 +1,13 @@
-from App.models import User
+from App.models import User, Student, Staff
 from App.database import db
 
 def create_user(email, username, password):
-    newuser = User(email=email, username=username, password=password)
+    if email.endswith('@my.uwi.edu'):
+        newuser = Student(email=email, username=username, password=password)
+    elif  email.endswith('@sta.uwi.edu'):
+        newuser = Staff(email=email, username=username, password=password)
+    else:
+        raise ValueError("Invalid email domain. Only UWI staff or student emails are allowed.")
     db.session.add(newuser)
     db.session.commit()
     return newuser

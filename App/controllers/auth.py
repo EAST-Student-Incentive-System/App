@@ -1,27 +1,19 @@
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager, get_jwt_identity, verify_jwt_in_request
+from App.controllers.user import User, create_user
 
 from App.models import User, Staff, Student #! Student should be added in a future update
 def signUp(email, username, password):
   # Check if email already exists
-  existing_user = db.session.execute(db.select(User).filter_by(email=email)).scalar_one_or_none()
-  if existing_user:
+  existing_email = db.session.execute(db.select(User).filter_by(email=email)).scalar_one_or_none()
+  if existing_email:
     return {'error': 'Email already registered.'}
+  # Check if username already exists
+  existing_username = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
+  if existing_username:
+    return {'error': 'Username already taken.'}
+  # Create new user based on email domain
+  user = create_user(email, username, password)
 
-  # Determine role based on email pattern (example: staff if email contains 'staff', else student)
-  role = 'student'
-  if 'staff' in email.lower(): #! Simple heuristic for role assignment, can be replaced with more robust logic
-    role = 'staff'
-
-  # Create user under determined role
-  if role == 'staff':
-    user = Staff(email=email, username=username, password=password)
-  elif Student:
-    user = Student(email=email, username=username, password=password)
-  else: #! Fallback to generic User if Student model is not implemented, to avoid errors, this should be removed in future updates
-    user = User(email=email, username=username, password=password)
-  user.role = role
-  db.session.add(user)
-  db.session.commit()
   return {'success': True, 'user': user.get_json()}
 from App.database import db
 
@@ -37,6 +29,15 @@ def logout():
   # In JWT, logout is typically handled on the client side by discarding the token.
   # Optionally, you can implement token revocation on the server side if needed.
   return {'success': True, 'message': 'Logout successful. Please discard the token on client side.'}
+
+def change_password(email, old_password, new_password):
+  result = db.session.execute(db.select(User).filter_by(email=email))
+  user = result.scalar_one_or_none()
+  if user and user.check_password(old_password):
+    user.set_password(new_password)
+    db.session.commit()
+    return {'success': True, 'message': 'Password changed successfully.'}
+  return {'error': 'Invalid email or old password.'}
 
 def setup_jwt(app):
   jwt = JWTManager(app)
