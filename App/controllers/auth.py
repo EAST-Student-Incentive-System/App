@@ -1,5 +1,6 @@
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager, get_jwt_identity, verify_jwt_in_request
 from App.controllers.user import User, create_user
+from App.database import db
 
 from App.models import User, Staff, Student #! Student should be added in a future update
 def signUp(email, username, password):
@@ -14,8 +15,7 @@ def signUp(email, username, password):
   # Create new user based on email domain
   user = create_user(email, username, password)
 
-  return {'success': True, 'user': user.get_json()}
-from App.database import db
+  return {'success': True, 'user': user.get_json()
 
 def login(username, password): # Login function that returns JWT token upon successful authentication and the role
   result = db.session.execute(db.select(User).filter_by(username=username))
