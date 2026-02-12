@@ -4,7 +4,7 @@ from .attendance import Attendance
 from .redeemed_reward import RedeemedReward
 from .student_badge import StudentBadge
 from App.models.reward import Reward
-
+from App.models.associations import student_event
 
 class Student(User):
     __tablename__ = 'student'
@@ -17,7 +17,7 @@ class Student(User):
     attendances = db.relationship('Attendance', back_populates='student', cascade="all, delete-orphan")
     redeemed_rewards = db.relationship('Reward', secondary=RedeemedReward.__table__, backref='redeeming_students')
     badges = db.relationship('Badge', secondary=StudentBadge.__table__, backref='students')
-    events = db.relationship('Event', secondary='attendance', back_populates='students')
+    events = db.relationship("Event", secondary=student_event, back_populates="students")
 
     __mapper_args__ = {
         'polymorphic_identity': 'student',
