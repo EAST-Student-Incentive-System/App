@@ -240,6 +240,8 @@ def api_get_user_by_username(username):
 def api_create_user():
     """Create a user (auto-determines role based on email domain)"""
     data = request.json
+    if not data:
+        return jsonify({'error': 'Missing JSON body'}), 400
     try:
         user = create_user(data['email'], data['username'], data['password'])
         return jsonify({'message': f"user {user.username} created as {user.role}", 'user': user.get_json()}), 201
@@ -277,6 +279,8 @@ def api_get_staff(staff_id):
 def api_create_staff():
     """Create a staff member"""
     data = request.json
+    if not data:
+        return jsonify({'error': 'Missing JSON body'}), 400
     try:
         if not data['email'].endswith('@sta.uwi.edu'):
             return jsonify({'error': 'Staff email must end with @sta.uwi.edu'}), 400
@@ -307,6 +311,8 @@ def api_get_student(student_id):
 def api_create_student():
     """Create a student"""
     data = request.json
+    if not data:
+        return jsonify({'error': 'Missing JSON body'}), 400
     try:
         if not data['email'].endswith('@my.uwi.edu'):
             return jsonify({'error': 'Student email must end with @my.uwi.edu'}), 400
