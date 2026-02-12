@@ -2,7 +2,7 @@ from App.database import db
 from datetime import datetime
 from .attendance import Attendance
 from .student import Student
-from App.models.associations import student_event
+from App.models.student_event import student_event
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -1,6 +1,6 @@
 from App.models.event import Event
 from App.models import Attendance, Student, Staff
-from App.models.associations import student_event
+from App.models.student_event import student_event
 from App.database import db
 from datetime import datetime
 import qrcode
