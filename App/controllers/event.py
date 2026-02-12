@@ -1,4 +1,6 @@
-from App.models import Event, Attendance, Student, Staff
+from App.models.event import Event
+from App.models import Attendance, Student, Staff
+from App.models.student_event import student_event
 from App.database import db
 from datetime import datetime
 import qrcode
@@ -63,15 +65,12 @@ def delete_event(event_id):
     return True
 
 # ---------------- Student Event Actions ----------------
-
 def join_event(student_id, event_id):
     student = db.session.get(Student, student_id)
     event = db.session.get(Event, event_id)
     if not student or not event:
         return None
     if student in event.students:
-        return False
-    if event.closed:
         return False
     event.students.append(student)
     db.session.commit()
@@ -107,4 +106,6 @@ def generate_qr_code(event_id):
     qr_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return qr_data  # you can embed this in HTML
 
+
+#needs a scan attendance function that takes the QR data, extracts the event ID, and logs attendance for the student if valid
 
