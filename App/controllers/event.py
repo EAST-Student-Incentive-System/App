@@ -71,7 +71,7 @@ def join_event(student_id, event_id):
         return None
     if student in event.students:
         return False
-    if event.closed:
+    if event.start < datetime.now(): #can't join past events
         return False
     event.students.append(student)
     db.session.commit()
@@ -106,5 +106,14 @@ def generate_qr_code(event_id):
     img.save(buffer, format="PNG")
     qr_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return qr_data  # you can embed this in HTML
+
+def scan_qr_code(student_id, qr_data):
+    if not qr_data.startswith('event:'):
+        return None
+    try:
+        event_id = int(qr_data.split(':')[1])
+    except (IndexError, ValueError):
+        return None
+    return log_attendance(student_id, event_id)
 
 
