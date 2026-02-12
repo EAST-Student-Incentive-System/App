@@ -254,9 +254,13 @@ def api_create_user():
 def api_update_user(user_id):
     """Update user"""
     data = request.json
+    if not data:
+        return jsonify({'error': 'Missing JSON body'}), 400
     success = update_user(user_id, data.get('username'))
     if success:
         user = get_user(user_id)
+        if not user:
+            return jsonify({'error': 'User not found after update'}), 404
         return jsonify({'message': 'User updated', 'user': user.get_json()})
     return jsonify({'error': 'User not found'}), 404
 
@@ -332,6 +336,8 @@ def api_add_student_points(student_id):
         return jsonify({'error': 'Student not found'}), 404
     
     data = request.json
+    if not data:
+        return jsonify({'error': 'Missing JSON body'}), 400
     amount = data.get('amount')
     if not amount or amount <= 0:
         return jsonify({'error': 'Invalid amount'}), 400
@@ -348,6 +354,8 @@ def api_redeem_student_points(student_id):
         return jsonify({'error': 'Student not found'}), 404
     
     data = request.json
+    if not data:
+        return jsonify({'error': 'Missing JSON body'}), 400
     amount = data.get('amount')
     if not amount or amount <= 0:
         return jsonify({'error': 'Invalid amount'}), 400
