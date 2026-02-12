@@ -134,7 +134,7 @@ def delete_event_command(event_id):
 def list_events_command():
     events = event.view_all_events()
     for evt in events:
-        print(evt)
+        print(f'event {evt.id}: {evt.name} ({evt.type}) from {evt.start} to {evt.end}')
 
 @app.cli.command("list_upcoming_events", help="Lists upcoming events")
 def list_upcoming_events_command():
@@ -173,12 +173,12 @@ def log_attendance_command(student_id, event_id):
 def generate_qr_command(event_id):
     qr_code = event.generate_qr_code(event_id)
     if qr_code:
-        print(f'QR code generated for event {event_id}!')
+        print(f'QR code generated for event {event_id}!: {qr_code}')
     else:
         print(f'Failed to generate QR code for event {event_id}. Check if event exists.')
 
 
-@app.cli.command("scan_qr", help="Scans a QR code for an event and logs attendance")
+"""@app.cli.command("scan_qr", help="Scans a QR code for an event and logs attendance")
 @click.argument("student_id", type=int)
 @click.argument("qr_data")
 def scan_qr_command(student_id, qr_data):
@@ -186,5 +186,10 @@ def scan_qr_command(student_id, qr_data):
         print(f'QR code scanned and attendance logged for student {student_id}!')
     else:
         print(f'Failed to scan QR code. Check if student exists and QR data is valid.')
+""" # will implement later when QR code scanning is set up on the frontend
 
-
+@app.cli.command("list_student", help="Lists all students in database ")
+def list_students_command():
+    students = User.query.filter_by(role='student').all()
+    for student in students:
+        print(f'Student {student.id}: {student.username} - {student.email}')
