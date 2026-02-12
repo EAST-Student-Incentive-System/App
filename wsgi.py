@@ -6,11 +6,13 @@ from App.models import User
 from App.main import create_app
 from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize )
 from datetime import datetime
+from App.views.event import event_views
 
 
 # This commands file allow you to create convenient CLI commands for testing controllers
 
 app = create_app()
+app.register_blueprint(event_views)
 migrate = get_migrate(app)
 
 # This command creates and initializes the database
@@ -188,8 +190,3 @@ def scan_qr_command(student_id, qr_data):
         print(f'Failed to scan QR code. Check if student exists and QR data is valid.')
 """ # will implement later when QR code scanning is set up on the frontend
 
-@app.cli.command("list_student", help="Lists all students in database ")
-def list_students_command():
-    students = User.query.filter_by(role='student').all()
-    for student in students:
-        print(f'Student {student.id}: {student.username} - {student.email}')
