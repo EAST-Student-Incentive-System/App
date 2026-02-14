@@ -1,6 +1,7 @@
 from App.models import Badge
 from App.models import Student
 from App.database import db
+from sqlalchemy.exc import IntegrityError
 
 # Controller function to award a badge to a student
 def awardBadge(student_id, badge_id):
@@ -30,6 +31,10 @@ def viewStudentBadges(student_id):
 # Controller function to create a new badge
 def createBadge(name, description, points_required):
     new_badge = Badge(name=name, description=description, points_required=points_required)
-    db.session.add(new_badge)
-    db.session.commit()
-    return new_badge
+    try:
+        db.session.add(new_badge)
+        db.session.commit()
+        return new_badge
+    except IntegrityError as e:
+        db.session.rollback()
+        return None
