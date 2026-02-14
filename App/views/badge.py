@@ -40,3 +40,9 @@ def award_badge_route():
 def view_badges_route():
     badges = badge.viewBadges()
     return jsonify([badge.get_json() for badge in badges]), 200
+
+@badge_views.route("badges/student/<int:student_id>", methods=["GET"])
+@jwt_required()
+def view_student_badges_route(student_id):
+    badges = badge.viewStudentBadges(student_id)
+    return jsonify([badge.get_json() for badge in badges]), 200
