@@ -5,7 +5,7 @@ from App.database import db, get_migrate
 from App.models import User, Badge
 from App.main import create_app
 from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, createBadge, awardBadge,
-                              viewStudentBadges)
+                              viewStudentBadges, viewBadges)
 from datetime import datetime
 from App.views.event import event_views
 
@@ -219,4 +219,10 @@ def award_badge_command(student_id, badge_id):
         print(f'Failed to award {badge_id} to student {student_id}. Student may not meet requirements or badge may already be awarded.')
 
 app.cli.add_command(badge_cli)
+
+@badge_cli.command("view_all", help='View all badges in the system')
+def view_badges_command():
+    badges = viewBadges()
+    for badge in badges:
+        print(badge)
 
