@@ -1,5 +1,5 @@
 from App.models import Badge
-from App.models import Student
+from App.models import Student, StudentBadge
 from App.database import db
 from sqlalchemy.exc import IntegrityError
 
@@ -10,8 +10,9 @@ def awardBadge(student_id, badge_id):
 
     if badge and student:
         if badge.points_required <= student.total_points:
-            if badge not in student.badges:
-                student.badges.append(badge)
+            if badge not in student.student_badges:
+                link = StudentBadge(user_id=student_id, badge_id=badge_id)
+                db.session.add(link)
                 db.session.commit()
                 return True
     return False
@@ -25,7 +26,7 @@ def viewBadges():
 def viewStudentBadges(student_id):
     student = Student.query.get(student_id)
     if student:
-        return [badge.get_json() for badge in student.badges]
+        return student.student_badges
     return []
 
 # Controller function to create a new badge

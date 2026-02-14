@@ -1,10 +1,11 @@
 import click, pytest, sys
 from flask.cli import with_appcontext, AppGroup
-from App.controllers import event, badge
+from App.controllers import event, badge, Student
 from App.database import db, get_migrate
 from App.models import User, Badge
 from App.main import create_app
-from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, createBadge )
+from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, createBadge, awardBadge,
+                              viewStudentBadges)
 from datetime import datetime
 from App.views.event import event_views
 
@@ -207,7 +208,15 @@ def create_user_command(name, description, points_required):
     else:
         print(f'Failed to create badge. A badge with the name "{name}" already exists.')
 
+@badge_cli.command("award", help="Awards a badge to a student")
+@click.argument("student_id", type=int)
+@click.argument("badge_id", type=int)
+def award_badge_command(student_id, badge_id):
+    awarded = awardBadge(student_id, badge_id)
+    if awarded:
+        print(f'Badge {badge_id} awarded to student {student_id}!')
+    else:
+        print(f'Failed to award {badge_id} to student {student_id}. Student may not meet requirements or badge may already be awarded.')
+
 app.cli.add_command(badge_cli)
-
-
 
