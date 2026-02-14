@@ -226,3 +226,14 @@ def view_badges_command():
     for badge in badges:
         print(badge)
 
+@badge_cli.command("view_student", help="View badges earned by a student")
+@click.argument("student_id", type=int)
+def view_student_badges_command(student_id):
+    badges = viewStudentBadges(student_id)
+    if badges:                      
+        print(f'Badges earned by student {student_id}:')
+        for badge in badges:
+            print(badge)
+    else:
+        print(f'Student {student_id} has not earned any badges or does not exist.')
+
