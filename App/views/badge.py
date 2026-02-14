@@ -16,6 +16,21 @@ def create_badge_route():
         description=data["description"],
         points_required=data["points_required"]
     )
-    if new_badge is None:
-        return jsonify({"error": "Badge with this name already exists"}), 400
-    return jsonify(new_badge.get_json()), 201
+    if new_badge is not None:
+        return jsonify(new_badge.get_json()), 201
+    return jsonify({"error": "Badge with this name already exists"}), 400
+    
+
+@badge_views.route("/badges/award", methods=["POST"])
+@jwt_required()
+def award_badge_route():
+    data = request.json
+    student_id = get_jwt_identity()
+    badge_id = int(data["badge_id"])
+    success = badge.awardBadge(
+        student_id=student_id,
+        badge_id=badge_id
+    )
+    if success:
+        return jsonify({"message": "Badge awarded successfully"}), 200
+    return jsonify({"error": "Failed to award badge"}), 400
