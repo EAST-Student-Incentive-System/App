@@ -1,10 +1,10 @@
 import click, pytest, sys
 from flask.cli import with_appcontext, AppGroup
-from App.controllers import event
+from App.controllers import event, badge
 from App.database import db, get_migrate
-from App.models import User
+from App.models import User, Badge
 from App.main import create_app
-from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize )
+from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, createBadge )
 from datetime import datetime
 from App.views.event import event_views
 
@@ -189,4 +189,25 @@ def scan_qr_command(student_id, qr_data):
     else:
         print(f'Failed to scan QR code. Check if student exists and QR data is valid.')
 """ # will implement later when QR code scanning is set up on the frontend
+
+'''
+Badge Commands
+'''
+
+badge_cli = AppGroup('badge', help='Badge object commands') 
+
+@badge_cli.command("create", help="Creates a badge")
+@click.argument("name")
+@click.argument("description")
+@click.argument("points_required", type=int)
+def create_user_command(name, description, points_required):
+    badge = createBadge(name, description, points_required)
+    if badge is not None:
+        print(f'Badge {badge.name} created!')
+    else:
+        print(f'Failed to create badge. A badge with the name "{name}" already exists.')
+
+app.cli.add_command(badge_cli)
+
+
 
