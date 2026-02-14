@@ -34,3 +34,9 @@ def award_badge_route():
     if success:
         return jsonify({"message": "Badge awarded successfully"}), 200
     return jsonify({"error": "Failed to award badge"}), 400
+
+@badge_views.route("/badges", methods=["GET"])
+@jwt_required()
+def view_badges_route():
+    badges = badge.viewBadges()
+    return jsonify([badge.get_json() for badge in badges]), 200
