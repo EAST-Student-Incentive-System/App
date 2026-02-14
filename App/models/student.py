@@ -1,6 +1,5 @@
 from App.database import db
 from .user import User
-from .attendance import Attendance
 from .redeemed_reward import RedeemedReward
 from .student_badge import StudentBadge
 from App.models.reward import Reward
@@ -8,7 +7,7 @@ from App.models.reward import Reward
 
 class Student(User):
     __tablename__ = 'student'
-
+    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     
     total_points = db.Column(db.Integer, default=0, nullable=False)
     redeemed_points = db.Column(db.Integer, default=0, nullable=False)

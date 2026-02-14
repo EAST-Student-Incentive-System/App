@@ -7,7 +7,6 @@ from App.models import User, Student, Staff
 from App.main import create_app
 from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize,
                               get_user, get_user_by_username, update_user, view_profile )
-from App.views.auth import auth_views
 
 
 # This commands file allow you to create convenient CLI commands for testing controllers
@@ -207,8 +206,6 @@ def subtract_points_command(student_id, amount):
         print(f"Student with ID {student_id} not found")
 
 app.cli.add_command(student_cli)
-
-app.register_blueprint(auth_views)
 
 '''
 Test Commands
