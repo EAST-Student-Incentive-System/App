@@ -26,3 +26,10 @@ def viewStudentBadges(student_id):
     if student:
         return [badge.get_json() for badge in student.badges]
     return []
+
+# Controller function to create a new badge
+def createBadge(name, description, points_required):
+    new_badge = Badge(name=name, description=description, points_required=points_required)
+    db.session.add(new_badge)
+    db.session.commit()
+    return new_badge
