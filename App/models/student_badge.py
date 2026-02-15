@@ -19,4 +19,4 @@ class StudentBadge(db.Model):
         }
 
     def __repr__(self):
-        return f'<StudentBadge Student:{self.student_id} Badge:{self.badge_id}>'
+        return f'<StudentBadge Student:{self.student.id} Badge:{self.badge.id}>'
