@@ -18,7 +18,7 @@ class Badge(db.Model):
         }
 
     def __repr__(self):
-        return f'<Badge {self.name}>'
+        return f'<Badge {self.id}: {self.name} - {self.description} (Points Required: {self.points_required}>'
     
     def meets_requirements(self, student):
         return student.points >= self.points_required

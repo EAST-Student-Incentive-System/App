@@ -1,10 +1,12 @@
 import click, pytest, sys
 from flask.cli import with_appcontext, AppGroup
-from App.controllers import event
+from App.controllers import event, badge, Student
 from App.database import db, get_migrate
-from App.models import User
+from App.models import User, Badge
 from App.main import create_app
 from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, viewProgress, viewLeaderBoard )
+from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, createBadge, awardBadge,
+                              viewStudentBadges, viewBadges)
 from datetime import datetime
 from App.views.event import event_views
 
@@ -210,3 +212,49 @@ def view_leaderboard_command():
         print(f"Rank {entry['rank']}: {entry['username']} - Total Points: {entry['total_points']}")
 
 app.cli.add_command(progress_cli)
+'''
+Badge Commands
+'''
+
+badge_cli = AppGroup('badge', help='Badge object commands') 
+
+@badge_cli.command("create", help="Creates a badge")
+@click.argument("name")
+@click.argument("description")
+@click.argument("points_required", type=int)
+def create_user_command(name, description, points_required):
+    badge = createBadge(name, description, points_required)
+    if badge is not None:
+        print(f'Badge {badge.name} created!')
+    else:
+        print(f'Failed to create badge. A badge with the name "{name}" already exists.')
+
+@badge_cli.command("award", help="Awards a badge to a student")
+@click.argument("student_id", type=int)
+@click.argument("badge_id", type=int)
+def award_badge_command(student_id, badge_id):
+    awarded = awardBadge(student_id, badge_id)
+    if awarded:
+        print(f'Badge {badge_id} awarded to student {student_id}!')
+    else:
+        print(f'Failed to award {badge_id} to student {student_id}. Student may not meet requirements or badge may already be awarded.')
+
+app.cli.add_command(badge_cli)
+
+@badge_cli.command("view_all", help='View all badges in the system')
+def view_badges_command():
+    badges = viewBadges()
+    for badge in badges:
+        print(badge)
+
+@badge_cli.command("view_student", help="View badges earned by a student")
+@click.argument("student_id", type=int)
+def view_student_badges_command(student_id):
+    badges = viewStudentBadges(student_id)
+    if badges:                      
+        print(f'Badges earned by student {student_id}:')
+        for badge in badges:
+            print(badge)
+    else:
+        print(f'Student {student_id} has not earned any badges or does not exist.')
+
