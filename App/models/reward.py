@@ -8,7 +8,7 @@ class Reward(db.Model):
     description = db.Column(db.String(300), nullable=True)
     pointCost = db.Column(db.Integer, nullable=False)
     active = db.Column(db.Boolean, default=True)
-    students = db.relationship('Student', secondary=RedeemedReward.__table__, backref=db.backref('rewards', lazy=True))
+    students = db.relationship('Student', secondary=RedeemedReward.__table__, back_populates='redeemed_rewards')
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     creator = db.relationship('User', backref=db.backref('created_rewards', lazy=True))
 
