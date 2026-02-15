@@ -2,9 +2,9 @@ import click, pytest, sys
 from flask.cli import with_appcontext, AppGroup
 from App.controllers import event
 from App.database import db, get_migrate
-from App.models import User
+from App.models import User, Student
 from App.main import create_app
-from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, viewProgress )
+from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, viewProgress, viewLeaderBoard )
 from datetime import datetime
 from App.views.event import event_views
 
@@ -201,5 +201,12 @@ def view_progress_command(student_id):
         print(f'Student {student_id} - Total Points: {total_points}, Current Balance: {current_balance}')
     else:
         print(f'Student {student_id} not found.')
+
+@progress_cli.command("leaderboard", help="View Leaderboard")
+def view_leaderboard_command(): 
+    leaderboard = viewLeaderBoard()
+    print("Leaderboard:")
+    for entry in leaderboard:
+        print(f"Rank {entry['rank']}: {entry['username']} - Total Points: {entry['total_points']}")
 
 app.cli.add_command(progress_cli)

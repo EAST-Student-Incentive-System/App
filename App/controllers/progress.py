@@ -14,7 +14,6 @@ def viewLeaderBoard():
     for student in students:
         leaderboard.append({
             'rank': rank,
-            'student_id': student.id,
             'username': student.username,
             'total_points': student.total_points
         })
