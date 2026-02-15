@@ -8,6 +8,9 @@ class StudentBadge(db.Model):
     badge_id = db.Column(db.Integer, db.ForeignKey('badge.id'), nullable=False)
     earned_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
+    student = db.relationship('Student', back_populates='student_badges')
+    badge = db.relationship('Badge', back_populates='student_badges')
+
     def get_json(self):
         return {
             'id': self.id,
@@ -16,4 +19,4 @@ class StudentBadge(db.Model):
         }
 
     def __repr__(self):
-        return f'<StudentBadge Student:{self.student_id} Badge:{self.badge_id}>'
+        return f'<StudentBadge Student:{self.student.id} Badge:{self.badge.id}>'
