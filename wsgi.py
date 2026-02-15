@@ -4,6 +4,7 @@ from App.controllers import event, badge, Student
 from App.database import db, get_migrate
 from App.models import User, Badge
 from App.main import create_app
+from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, viewProgress, viewLeaderBoard )
 from App.controllers import ( create_user, get_all_users_json, get_all_users, initialize, createBadge, awardBadge,
                               viewStudentBadges, viewBadges)
 from datetime import datetime
@@ -191,6 +192,26 @@ def scan_qr_command(student_id, qr_data):
         print(f'Failed to scan QR code. Check if student exists and QR data is valid.')
 """ # will implement later when QR code scanning is set up on the frontend
 
+progress_cli = AppGroup('progress', help='Progress controller commands') 
+
+@progress_cli.command("view", help="View progress for a student")
+@click.argument("student_id", type=int)
+def view_progress_command(student_id):
+    progress = viewProgress(student_id)
+    if progress:
+        total_points, current_balance = progress
+        print(f'Student {student_id} - Total Points: {total_points}, Current Balance: {current_balance}')
+    else:
+        print(f'Student {student_id} not found.')
+
+@progress_cli.command("leaderboard", help="View Leaderboard")
+def view_leaderboard_command(): 
+    leaderboard = viewLeaderBoard()
+    print("Leaderboard:")
+    for entry in leaderboard:
+        print(f"Rank {entry['rank']}: {entry['username']} - Total Points: {entry['total_points']}")
+
+app.cli.add_command(progress_cli)
 '''
 Badge Commands
 '''
