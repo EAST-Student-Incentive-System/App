@@ -1,6 +1,5 @@
 from App.database import db
 from .user import User
-from .attendance import Attendance
 from .redeemed_reward import RedeemedReward
 from .student_badge import StudentBadge
 from App.models.reward import Reward
