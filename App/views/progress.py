@@ -14,5 +14,11 @@ def view_progress_route(student_id):
         return jsonify({"Total Points": total_points, "Current Balance": current_balance}), 200
     else:
         return jsonify({"error": "Student not found"}), 404
+    
+@progress_views.route("/progress/leaderboard", methods=["GET"])
+@jwt_required()
+def view_leaderboard_route():
+    leaderboard = progress.viewLeaderBoard()
+    return jsonify(leaderboard), 200
 
 
