@@ -1,4 +1,6 @@
-from App.models import Event, Attendance, Student, Staff
+from App.models.event import Event
+from App.models import Attendance, Student, Staff
+from App.models.student_event import student_event
 from App.database import db
 from datetime import datetime
 import qrcode
@@ -34,15 +36,23 @@ def create_event(staff_id, name, type, description, start, end):
     db.session.commit()
     return new_event.get_json()
 
-def update_event(event_id, name=None, type=None, description=None, start=None, end=None):
+def update_event(event_id, **kwargs):
     event = db.session.get(Event, event_id)
     if not event:
         return None
-    event.name = name if name else event.name
-    event.type = type if type else event.type
-    event.description = description if description else event.description
-    event.start = start if start else event.start
-    event.end = end if end else event.end
+
+    allowed_fields = {
+        'name': 'name',
+        'type': 'type',
+        'description': 'description',
+        'start': 'start',
+        'end': 'end'
+    }
+
+    for key, value in kwargs.items():
+        if key in allowed_fields and value is not None:
+            setattr(event, allowed_fields[key], value)
+
     db.session.commit()
     return event.get_json()
 
@@ -55,15 +65,12 @@ def delete_event(event_id):
     return True
 
 # ---------------- Student Event Actions ----------------
-
 def join_event(student_id, event_id):
     student = db.session.get(Student, student_id)
     event = db.session.get(Event, event_id)
     if not student or not event:
         return None
     if student in event.students:
-        return False
-    if event.closed:
         return False
     event.students.append(student)
     db.session.commit()
@@ -78,6 +85,7 @@ def log_attendance(student_id, event_id):
         return False
     if not event.isWithintTimeFrame():
         return False
+    student.add_points(event.calculate_point_value())
     attendance = Attendance(student_id=student_id, event_id=event_id)
     db.session.add(attendance)
     db.session.commit()
@@ -98,4 +106,6 @@ def generate_qr_code(event_id):
     qr_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
     return qr_data  # you can embed this in HTML
 
+
+#needs a scan attendance function that takes the QR data, extracts the event ID, and logs attendance for the student if valid
 
