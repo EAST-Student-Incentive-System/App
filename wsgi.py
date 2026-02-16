@@ -66,3 +66,30 @@ def user_tests_command(type):
     
 
 app.cli.add_command(test)
+
+
+@app.cli.command('create-db', help='Create all database tables')
+def create_db_command():
+    from App.database import create_db
+    create_db()
+    print('database created')
+
+
+@app.cli.command('drop-db', help='Drop all database tables')
+def drop_db_command():
+    db.drop_all()
+    print('database dropped')
+
+
+@app.cli.command('seed', help='Seed the database with initial data')
+def seed_command():
+    initialize()
+    print('database seeded')
+
+
+@app.cli.command('runserver', help='Run development server')
+@click.option('--host', default='127.0.0.1', help='Host to listen on')
+@click.option('--port', default=5000, type=int, help='Port to listen on')
+@click.option('--debug/--no-debug', default=False, help='Enable debug mode')
+def runserver(host, port, debug):
+    app.run(host=host, port=port, debug=debug)
