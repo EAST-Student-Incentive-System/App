@@ -3,13 +3,15 @@ from datetime import datetime
 
 class Attendance(db.Model):
     __tablename__ ='attendance'
-    
-    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), primary_key=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), primary_key=True)
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.now)
 
-    student = db.relationship("Student", back_populates="attendances")
-    event = db.relationship("Event", back_populates="attendances")
+    student = db.relationship('Student', back_populates='attendances')
+    event = db.relationship('Event', back_populates='attendances')
+
 
     def get_json(self):
         return {
