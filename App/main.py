@@ -37,5 +37,4 @@ def create_app(overrides={}):
     @jwt.unauthorized_loader
     def custom_unauthorized_response(error):
         return render_template('401.html', error=error), 401
-    app.app_context().push()
     return app
