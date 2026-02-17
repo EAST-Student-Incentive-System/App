@@ -59,13 +59,13 @@ def update_reward(reward_id, **kwargs):
     return reward
 
 
-"""def delete_reward(reward_id):
+def delete_reward(reward_id):
     reward = db.session.get(Reward, reward_id)
     if not reward:
         return False
     db.session.delete(reward)
     db.session.commit()
-    return True"""    # commented out delete since we are just toggling active status instead of deleting records
+    return True   # commented out delete since we are just toggling active status instead of deleting records
 
 
 def toggle_reward(reward_id):
