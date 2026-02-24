@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Sign Up</title>
+    </head>
+    <body>
+        <nav>
+            <div>Merit</div>
+            <div>
+            <a href="#">Events</a>
+            <a href="#">Rewards</a>
+            <a href="#">Profile</a>
+            </div>
+        </nav>
+        <div>
+            <h1>Create an account</h1>
+            <p>Already have an account? <a href="/login">Login</a> </p>
+            <form action="/signup" method="post">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+                
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+                
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+                
+                <button type="submit">Sign up</button>
+            </form>
+        </div>
+    </body>
+</html>
