@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create / Edit Event</title>
+  <style>
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: 'Roboto', 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    /* Navigation bar */
+    nav {
+      background-color: #9b30ff;
+      padding: 0.75rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav a {
+      color: #ffffff;
+      text-decoration: none;
+      margin: 0 1rem;
+      font-weight: 500;
+    }
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    /* Form container */
+    .form-container {
+      display: flex;
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      position: relative;
+    }
+
+    /*image + description */
+    .left-column {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .image-preview {
+      background-color: #eaeaea;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      color: #668;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .left-column textarea {
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      width: 100%;
+      min-height: 100px;
+    }
+
+    /* form */
+    .form-fields {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .form-fields label {
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    .form-fields input {
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+
+    /* Action buttons */
+    .actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .actions .save-btn {
+      background-color: #9b30ff;
+      color: #ffffff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .actions .delete-btn {
+      background-color: #d3d3d3;
+      color: #000000;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .actions .delete-btn:hover {
+      background-color: #bfbfbf;
+    }
+
+    /* Participants count */
+    .participants-count {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      font-size: 0.9rem;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <!-- Nav bar -->
+  <nav>
+    <div class="logo">Merit</div>
+    <div class="links">
+      <a href="#">Events</a>
+      <a href="#">Rewards</a>
+      <a href="#">Profile</a>
+    </div>
+  </nav>
+
+  <div style="max-width: 1000px; margin: 1rem auto; padding: 0 1rem;">
+    <h1 style="margin-bottom: 0.5rem;">Edit Event</h1>
+    <p style="color: #668;">Fill in the details below to create a new event or edit an existing one.</p>
+
+  <div class="form-container">
+    <!-- Left column -->
+    <div class="left-column">
+      <div class="image-preview" onclick="document.getElementById('eventImage').click()">
+        <span>Click to upload image</span>
+        <input type="file" id="eventImage" name="image" accept="image/*" style="display:none;">
+      </div>
+
+      <label for="description">Description:</label>
+      <textarea id="description" name="description"></textarea>
+    </div>
+
+    <!-- Right column -->
+    <form id="eventForm" class="form-fields" method="post" action="/events">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required>
+
+      <label for="start">Start Date/Time:</label>
+      <input type="datetime-local" id="start" name="start" required>
+
+      <label for="end">End Date/Time:</label>
+      <input type="datetime-local" id="end" name="end" required>
+
+      <label for="location">Location:</label>
+      <input type="text" id="location" name="location">
+
+      <label for="type">Type:</label>
+      <input type="text" id="type" name="type">
+
+      <div class="actions">
+        <button type="submit" class="save-btn">Save changes</button>
+        <button type="button" class="delete-btn" onclick="deleteEvent()">🗑 Delete</button>
+      </div>
+    </form>
+
+    <!-- Participants count -->
+    <div class="participants-count" id="participantsCount">
+      Number of participants registered: 0
+    </div>
+  </div>
+
+  <script>
+    // Preview uploaded image
+    const fileInput = document.getElementById('eventImage');
+    const previewBox = document.querySelector('.image-preview');
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          previewBox.innerHTML = `<img src="${e.target.result}" style="max-width:100%; max-height:100%; border-radius:4px;">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Delete event
+    function deleteEvent() {
+      const eventId = prompt("Enter event ID to delete:");
+      if (eventId && confirm("Are you sure you want to delete this event?")) {
+        fetch(`/events/${eventId}`, { method: 'DELETE' })
+          .then(res => res.json())
+          .then(data => alert(data.message || "Deleted"))
+          .catch(err => alert("Error deleting event"));
+      }
+    }
+
+    // Unsaved changes warning
+    let isDirty = false;
+    document.querySelectorAll('#eventForm input, #eventForm textarea').forEach(el => {
+      el.addEventListener('input', () => isDirty = true);
+    });
+    window.addEventListener('beforeunload', function (e) {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    // Participants count setter
+    function setParticipantsCount(count) {
+      document.getElementById('participantsCount').textContent =
+        `Number of participants registered: ${count}`;
+    }
+
+    // Redirect after save 
+    document.getElementById('eventForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // TODO: send data to backend via fetch
+      alert("Event saved!");
+      // window.location.href = "staff_event.html"; // uncomment when page exists
+    });
+
+    // Set form mode: create/edit
+    function setFormMode(eventId, participantCount) {
+      const form = document.getElementById('eventForm');
+      if (eventId) {
+        form.action = `/events/${eventId}`;
+        form.dataset.method = 'PUT';
+        setParticipantsCount(participantCount);
+      } else {
+        form.action = '/events';
+        form.dataset.method = 'POST';
+        setParticipantsCount(0);
+      }
+    }
+  </script>
+</body>
+</html>
