@@ -2,32 +2,148 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
         <title>Sign Up</title>
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                font-family: 'Roboto', 'Segoe UI', sans-serif;
+                background-color: #f4f6fb;
+                color: #333;
+
+                height: 100dvh;              /* dynamic viewport height */
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* Navbar */
+            nav {
+                background-color: #9b30ff;
+                padding: 0.8rem 5%;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+
+            .logo {
+                color: white;
+                font-weight: bold;
+                font-size: 1.1rem;
+            }
+
+            .links {
+                display: flex;
+                gap: 0.8rem;
+                flex-wrap: wrap;
+            }
+
+            nav a {
+                color: white;
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+
+            /* Center container */
+            .page {
+                flex: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 0.8rem;
+            }
+
+            /* Card */
+            .card {
+                width: 100%;
+                max-width: 380px;     /* slightly smaller for phones */
+                background: white;
+                padding: 1.5rem;      /* reduced padding */
+                border-radius: 12px;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+            }
+
+            /* Typography */
+            h1 {
+                margin: 0 0 0.4rem 0;
+                font-size: 1.4rem;
+            }
+
+            p {
+                margin-bottom: 1rem;
+                font-size: 0.85rem;
+            }
+
+            p a {
+                color: #9b30ff;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+            /* Form */
+            form {
+                display: flex;
+                flex-direction: column;
+            }
+
+            label {
+                margin-bottom: 0.3rem;
+                font-size: 0.85rem;
+                font-weight: 500;
+            }
+
+            input {
+                padding: 0.6rem;
+                margin-bottom: 0.9rem;  /* reduced spacing */
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                font-size: 0.9rem;
+            }
+
+            input:focus {
+                outline: none;
+                border-color: #9b30ff;
+                box-shadow: 0 0 0 2px rgba(155, 48, 255, 0.15);
+            }
+
+            button {
+                padding: 0.7rem;
+                background-color: #9b30ff;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 0.95rem;
+                cursor: pointer;
+            }
+        </style>
     </head>
     <body>
+        <!-- Nav bar -->
         <nav>
-            <div>Merit</div>
-            <div>
-            <a href="#">Events</a>
-            <a href="#">Rewards</a>
-            <a href="#">Profile</a>
-            </div>
+            <div class="logo">Merit</div>
         </nav>
-        <div>
-            <h1>Create an account</h1>
-            <p>Already have an account? <a href="/login">Login</a> </p>
-            <form action="/signup" method="post">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
-                
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-                
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-                
-                <button type="submit">Sign up</button>
-            </form>
+
+        <div class="page">
+            <div class="card">
+                <h1>Create an account</h1>
+                <p>Already have an account? <a href="/login">Login</a> </p>
+                <form action="/signup" method="post">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                    
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                    
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                    
+                    <button type="submit">Sign up</button>
+                </form>
+            </div>
         </div>
     </body>
 </html>
