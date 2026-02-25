@@ -23,7 +23,21 @@ Page/Action Routes
 @jwt_required()
 def identify_page():
     return render_template('message.html', title="Identify", message=f"You are logged in as {current_user.id} - {current_user.username}")
-    
+
+@auth_views.route('/signup', methods=['GET', 'POST'])
+def signup_page():
+    if request.method == 'POST':
+        data = request.form
+        try:
+            user = create_user(data['email'], data['username'], data['password'])
+            flash(f"Account created for {user.username} as {user.role}")
+            return redirect(url_for('index_views.index_page'))
+        except ValueError as e:
+            flash(str(e))
+        except Exception as e:
+            flash("Error creating account: " + str(e))
+    return render_template('signup.html', title="Sign Up")
+
 
 @auth_views.route('/login', methods=['POST'])
 def login_action():

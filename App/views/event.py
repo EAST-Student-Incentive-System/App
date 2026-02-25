@@ -49,10 +49,17 @@ def view_upcoming_events_route():
     events = event.view_upcoming_events()
     return jsonify([e.get_json() for e in events]), 200
 
-@event_views.route("/events", methods=["GET"])
+@event_views.route("/events/student", methods=["GET"])
 @jwt_required()
 def view_all_events_route():
     events = event.view_all_events()
+    return jsonify([e.get_json() for e in events]), 200
+
+@event_views.route("/events/staff", methods=["GET"])
+@jwt_required()
+def get_staff_events_route():
+    staff_id = get_jwt_identity()
+    events = event.view_event_history(staff_id=staff_id)
     return jsonify([e.get_json() for e in events]), 200
 
 # ---------------- Student Event Actions ----------------
