@@ -91,7 +91,7 @@
         <div class="flex gap-4 mt-4">
           <button type="submit" class="btn btn-primary">Save changes</button>
           {% if event %}
-          <button type="button" class="btn btn-secondary" onclick="deleteEvent({{ event.id }})">🗑 Delete</button>
+          <button type="button" class="btn btn-error" onclick="deleteEvent({{ event.id }})">Delete</button>
           {% endif %}
         </div>
       </div>
