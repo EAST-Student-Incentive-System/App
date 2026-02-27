@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+        <title>Sign Up</title>
+        <!-- Tailwind + DaisyUI -->
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+        <style>
+            /* Override DaisyUI primary to match brand purple */
+            :root {
+                --p: 271 100% 60%;
+                --pf: 271 100% 50%;
+                --pc: 0 0% 100%;
+            }
+
+            html, body {
+                height: 100%;
+            }
+        </style>
+    </head>
+    <body data-theme="light" class="bg-base-200 flex flex-col min-h-screen">
+
+        <!-- Navbar -->
+        <nav class="navbar px-6 shadow-sm" style="background-color:#9b30ff;">
+            <div class="flex-1">
+                <a class="text-xl font-bold text-white">Merit</a>
+            </div>
+        </nav>
+
+        <!-- Centered page content -->
+        <div class="flex flex-1 items-center justify-center p-4">
+            <div class="card bg-base-100 w-full max-w-sm shadow-lg p-6">
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <span style="color: red;">{{ message }}</span>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
+
+                <h1 class="text-2xl font-bold mb-1">Create an account</h1>
+                <p class="text-sm mb-4">
+                    Already have an account?
+                    <a href="/login" class="font-medium" style="color:#9b30ff;">Login</a>
+                </p>
+
+                <form action="/signup" method="post" class="flex flex-col gap-3">
+
+                    <div class="form-control">
+                        <label class="label py-0" for="username">
+                            <span class="label-text font-medium">Username</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            required
+                            class="input input-bordered input-sm focus:outline-none"
+                            style="--tw-ring-color: rgba(155,48,255,0.15);"
+                            onfocus="this.style.borderColor='#9b30ff'; this.style.boxShadow='0 0 0 2px rgba(155,48,255,0.15)'"
+                            onblur="this.style.borderColor=''; this.style.boxShadow=''"
+                        >
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label py-0" for="email">
+                            <span class="label-text font-medium">Email</span>
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            required
+                            class="input input-bordered input-sm focus:outline-none"
+                            onfocus="this.style.borderColor='#9b30ff'; this.style.boxShadow='0 0 0 2px rgba(155,48,255,0.15)'"
+                            onblur="this.style.borderColor=''; this.style.boxShadow=''"
+                        >
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label py-0" for="password">
+                            <span class="label-text font-medium">Password</span>
+                        </label>
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            required
+                            class="input input-bordered input-sm focus:outline-none"
+                            onfocus="this.style.borderColor='#9b30ff'; this.style.boxShadow='0 0 0 2px rgba(155,48,255,0.15)'"
+                            onblur="this.style.borderColor=''; this.style.boxShadow=''"
+                        >
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn mt-1 text-white border-none"
+                        style="background-color:#9b30ff;"
+                        onmouseover="this.style.backgroundColor='#8020ee'"
+                        onmouseout="this.style.backgroundColor='#9b30ff'"
+                    >
+                        Sign up
+                    </button>
+
+                </form>
+            </div>
+        </div>
+
+    </body>
+</html>
