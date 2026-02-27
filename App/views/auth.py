@@ -4,6 +4,8 @@ from flask_jwt_extended import jwt_required, current_user, unset_jwt_cookies, se
 from App.database import db
 from App.models import Student, Staff
 from.index import index_views
+from App.controllers.auth import (
+    signUp, login, logout, change_password, setup_jwt       )
 
 from App.controllers import (
     login, create_user, get_all_users_json, get_user,
@@ -23,7 +25,19 @@ Page/Action Routes
 @jwt_required()
 def identify_page():
     return render_template('message.html', title="Identify", message=f"You are logged in as {current_user.id} - {current_user.username}")
-    
+
+@auth_views.route('/signup', methods=['GET', 'POST'])
+def signup_page():
+    if request.method == 'POST':
+        data = request.form
+        result = signUp(data['email'], data['username'], data['password'])
+        if 'error' in result:
+            flash(result['error'])
+        else:
+            flash(f"Account created for {result['user']['username']} as {result['user']['role']}")
+            return redirect(url_for('index_views.index_page'))
+    return render_template('signup.html', title="Sign Up")
+
 
 @auth_views.route('/login', methods=['POST'])
 def login_action():
