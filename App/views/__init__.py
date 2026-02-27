@@ -12,5 +12,8 @@ from .reward import reward_views
 views = [user_views, index_views, auth_views, reward_views] 
 # blueprints must be added to this list
 
-from App.controllers.user import user
-views = [user]
+#from App.controllers.user import user
+#views = [user]
+
+
+
