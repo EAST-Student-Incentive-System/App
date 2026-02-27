@@ -12,10 +12,13 @@ def signUp(email, username, password):
   existing_username = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
   if existing_username:
     return {'error': 'Username already taken.'}
-  # Create new user based on email domain
-  user = create_user(email, username, password)
 
-  return {'success': True, 'user': user.get_json() }
+  # Create new user based on email domain
+  try:
+    user = create_user(email, username, password)
+  except ValueError as e:
+    return {'error': str(e)}
+  return {'success': True, 'user': user.get_json()}
 
 def login(username, password): # Login function that returns JWT token upon successful authentication and the role
   result = db.session.execute(db.select(User).filter_by(username=username))

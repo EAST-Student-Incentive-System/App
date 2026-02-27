@@ -129,6 +129,13 @@
 
         <div class="page">
             <div class="card">
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                    <p style="color: red;">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+                {% endwith %}
                 <h1>Create an account</h1>
                 <p>Already have an account? <a href="/login">Login</a> </p>
                 <form action="/signup" method="post">
