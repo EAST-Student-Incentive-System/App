@@ -44,7 +44,7 @@ class Student(User):
             'total_points': self.total_points,
             'redeemed_points': self.redeemed_points,
             'current_balance': self.current_balance,
-            'badges': [badge.get_json() for badge in self.badges]
+            'badges': [badge.get_json() for badge in self.student_badges]
         })
         return data
 
