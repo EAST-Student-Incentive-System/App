@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% if event %}Edit Event{% else %}Create Event{% endif %}</title>
+  <!-- Tailwind + DaisyUI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+</head>
+<body data-theme="light" class="bg-base-200">
+
+  <!-- Navbar -->
+  <div class="navbar px-6" style="background-color:#9b30ff; color:white;">
+  <div class="flex-1">
+    <a class="text-xl font-bold">Merit</a>
+  </div>
+  <div class="flex-none">
+    <ul class="menu menu-horizontal px-1">
+      <li><a>Events</a></li>
+      <li><a>Rewards</a></li>
+      <li><a>Profile</a></li>
+    </ul>
+  </div>
+</div>
+
+  <!-- Page wrapper -->
+  <div class="max-w-5xl mx-auto p-6">
+    <h1 class="text-2xl font-bold mb-2">{% if event %}Edit Event{% else %}Create Event{% endif %}</h1>
+    <p class="text-gray-600 mb-6">Fill in the details below to create a new event or edit an existing one.</p>
+
+    <form id="eventForm"
+          class="card bg-base-100 shadow-xl p-6 flex gap-6 relative"
+          method="post"
+          action="{% if event %}/events/{{ event.id }}{% else %}/events{% endif %}"
+          enctype="multipart/form-data">
+
+      <!-- Hidden event ID -->
+      {% if event %}
+      <input type="hidden" name="event_id" id="eventId" value="{{ event.id }}">
+      {% endif %}
+
+      <!-- Left column -->
+      <div class="flex-1 space-y-4">
+        <div class="border rounded-lg flex items-center justify-center min-h-[300px] cursor-pointer bg-base-200" onclick="document.getElementById('eventImage').click()">
+          {% if event and event.image_url %}
+            <img src="{{ event.image_url }}" class="max-h-[300px] object-cover rounded-lg">
+          {% else %}
+            <span class="text-gray-500">Click to upload image</span>
+          {% endif %}
+          <input type="file" id="eventImage" name="image" accept="image/*" hidden>
+        </div>
+
+        <label class="form-control">
+          <span class="label-text">Description</span>
+          <textarea id="description" name="description" class="textarea textarea-bordered h-32">{{ event.description if event else '' }}</textarea>
+        </label>
+      </div>
+
+      <!-- Right column -->
+      <div class="flex-1 space-y-4">
+        <label class="form-control">
+          <span class="label-text">Name</span>
+          <input type="text" id="name" name="name" value="{{ event.name if event else '' }}" class="input input-bordered" required>
+        </label>
+
+        <label class="form-control">
+          <span class="label-text">Start Date/Time</span>
+          <input type="datetime-local" id="start" name="start" value="{{ event.start if event else '' }}" class="input input-bordered" required>
+        </label>
+
+        <label class="form-control">
+          <span class="label-text">End Date/Time</span>
+          <input type="datetime-local" id="end" name="end" value="{{ event.end if event else '' }}" class="input input-bordered" required>
+        </label>
+
+        <label class="form-control">
+          <span class="label-text">Location</span>
+          <input type="text" id="location" name="location" value="{{ event.location if event else '' }}" class="input input-bordered">
+        </label>
+
+        <label class="form-control">
+          <span class="label-text">Type</span>
+          <select id="type" name="type" class="select select-bordered">
+            <option value="workshop" {% if event and event.type=='workshop' %}selected{% endif %}>Workshop</option>
+            <option value="seminar" {% if event and event.type=='seminar' %}selected{% endif %}>Seminar</option>
+            <option value="volunteering" {% if event and event.type=='volunteering' %}selected{% endif %}>Volunteering</option>
+            <option value="social" {% if event and event.type=='social' %}selected{% endif %}>Social</option>
+          </select>
+        </label>
+
+        <div class="flex gap-4 mt-4">
+          <button type="submit" class="btn btn-primary">Save changes</button>
+          {% if event %}
+          <button type="button" class="btn btn-error" onclick="deleteEvent({{ event.id }})">Delete</button>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Participants count -->
+      <div class="absolute bottom-4 right-6 text-sm text-gray-600">
+        Number of participants registered: {{ event.participant_count if event else 0 }}
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // Preview uploaded image
+    const fileInput = document.getElementById('eventImage');
+    const previewBox = document.querySelector('.border');
+    if (fileInput) {
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            previewBox.innerHTML = `<img src="${e.target.result}" class="max-h-[300px] object-cover rounded-lg">`;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    // Delete event
+    function deleteEvent(eventId) {
+      if (!confirm("Are you sure you want to delete this event?")) return;
+      fetch(`/events/${eventId}`, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+          alert(data.message || "Deleted");
+          window.location.href = "/events";
+        })
+        .catch(err => alert("Error deleting event"));
+    }
+  </script>
+</body>
+</html>
