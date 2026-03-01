@@ -1,69 +1,92 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <nav class="bg-purple-600 text-white p-4">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="/" class="text-lg font-bold">Merit</a>
+    </div>
+  </nav>
 
-{% block title %}Student History{% endblock %}
-{% block page %}Student History{% endblock %}
+  <div class="container mx-auto p-6">
+    <h2 class="text-2xl font-semibold mb-6">History for {{ history.student.username }}</h2>
 
-{% block content %}
-  <h2 class="text-2xl font-semibold mb-4">History for {{ history.student.username }}</h2>
+    <div class="space-y-8">
+      <section>
+        <h3 class="text-xl font-semibold mb-3">Badges</h3>
+        {% if history.badges %}
+          <div class="overflow-x-auto">
+            <table class="table w-full table-zebra">
+              <thead><tr><th>Name</th><th>Description</th><th>Earned At</th></tr></thead>
+              <tbody>
+                {% for entry in history.badges %}
+                  <tr>
+                    <td>{{ entry.badge.name }}</td>
+                    <td>{{ entry.badge.description }}</td>
+                    <td>{{ entry.earnedAt }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-gray-500">No badges earned yet.</p>
+        {% endif %}
+      </section>
 
-  <section class="mb-8">
-    <h3 class="text-xl font-semibold">Badges</h3>
-    {% if history.badges %}
-      <table class="striped">
-        <thead><tr><th>Name</th><th>Description</th><th>Earned At</th></tr></thead>
-        <tbody>
-          {% for entry in history.badges %}
-            <tr>
-              <td>{{ entry.badge.name }}</td>
-              <td>{{ entry.badge.description }}</td>
-              <td>{{ entry.earnedAt }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p>No badges earned yet.</p>
-    {% endif %}
-  </section>
+      <section>
+        <h3 class="text-xl font-semibold mb-3">Events (attendance)</h3>
+        {% if history.events %}
+          <div class="overflow-x-auto">
+            <table class="table w-full table-zebra">
+              <thead><tr><th>Event ID</th><th>Timestamp</th></tr></thead>
+              <tbody>
+                {% for entry in history.events %}
+                  <tr>
+                    <td>{{ entry.eventId }}</td>
+                    <td>{{ entry.timestamp }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-gray-500">No attendance records.</p>
+        {% endif %}
+      </section>
 
-  <section class="mb-8">
-    <h3 class="text-xl font-semibold">Events (attendance)</h3>
-    {% if history.events %}
-      <table class="striped">
-        <thead><tr><th>Event ID</th><th>Timestamp</th></tr></thead>
-        <tbody>
-          {% for entry in history.events %}
-            <tr>
-              <td>{{ entry.eventId }}</td>
-              <td>{{ entry.timestamp }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p>No attendance records.</p>
-    {% endif %}
-  </section>
+      <section>
+        <h3 class="text-xl font-semibold mb-3">Redeemed Rewards</h3>
+        {% if history.rewards %}
+          <div class="overflow-x-auto">
+            <table class="table w-full table-zebra">
+              <thead><tr><th>Reward</th><th>Cost</th><th>Redeemed At</th></tr></thead>
+              <tbody>
+                {% for entry in history.rewards %}
+                  <tr>
+                    <td>{{ entry.reward.name }}</td>
+                    <td>{{ entry.reward.pointCost }}</td>
+                    <td>{{ entry.redeemedAt }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-gray-500">No rewards redeemed.</p>
+        {% endif %}
+      </section>
+    </div>
 
-  <section class="mb-8">
-    <h3 class="text-xl font-semibold">Redeemed Rewards</h3>
-    {% if history.rewards %}
-      <table class="striped">
-        <thead><tr><th>Reward</th><th>Cost</th><th>Redeemed At</th></tr></thead>
-        <tbody>
-          {% for entry in history.rewards %}
-            <tr>
-              <td>{{ entry.reward.name }}</td>
-              <td>{{ entry.reward.pointCost }}</td>
-              <td>{{ entry.redeemedAt }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p>No rewards redeemed.</p>
-    {% endif %}
-  </section>
-
-  <a href="javascript:history.back()" class="btn">Go Back</a>
-{% endblock %}
+    <div class="mt-6">
+      <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
+    </div>
+  </div>
+</body>
+</html>
