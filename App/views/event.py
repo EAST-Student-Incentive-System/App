@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from App.database import db
 from App.models.event import Event
@@ -60,7 +60,8 @@ def view_all_events_route():
 def get_staff_events_route():
     staff_id = get_jwt_identity()
     events = event.view_event_history(staff_id=staff_id)
-    return jsonify([e.get_json() for e in events]), 200
+    events_data = [e.get_json() for e in events]
+    return render_template("staff_events.html", events=events_data)
 
 # ---------------- Student Event Actions ----------------
 
