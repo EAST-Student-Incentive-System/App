@@ -14,6 +14,7 @@ from App.controllers import event
 from App.controllers.progress import viewProgress, viewLeaderBoard
 from App.controllers.badge import createBadge, awardBadge, viewBadges, viewStudentBadges 
 from App.controllers.user import get_user, get_user_by_username, update_user
+from datetime import datetime
 
 
 # This commands file allow you to create convenient CLI commands for testing controllers
