@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}Edit Reward{% endblock %}
+{% block page %}Edit Reward{% endblock %}
+
+<div class="container">
+  <h3>{% if reward %}Edit Reward{% else %}Create Reward{% endif %}</h3>
+  <p>Fill in the details below to create a new reward or edit an existing one.</p>
+
+  <form method="POST" action="{% if reward %}{{ url_for('update_reward', reward_id=reward.id) }}{% else %}{{ url_for('create_reward') }}{% endif %}" enctype="multipart/form-data">
+    <div class="input-field">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" value="{{ reward.name if reward else '' }}" required>
+    </div>
+
+    <div class="input-field">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" class="materialize-textarea">{{ reward.description if reward else '' }}</textarea>
+    </div>
+
+    <div class="input-field">
+      <label for="pointCost">Point Cost</label>
+      <input type="number" id="pointCost" name="pointCost" value="{{ reward.pointCost if reward else '' }}" required>
+    </div>
+
+    <div class="switch">
+      <label>
+        Inactive
+        <input type="checkbox" name="active" {% if reward and reward.active %}checked{% endif %}>
+        <span class="lever"></span>
+        Active
+      </label>
+    </div>
+
+    <button type="submit" class="btn waves-effect waves-light">{% if reward %}Update Reward{% else %}Create Reward{% endif %}</button>
+  </form>
+</div>
+

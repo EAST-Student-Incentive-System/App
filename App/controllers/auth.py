@@ -13,11 +13,6 @@ def signUp(email, username, password):
   if existing_username:
     return {'error': 'Username already taken.'}
 
-  # Create new user based on email domain
-  try:
-    user = create_user(email, username, password)
-  except ValueError as e:
-    return {'error': str(e)}
   return {'success': True, 'user': user.get_json()}
 
 def login(username, password): # Login function that returns JWT token upon successful authentication and the role
