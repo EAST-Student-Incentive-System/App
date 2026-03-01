@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block title %}Edit Reward{% endblock %}
+{% block page %}Edit Reward{% endblock %}
+
+<!-- DaisyUI & Tailwind CDN -->
+<link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+<div class="flex flex-col items-center justify-center min-h-screen bg-base-200">
+  <div class="card w-full max-w-xl bg-base-100 shadow-xl">
+    <div class="card-body">
+      <h2 class="card-title text-2xl font-bold mb-2">{% if reward %}Edit Reward{% else %}Create Reward{% endif %}</h2>
+      <p class="mb-4">Fill in the details below to create a new reward or edit an existing one.</p>
+      <form method="POST" action="{% if reward %}{{ url_for('update_reward', reward_id=reward.id) }}{% else %}{{ url_for('create_reward') }}{% endif %}" enctype="multipart/form-data" class="space-y-4">
+        <label class="form-control w-full">
+          <span class="label-text font-semibold">Name</span>
+          <input type="text" id="name" name="name" value="{{ reward.name if reward else '' }}" class="input input-bordered w-full" required />
+        </label>
+
+        <label class="form-control w-full">
+          <span class="label-text font-semibold">Description</span>
+          <textarea id="description" name="description" class="textarea textarea-bordered w-full" rows="3">{{ reward.description if reward else '' }}</textarea>
+        </label>
+
+        <label class="form-control w-full">
+          <span class="label-text font-semibold">Point Cost</span>
+          <input type="number" id="pointCost" name="pointCost" value="{{ reward.pointCost if reward else '' }}" class="input input-bordered w-full" required />
+        </label>
+
+        <label class="form-control w-full">
+          <span class="label-text font-semibold">Image</span>
+          <input type="file" id="image" name="image" class="file-input file-input-bordered w-full" accept="image/*" />
+        </label>
+
+        <label class="flex items-center gap-3 cursor-pointer">
+          <span class="label-text font-semibold">Active</span>
+          <input type="checkbox" name="active" class="toggle toggle-primary" {% if reward and reward.active %}checked{% endif %} />
+        </label>
+
+        <div class="card-actions justify-end mt-4">
+          <button type="submit" class="btn btn-primary">{% if reward %}Update Reward{% else %}Create Reward{% endif %}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
