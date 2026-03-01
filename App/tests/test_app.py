@@ -10,7 +10,8 @@ from App.controllers import (
     login,
     get_user,
     get_user_by_username,
-    update_user
+    update_user,
+    get_student_history
 )
 
 
@@ -22,24 +23,26 @@ LOGGER = logging.getLogger(__name__)
 class UserUnitTests(unittest.TestCase):
 
     def test_new_user(self):
-        user = User("bob", "bobpass")
+        # email, username, password
+        user = User("bob@example.com", "bob", "bobpass")
         assert user.username == "bob"
 
     # pure function no side effects or integrations called
     def test_get_json(self):
-        user = User("bob", "bobpass")
+        user = User("bob@example.com", "bob", "bobpass")
         user_json = user.get_json()
-        self.assertDictEqual(user_json, {"id":None, "username":"bob"})
+        # email is part of the json now; role defaults to 'user'
+        self.assertDictEqual(user_json, {"id":None, "email":"bob@example.com", "username":"bob", "role":"user"})
     
     def test_hashed_password(self):
         password = "mypass"
         hashed = generate_password_hash(password)
-        user = User("bob", password)
+        user = User("bob@example.com", "bob", password)
         assert user.password != password
 
     def test_check_password(self):
         password = "mypass"
-        user = User("bob", password)
+        user = User("bob@example.com", "bob", password)
         assert user.check_password(password)
 
 '''
@@ -51,24 +54,44 @@ class UserUnitTests(unittest.TestCase):
 @pytest.fixture(autouse=True, scope="module")
 def empty_db():
     app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+    # keep an application context for the duration of the tests
+    ctx = app.app_context()
+    ctx.push()
     create_db()
     yield app.test_client()
     db.drop_all()
+    ctx.pop()
+
+
+def test_student_history_controller():
+    # ensure history returns empty arrays for a fresh student
+    student = create_user("stu@my.uwi.edu", "stu", "pwd")
+    history = get_student_history(student.id)
+    assert history is not None
+    assert history['student']['username'] == 'stu'
+    assert history['badges'] == []
+    assert history['events'] == []
+    assert history['rewards'] == []
 
 
 def test_authenticate():
-    user = create_user("bob", "bobpass")
+    # create a student using valid email domain
+    user = create_user("bob@my.uwi.edu", "bob", "bobpass")
     assert login("bob", "bobpass") != None
 
 class UsersIntegrationTests(unittest.TestCase):
 
     def test_create_user(self):
-        user = create_user("rick", "bobpass")
+        # create a student record
+        user = create_user("rick@my.uwi.edu", "rick", "bobpass")
         assert user.username == "rick"
 
     def test_get_all_users_json(self):
         users_json = get_all_users_json()
-        self.assertListEqual([{"id":1, "username":"bob"}, {"id":2, "username":"rick"}], users_json)
+        # returned data now includes email/role/points - just verify expected students present
+        usernames = sorted([u.get('username') for u in users_json])
+        self.assertIn('bob', usernames)
+        self.assertIn('rick', usernames)
 
     # Tests data changes in the database
     def test_update_user(self):

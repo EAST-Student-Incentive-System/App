@@ -418,6 +418,17 @@ def event_history_command(student_id=None, staff_id=None):
     for record in history:
         print(record)
 
+
+@app.cli.command("student_history", help="Prints badge/event/reward history for a student as json")
+@click.argument("student_id", type=int)
+def student_history_command(student_id):
+    from App.controllers.student_history import get_student_history
+    history = get_student_history(student_id)
+    if history is None:
+        print(f"Student {student_id} not found")
+        return
+    print(history)
+
 @app.cli.command("join_event", help="Student joins an event")
 @click.argument("student_id", type=int)
 @click.argument("event_id", type=int)
