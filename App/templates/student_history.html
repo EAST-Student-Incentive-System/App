@@ -6,8 +6,9 @@
   <title>Student History</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="bg-white min-h-screen" style="background-color: #ffffff; color: #000000;">
+<body class="bg-white min-h-screen">
   <nav class="bg-gray-800 text-white p-4" style="background-color: #333333;">
     <div class="container mx-auto flex justify-between items-center">
       <a href="/" class="text-lg font-bold">Merit</a>
@@ -15,18 +16,18 @@
   </nav>
 
   <div class="container mx-auto p-6">
-    <h2 class="text-2xl font-semibold mb-6" style="color: #000000;">History for {{ history.student.username }}</h2>
+    <h2 class="page-heading">History for {{ history.student.username }}</h2>
 
     <div class="space-y-8">
       <section>
-        <h3 class="text-xl font-semibold mb-3" style="color: #000000;">Badges</h3>
+        <h3 class="section-heading">Badges</h3>
         {% if history.badges %}
           <div class="overflow-x-auto">
-            <table class="table w-full table-" style="color: #000000; background-color: #ffffff;">
-              <thead style="background-color: #f0f0f0; color: #000000;"><tr><th>Name</th><th>Description</th><th>Earned At</th></tr></thead>
-              <tbody style="color: #000000;">
+            <table class="table w-full table- data-table">
+              <thead><tr><th>Name</th><th>Description</th><th>Earned At</th></tr></thead>
+              <tbody>
                 {% for entry in history.badges %}
-                  <tr style="border-color: #e0e0e0;">
+                  <tr>
                     <td>{{ entry.badge.name }}</td>
                     <td>{{ entry.badge.description }}</td>
                     <td>{{ entry.earnedAt }}</td>
@@ -41,10 +42,10 @@
       </section>
 
       <section>
-        <h3 class="text-xl font-semibold mb-3" style="color: #000000;">Events (attendance)</h3>
+        <h3 class="section-heading">Events (attendance)</h3>
         {% if history.events %}
           <div class="overflow-x-auto">
-            <table class="table w-full table-">
+            <table class="table w-full table- data-table">
               <thead><tr><th>Event ID</th><th>Timestamp</th></tr></thead>
               <tbody>
                 {% for entry in history.events %}
@@ -62,10 +63,10 @@
       </section>
 
       <section>
-        <h3 class="text-xl font-semibold mb-3" style="color: #000000;">Redeemed Rewards</h3>
+        <h3 class="section-heading">Redeemed Rewards</h3>
         {% if history.rewards|length > 0 %}
           <div class="overflow-x-auto">
-            <table class="table w-full table-">
+            <table class="table w-full table- data-table">
               <thead><tr><th>Reward</th><th>Cost</th><th>Redeemed At</th></tr></thead>
               <tbody>
                 {% for entry in history.rewards %}
