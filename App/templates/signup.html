@@ -20,10 +20,10 @@
             }
         </style>
     </head>
-    <body data-theme="light" class="bg-base-200 flex flex-col min-h-screen">
+    <body data-theme="light" class="bg-white flex flex-col min-h-screen" style="background-color: #ffffff; color: #000000;">
 
         <!-- Navbar -->
-        <nav class="navbar px-6 shadow-sm" style="background-color:#9b30ff;">
+        <nav class="navbar px-6 shadow-sm" style="background-color:#333333;">
             <div class="flex-1">
                 <a class="text-xl font-bold text-white">Merit</a>
             </div>
@@ -42,9 +42,9 @@
                 {% endwith %}
 
                 <h1 class="text-2xl font-bold mb-1">Create an account</h1>
-                <p class="text-sm mb-4">
+                <p class="text-sm mb-4" style="color: #000000;">
                     Already have an account?
-                    <a href="/login" class="font-medium" style="color:#9b30ff;">Login</a>
+                    <a href="/login" class="font-medium" style="color:#0066cc;">Login</a>
                 </p>
 
                 <form action="/signup" method="post" class="flex flex-col gap-3">
@@ -59,8 +59,8 @@
                             name="username"
                             required
                             class="input input-bordered input-sm focus:outline-none"
-                            style="--tw-ring-color: rgba(155,48,255,0.15);"
-                            onfocus="this.style.borderColor='#9b30ff'; this.style.boxShadow='0 0 0 2px rgba(155,48,255,0.15)'"
+                            style="--tw-ring-color: rgba(0,102,204,0.15);"
+                            onfocus="this.style.borderColor='#0066cc'; this.style.boxShadow='0 0 0 2px rgba(0,102,204,0.15)'"
                             onblur="this.style.borderColor=''; this.style.boxShadow=''"
                         >
                     </div>
@@ -75,7 +75,7 @@
                             name="email"
                             required
                             class="input input-bordered input-sm focus:outline-none"
-                            onfocus="this.style.borderColor='#9b30ff'; this.style.boxShadow='0 0 0 2px rgba(155,48,255,0.15)'"
+                            onfocus="this.style.borderColor='#0066cc'; this.style.boxShadow='0 0 0 2px rgba(0,102,204,0.15)'"
                             onblur="this.style.borderColor=''; this.style.boxShadow=''"
                         >
                     </div>
@@ -90,7 +90,7 @@
                             name="password"
                             required
                             class="input input-bordered input-sm focus:outline-none"
-                            onfocus="this.style.borderColor='#9b30ff'; this.style.boxShadow='0 0 0 2px rgba(155,48,255,0.15)'"
+                            onfocus="this.style.borderColor='#0066cc'; this.style.boxShadow='0 0 0 2px rgba(0,102,204,0.15)'"
                             onblur="this.style.borderColor=''; this.style.boxShadow=''"
                         >
                     </div>
@@ -98,9 +98,9 @@
                     <button
                         type="submit"
                         class="btn mt-1 text-white border-none"
-                        style="background-color:#9b30ff;"
-                        onmouseover="this.style.backgroundColor='#8020ee'"
-                        onmouseout="this.style.backgroundColor='#9b30ff'"
+                        style="background-color:#333333;"
+                        onmouseover="this.style.backgroundColor='#1a1a1a'"
+                        onmouseout="this.style.backgroundColor='#333333'"
                     >
                         Sign up
                     </button>
