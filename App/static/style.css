@@ -60,3 +60,41 @@ select:focus {
     border-bottom-color: #0066cc !important;
     box-shadow: 0 1px 0 0 #0066cc !important;
 }
+
+/* Table styles */
+.data-table {
+    color: #000000;
+    background-color: #ffffff;
+    width: 100%;
+}
+
+.data-table thead {
+    background-color: #f0f0f0;
+    color: #000000;
+}
+
+.data-table tbody {
+    color: #000000;
+}
+
+.data-table tbody tr {
+    border-color: #e0e0e0;
+}
+
+.section-heading {
+    color: #000000;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.page-heading {
+    color: #000000;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.body-text {
+    color: #000000;
+}
