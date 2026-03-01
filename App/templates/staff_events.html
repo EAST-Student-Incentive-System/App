@@ -8,12 +8,12 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
     <style>
         :root {
-            --purple: #9b30ff;
-            --purple-light: #f3e8ff;
-            --purple-dark: #7a22cc;
+            --purple: #333333;
+            --purple-light: #f0f0f0;
+            --purple-dark: #1a1a1a;
         }
-        body { background-color: #f9f6ff; min-height: 100vh; }
-        html { background-color: #f9f6ff; }
+        body { background-color: #ffffff; min-height: 100vh; color: #000000; }
+        html { background-color: #ffffff; }
 
         .search-box {
             border: 1.5px solid #d8b4fe;
@@ -38,7 +38,7 @@
         }
         .filter-toggle:hover { background: var(--purple-light); }
 
-        .filter-option:hover { background-color: var(--purple-light) !important; color: #4b0082; }
+        .filter-option:hover { background-color: var(--purple-light) !important; color: #333333; }
         .filter-option.selected { background-color: var(--purple) !important; color: white !important; }
 
         .event-card {
@@ -54,7 +54,7 @@
         }
 
         .event-img {
-            background: #ede9fe;
+            background: #f0f0f0;
             border-radius: 0.5rem;
             display: flex;
             align-items: center;
@@ -72,7 +72,7 @@
 <body>
 
     <!-- Navbar -->
-    <div class="navbar px-6" style="background-color:#9b30ff; color:white;">
+    <div class="navbar px-6" style="background-color:#333333; color:white;">
         <div class="flex-1">
             <a class="text-xl font-bold">Merit</a>
         </div>
@@ -100,7 +100,7 @@
             <div class="flex items-center gap-3 shrink-0">
                 <div class="search-box flex items-center gap-2 px-4 py-2 w-52">
                     <input id="event-search" type="text" placeholder="Search..." oninput="filterEvents()"/>
-                    <svg class="w-4 h-4 shrink-0" style="color:#9b30ff" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 shrink-0" style="color:#333333" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                         <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
                     </svg>
                 </div>
@@ -112,7 +112,7 @@
                         </svg>
                         <span id="filter-label" class="text-sm font-medium">All</span>
                     </button>
-                    <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-white rounded-xl w-40 border border-purple-100 z-50 mt-1">
+                    <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-white rounded-xl w-40 border border-gray-200 z-50 mt-1">
                         <li><a class="filter-option selected rounded-lg" data-filter="all" onclick="setFilter('all','All')">All</a></li>
                         <li><a class="filter-option rounded-lg" data-filter="ongoing" onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
                         <li><a class="filter-option rounded-lg" data-filter="upcoming" onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
@@ -133,7 +133,7 @@
                     data-end="{{ event.end }}">
 
                     <div class="event-img mb-3">
-                        <svg class="w-12 h-12" viewBox="0 0 64 64" fill="none" stroke="#9b30ff" stroke-width="2">
+                        <svg class="w-12 h-12" viewBox="0 0 64 64" fill="none" stroke="#333333" stroke-width="2">
                             <rect x="4" y="10" width="56" height="44" rx="6"/>
                             <circle cx="22" cy="26" r="6"/>
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 46l14-14 10 10 10-12 22 16"/>
@@ -148,7 +148,7 @@
                         <p><span class="font-semibold text-gray-800">End:</span> {{ event.end }}</p>
                     </div>
 
-                    <div class="flex items-center gap-2 pt-2 border-t border-purple-50">
+                    <div class="flex items-center gap-2 pt-2 border-t border-gray-200">
                         <a href="/events/{{event.id}}" class="btn btn-sm btn-outline-purple rounded-full px-5">Edit</a>
                         <a href="/events/{{event.id}}/qr" class="btn btn-sm btn-purple rounded-full px-4 ml-auto flex items-center gap-1.5">
                             <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -165,7 +165,7 @@
 
         <!-- Empty State -->
         <div id="no-results" class="hidden text-center py-20">
-            <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="#9b30ff" stroke-width="1.5" viewBox="0 0 24 24">
+            <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="#333333" stroke-width="1.5" viewBox="0 0 24 24">
                 <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
             </svg>
             <p class="text-gray-500 font-medium">No events found</p>
