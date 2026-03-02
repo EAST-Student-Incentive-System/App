@@ -1,7 +1,11 @@
 from App.models import Reward, Student, RedeemedReward
 from App.database import db
 
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from App.services import rewards as rewards_service
 
+reward = Blueprint("reward", __name__)
 # Reward CRUD
 
 
@@ -110,10 +114,63 @@ def viewReward(student_id):
     return result
 
 
+
 def viewRewardHistory(staff_id):
     #Return all rewards created by a staff member (active or not).
     rewards = db.session.scalars(db.select(Reward).filter_by(created_by=staff_id)).all()
     return [r.get_json() for r in rewards] if rewards else []
 
-#test
+
+@reward.route("/rewards", methods=["GET"])
+@jwt_required()
+def view_rewards():
+
+    search = request.args.get("search")
+    status = request.args.get("status", "all")
+
+    rewards = rewards_service.get_all_rewards(search, status)
+
+    return render_template(
+        "rewards.html",
+        rewards=rewards,
+        search=search,
+        status=status
+    )
+
+
+@reward.route("/rewards/<int:reward_id>/edit", methods=["GET"])
+@jwt_required()
+def edit_reward_page(reward_id):
+
+    reward_obj = rewards_service.get_reward(reward_id)
+
+    if not reward_obj:
+        flash("Reward not found", "error")
+        return redirect(url_for("reward.view_rewards"))
+
+    return render_template(
+        "reward_edit.html",
+        reward=reward_obj
+    )
+
+
+@reward.route("/rewards/<int:reward_id>/edit", methods=["POST"])
+@jwt_required()
+def update_reward_route(reward_id):
+
+    name = request.form.get("name")
+    description = request.form.get("description")
+    point_cost = request.form.get("point_cost")
+    active = True if request.form.get("active") == "on" else False
+
+    rewards_service.update_reward(
+        reward_id,
+        name=name,
+        description=description,
+        point_cost=point_cost,
+        active=active
+    )
+
+    flash("Reward updated successfully!", "success")
+    return redirect(url_for("reward.view_rewards"))
 
