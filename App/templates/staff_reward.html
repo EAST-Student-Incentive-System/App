@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rewards</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --purple: #9b30ff;
+            --purple-light: #f3e8ff;
+            --purple-dark: #7a22cc;
+        }
+
+        body { background-color: #f9f6ff; min-height: 100vh; }
+
+        /* SEARCH */
+        .search-box {
+            border: 1.5px solid #d8b4fe;
+            border-radius: 9999px;
+            background: white;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--purple);
+            box-shadow: 0 0 0 3px rgba(155,48,255,0.12);
+        }
+
+        .search-box input {
+            background: transparent;
+            outline: none;
+            width: 100%;
+        }
+
+        /* FILTER */
+        .filter-toggle {
+            color: var(--purple);
+            border: 1.5px solid #d8b4fe;
+            background: white;
+            border-radius: 9999px;
+        }
+
+        .filter-toggle:hover {
+            background: var(--purple-light);
+        }
+
+        .filter-option:hover {
+            background-color: var(--purple-light) !important;
+            color: #4b0082;
+        }
+
+        .filter-option.selected {
+            background-color: var(--purple) !important;
+            color: white !important;
+        }
+
+        /* CARDS */
+        .reward-card {
+            background: white;
+            border-radius: 1rem;
+            border: 1.5px solid #e5d9f7;
+            box-shadow: 0 2px 8px rgba(155,48,255,0.06);
+            transition: box-shadow 0.2s, transform 0.2s;
+        }
+
+        .reward-card:hover {
+            box-shadow: 0 6px 24px rgba(155,48,255,0.15);
+            transform: translateY(-2px);
+        }
+
+        .reward-img {
+            background: #ede9fe;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 110px;
+        }
+
+        .btn-purple {
+            background-color: var(--purple);
+            border-color: var(--purple);
+            color: white;
+        }
+
+        .btn-purple:hover {
+            background-color: var(--purple-dark);
+        }
+
+        .btn-outline-purple {
+            border: 1.5px solid var(--purple);
+            color: var(--purple);
+        }
+
+        .btn-outline-purple:hover {
+            background-color: var(--purple-light);
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- NAVBAR -->
+<div class="navbar px-6" style="background-color:#9b30ff; color:white;">
+    <div class="flex-1">
+        <a class="text-xl font-bold">Merit</a>
+    </div>
+    <div class="flex-none">
+        <ul class="menu menu-horizontal px-1 items-center gap-3">
+
+            <li>
+                <a href="{{ url_for('event.get_staff_events_route') }}">Events</a>
+            </li>
+
+            <li>
+                <a class="font-semibold underline">Rewards</a>
+            </li>
+
+            <!-- Better Profile Icon (solid + cleaner) -->
+            <li>
+                <a href="/profile" class="btn btn-ghost btn-circle">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                         class="h-7 w-7"
+                         viewBox="0 0 24 24"
+                         fill="white">
+                        <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
+                    </svg>
+                </a>
+            </li>
+
+        </ul>
+    </div>
+</div>
+
+
+<div class="max-w-6xl mx-auto px-6 py-8">
+
+    <!-- HEADER ROW -->
+    <div class="flex items-center mb-8 gap-4">
+
+        <!-- Add Button -->
+        <a href="{{ url_for('reward.create_reward_route') }}"
+           class="btn btn-circle btn-purple shadow-md shrink-0">
+            +
+        </a>
+
+        <h1 class="text-3xl font-bold text-gray-800 flex-1 text-center">
+            Rewards
+        </h1>
+
+        <!-- Search + Filter -->
+        <div class="flex items-center gap-3 shrink-0">
+
+            <!-- Search -->
+            <div class="search-box flex items-center gap-2 px-4 py-2 w-52">
+                <input id="reward-search"
+                       type="text"
+                       placeholder="Search..."
+                       oninput="filterRewards()" />
+                <svg class="w-4 h-4 shrink-0"
+                     style="color:#9b30ff"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2.2"
+                     viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="7"/>
+                    <path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+                </svg>
+            </div>
+
+            <!-- Filter Dropdown -->
+            <div class="dropdown dropdown-end">
+                <button tabindex="0"
+                        class="filter-toggle btn btn-sm flex items-center gap-1 px-3">
+                    <span id="filter-label"
+                          class="text-sm font-medium">All</span>
+                </button>
+
+                <ul tabindex="0"
+                    class="dropdown-content menu p-2 shadow-lg bg-white rounded-xl w-40 border border-purple-100 mt-1">
+
+                    <li>
+                        <a class="filter-option selected rounded-lg"
+                           data-filter="all"
+                           onclick="setFilter('all','All')">All</a>
+                    </li>
+
+                    <li>
+                        <a class="filter-option rounded-lg"
+                           data-filter="active"
+                           onclick="setFilter('active','Active')">Active</a>
+                    </li>
+
+                    <li>
+                        <a class="filter-option rounded-lg"
+                           data-filter="inactive"
+                           onclick="setFilter('inactive','Inactive')">Inactive</a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- REWARD GRID -->
+    <div id="rewards-container"
+         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {% for reward in rewards %}
+        <div class="reward-card p-4 flex flex-col"
+             data-name="{{ reward.name|lower }}"
+             data-status="{{ 'active' if reward.active else 'inactive' }}">
+
+            <div class="reward-img mb-4">
+                🎁
+            </div>
+
+            <div class="flex-1 text-sm text-gray-600 space-y-1 mb-3">
+                <p><span class="font-semibold text-gray-800">Name:</span> {{ reward.name }}</p>
+                <p><span class="font-semibold text-gray-800">Points:</span> {{ reward.points }}</p>
+                <p><span class="font-semibold text-gray-800">Status:</span>
+                    {% if reward.active %} Active {% else %} Inactive {% endif %}
+                </p>
+            </div>
+
+            <div class="pt-2 border-t border-purple-50">
+                <a href="{{ url_for('reward.edit_reward_route', reward_id=reward.id) }}"
+                   class="btn btn-sm btn-outline-purple rounded-full w-full">
+                    Edit
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+
+<script>
+let activeFilter = 'all';
+
+function setFilter(filter, label) {
+    activeFilter = filter;
+    document.getElementById('filter-label').textContent = label;
+
+    document.querySelectorAll('.filter-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.filter === filter);
+    });
+
+    filterRewards();
+}
+
+function filterRewards() {
+    const query = document.getElementById('reward-search').value.toLowerCase();
+    const cards = document.querySelectorAll('.reward-card');
+
+    cards.forEach(card => {
+        const matchesSearch =
+            card.dataset.name.includes(query);
+
+        const matchesFilter =
+            activeFilter === 'all' ||
+            card.dataset.status === activeFilter;
+
+        card.style.display =
+            (matchesSearch && matchesFilter) ? '' : 'none';
+    });
+}
+</script>
+
+</body>
+</html>
