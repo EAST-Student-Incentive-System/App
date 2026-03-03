@@ -11,19 +11,18 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 reward_views = Blueprint('reward_views', __name__, template_folder='../templates')
 
 
-@reward_views.route('/api/rewards', methods=['GET'])
-def list_rewards_api():
-    # default to JSON list
-    return jsonify(get_all_rewards_json())
 
 
-@reward_views.route('/api/rewards/active', methods=['GET'])
+
+@reward_views.route('/rewards/active', methods=['GET'])
+@jwt_required()
 def active_rewards_api():
     rewards = get_active_rewards()
     return jsonify([r.get_json() for r in rewards] if rewards else [])
 
 
-@reward_views.route('/api/rewards/<int:reward_id>', methods=['GET'])
+@reward_views.route('/rewards/<int:reward_id>', methods=['GET'])
+@jwt_required()
 def get_reward_api(reward_id):
     r = get_reward(reward_id)
     if not r:
@@ -31,56 +30,9 @@ def get_reward_api(reward_id):
     return jsonify(r.get_json())
 
 
-@reward_views.route('/api/rewards', methods=['POST'])
-def create_reward_api():
-    data = request.json or {}
-    name = data.get('name')
-    description = data.get('description')
-    point_cost = data.get('pointCost') or data.get('point_cost')
-    active = data.get('active', True)
-    if not name or point_cost is None:
-        return jsonify(message='name and pointCost required'), 400
-    r = create_reward(name, description or '', int(point_cost), active=bool(active))
-    return jsonify(r.get_json()), 201
 
-
-@reward_views.route('/api/rewards/<int:reward_id>', methods=['PUT'])
-def update_reward_api(reward_id):
-    data = request.json or {}
-    kwargs = {}
-    if 'name' in data:
-        kwargs['name'] = data.get('name')
-    if 'description' in data:
-        kwargs['description'] = data.get('description')
-    if 'pointCost' in data:
-        kwargs['point_cost'] = data.get('pointCost')
-    if 'point_cost' in data:
-        kwargs['point_cost'] = data.get('point_cost')
-    if 'active' in data:
-        kwargs['active'] = data.get('active')
-    r = update_reward(reward_id, **kwargs)
-    if not r:
-        return jsonify(message='Not found'), 404
-    return jsonify(r.get_json())
-
-
-@reward_views.route('/api/rewards/<int:reward_id>', methods=['DELETE'])
-def delete_reward_api(reward_id):
-    ok = delete_reward(reward_id)
-    if not ok:
-        return jsonify(message='Not found'), 404
-    return jsonify(message='deleted')
-
-
-@reward_views.route('/api/rewards/<int:reward_id>/toggle', methods=['POST'])
-def toggle_reward_api(reward_id):
-    r = toggle_reward(reward_id)
-    if not r:
-        return jsonify(message='Not found'), 404
-    return jsonify(r.get_json())
-
-
-@reward_views.route('/api/rewards/<int:reward_id>/redeem', methods=['POST'])
+@reward_views.route('/rewards/<int:reward_id>/redeem', methods=['POST'])
+@jwt_required()
 def redeem_reward_api(reward_id):
     data = request.json or {}
     student_id = data.get('student_id') or data.get('studentId')
@@ -94,7 +46,8 @@ def redeem_reward_api(reward_id):
     return jsonify({'redeemed_id': res.id}), 201
 
 
-@reward_views.route('/api/students/<int:student_id>/rewards', methods=['GET'])
+@reward_views.route('/students/<int:student_id>/rewards', methods=['GET'])
+@jwt_required()
 def view_rewards_for_student_api(student_id):
     res = viewReward(student_id)
     if res is None:
@@ -102,10 +55,98 @@ def view_rewards_for_student_api(student_id):
     return jsonify(res)
 
 
-@reward_views.route('/api/staff/<int:staff_id>/rewards', methods=['GET'])
-def reward_history_api(staff_id):
+
+#----------------- Staff Reward Management ----------------
+
+@reward_views.route('/staff/<int:staff_id>/rewards', methods=['GET'])
+@jwt_required()
+def reward_history_page(staff_id):
+    user = get_jwt_identity()
+    if not user or user.get('role') != 'staff' or user.get('id') != staff_id:
+        flash('Unauthorized', 'error')
+        return redirect(url_for('reward_views.list_rewards_page'))
     res = viewRewardHistory(staff_id)
-    return jsonify(res if res is not None else [])
+    return render_template('staff_rewards.html', rewards=res or [])
+
+@reward_views.route('/rewards/new', methods=['POST'])
+@jwt_required()
+def create_reward_page():
+    user = get_jwt_identity() 
+    if not user or user.get('role') != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('reward_views.list_rewards_page'))
+    else:
+        name = request.form.get('name')
+        description = request.form.get('description')
+        point_cost = int(request.form.get('point_cost'))
+        active = True if request.form.get('active') == 'on' else False
+
+        create_reward(name, description, point_cost, active)
+        flash('Reward created successfully!', 'success')
+        return redirect(url_for('reward_views.list_rewards_page'))
+
+
+@reward_views.route('/rewards/<int:reward_id>', methods=['GET', 'POST'])
+@jwt_required()
+def update_reward_page(reward_id):
+    user = get_jwt_identity() 
+    if not user or user.get('role') != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('reward_views.list_rewards_page'))  
+    r = get_reward(reward_id)
+    if not r:
+        flash('Reward not found', 'error')
+        return redirect(url_for('reward_views.list_rewards_page'))
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        point_cost = request.form.get('point_cost')
+        active = True if request.form.get('active') == 'on' else False
+
+        update_reward(reward_id, name=name, description=description, point_cost=point_cost, active=active)
+        flash('Reward updated successfully!', 'success')
+        return redirect(url_for('reward_views.list_rewards_page'))
+    return render_template('reward_edit.html', reward=r)
+    
+
+@reward_views.route('/rewards/<int:reward_id>/delete', methods=['POST'])
+@jwt_required()
+def delete_reward_page(reward_id):
+    user = get_jwt_identity()
+    if not user or user.get('role') != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('reward_views.list_rewards_page'))
+    ok = delete_reward(reward_id)
+    if not ok:
+        flash('Reward not found', 'error')
+    else:
+        flash('Reward deleted', 'success')
+    return redirect(url_for('reward_views.list_rewards_page'))
+
+
+@reward_views.route('/rewards/<int:reward_id>/toggle', methods=['POST'])
+@jwt_required()
+def toggle_reward_page(reward_id):
+    user = get_jwt_identity()
+    if not user or user.get('role') != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('reward_views.list_rewards_page'))
+    r = toggle_reward(reward_id)
+    if not r:
+        flash('Reward not found', 'error')
+    else:
+        flash(f'Reward {"activated" if r.active else "deactivated"}', 'success')
+    return redirect(url_for('reward_views.list_rewards_page'))
+
+@reward_views.route('/rewards', methods=['GET'])
+@jwt_required()
+def list_rewards_page():
+    user = get_jwt_identity()
+    if not user or user.get('role') != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('reward_views.list_rewards_page'))
+    rewards = get_all_rewards()
+    return render_template('staff_reward.html', rewards=rewards or [])
 
 
 ''''@reward.route("/rewards", methods=["GET"])

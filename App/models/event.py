@@ -14,6 +14,8 @@ class Event(db.Model):
     end = db.Column(db.DateTime, nullable=False)
     attendances = db.relationship('Attendance', back_populates='event', cascade="all, delete-orphan")
     students = db.relationship('Student', secondary=student_event, back_populates='events')
+    qr = db.Column(db.String(200), nullable=True) #store QR code data or path here, can be generated on demand or stored after creation
+    image = db.Column(db.String(200), nullable=True) #optional image for event, can be used in UI to make it more appealing
     def __init__(self, name, type, description, start, end):
         self.name = name
         self.type = type
