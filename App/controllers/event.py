@@ -32,6 +32,7 @@ def view_event_history(student_id=None, staff_id=None):
 def create_event(staff_id, name, type, description, start, end):
     new_event = Event(name=name, type=type, description=description, start=start, end=end)
     new_event.staffId = staff_id
+    new_event.qr = generate_qr_code(new_event.id)  # Generate QR code data for the event
     db.session.add(new_event)
     db.session.commit()
     return new_event.get_json()
