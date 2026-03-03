@@ -5,6 +5,8 @@ from App.controllers.rewards import (
     get_active_rewards, update_reward, delete_reward, toggle_reward,
     redeem_reward, viewReward, viewRewardHistory
 )
+from flask import Blueprint, request, render_template, redirect, url_for, flash
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 reward_views = Blueprint('reward_views', __name__, template_folder='../templates')
 
@@ -104,3 +106,59 @@ def view_rewards_for_student_api(student_id):
 def reward_history_api(staff_id):
     res = viewRewardHistory(staff_id)
     return jsonify(res if res is not None else [])
+
+
+''''@reward.route("/rewards", methods=["GET"])
+@jwt_required()
+def view_rewards():
+
+    search = request.args.get("search")
+    status = request.args.get("status", "all")
+
+    rewards = rewards_service.get_all_rewards(search, status)
+
+    return render_template(
+        "rewards.html",
+        rewards=rewards,
+        search=search,
+        status=status
+    )
+
+
+@reward.route("/rewards/<int:reward_id>/edit", methods=["GET"])
+@jwt_required()
+def edit_reward_page(reward_id):
+
+    reward_obj = rewards_service.get_reward(reward_id)
+
+    if not reward_obj:
+        flash("Reward not found", "error")
+        return redirect(url_for("reward.view_rewards"))
+
+    return render_template(
+        "reward_edit.html",
+        reward=reward_obj
+    )
+
+
+@reward.route("/rewards/<int:reward_id>/edit", methods=["POST"])
+@jwt_required()
+def update_reward_route(reward_id):
+
+    name = request.form.get("name")
+    description = request.form.get("description")
+    point_cost = request.form.get("point_cost")
+    active = True if request.form.get("active") == "on" else False
+
+    rewards_service.update_reward(
+        reward_id,
+        name=name,
+        description=description,
+        point_cost=point_cost,
+        active=active
+    )
+
+    flash("Reward updated successfully!", "success")
+    return redirect(url_for("reward.view_rewards"))
+
+'''
