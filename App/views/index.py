@@ -3,9 +3,10 @@ from App.controllers import create_user, initialize
 
 index_views = Blueprint('index_views', __name__, template_folder='../templates')
 
-@index_views.route('/', methods=['GET'])
+@index_views.route('/home', methods=['GET'])
 def index_page():
-    return render_template('index.html')
+    return render_template('index.html', title="Home")
+    
 
 @index_views.route('/init', methods=['GET'])
 def init():

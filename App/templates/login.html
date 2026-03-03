@@ -152,10 +152,11 @@
 
             <p>
                 Don’t have an account?
-                <a href="{{ url_for('user.signup') }}">Sign up</a>
+                <a href="{{ url_for('auth_views.signup_page') }}">Sign up</a>
             </p>
 
-            <form method="POST" action="{{ url_for('user.login') }}">
+            <form method="POST" action="{{ url_for('auth_views.login_action') }}">
+
                 
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required>
@@ -171,7 +172,7 @@
                 </div>
 
                 <div class="forgot-password">
-                    <a href="{{ url_for('user.forgot_password') }}">
+                    <a href="{{ url_for('auth_views.forgot_password_page') }}">
                         Forgot password?
                     </a>
                 </div>
