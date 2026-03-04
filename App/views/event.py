@@ -95,11 +95,12 @@ def delete_event_route(event_id):
 @event_views.route("/events/staff", methods=["GET"])
 @jwt_required()
 def get_staff_events_route():
-    user = get_jwt_identity()
-    if not user or user.get('role') != 'staff':
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or user.role != 'staff':
         flash('Unauthorized', 'error')
         return redirect(url_for('event_views.view_upcoming_events_route'))
-    staff_id = user.get('id')
+    staff_id = user.id
     events = event.view_event_history(staff_id=staff_id)
     events_data = [e.get_json() for e in events]
     return render_template("staff_events.html", events=events_data)

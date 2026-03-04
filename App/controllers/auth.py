@@ -3,23 +3,36 @@ from App.controllers.user import User, create_user
 from App.database import db
 
 from App.models import User, Staff, Student #! Student should be added in a future update
-def signUp(email, username, password):
-  # Check if email already exists
-  existing_email = db.session.execute(db.select(User).filter_by(email=email)).scalar_one_or_none()
-  if existing_email:
-    return {'error': 'Email already registered.'}
-  # Check if username already exists
-  existing_username = db.session.execute(db.select(User).filter_by(username=username)).scalar_one_or_none()
-  if existing_username:
-    return {'error': 'Username already taken.'}
 
-  return {'success': True, 'user': user.get_json()}
+
+def signUp(email, username, password):
+    # Check if email already exists
+    existing_email = db.session.execute(
+        db.select(User).filter_by(email=email)
+    ).scalar_one_or_none()
+    if existing_email:
+        return {'error': 'Email already registered.'}
+
+    # Check if username already exists
+    existing_username = db.session.execute(
+        db.select(User).filter_by(username=username)
+    ).scalar_one_or_none()
+    if existing_username:
+        return {'error': 'Username already taken.'}
+
+    # Create the user using your controller
+    try:
+        new_user = create_user(email, username, password)
+        return {'success': True, 'user': new_user.get_json()}
+    except Exception as e:
+        db.session.rollback()
+        return {'error': str(e)}
 
 def login(username, password): # Login function that returns JWT token upon successful authentication and the role
   result = db.session.execute(db.select(User).filter_by(username=username))
   user = result.scalar_one_or_none()
   if user and user.check_password(password):
-    access_token = create_access_token(identity=user)
+    access_token = create_access_token(identity=user.id)
     return {'access_token': access_token, 'user': user.get_json(), 'role': user.role}
   return {'error': 'Invalid username or password.'}
 

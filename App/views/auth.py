@@ -9,6 +9,8 @@ from App.controllers import (
     login, create_user, get_all_users_json, get_user,
     get_user_by_username, update_user, signUp
 )
+from flask_jwt_extended import JWTManager, get_jwt_identity, verify_jwt_in_request
+from App.models import User
 
 auth_views = Blueprint('auth_views', __name__, template_folder='../templates')
 
@@ -38,7 +40,19 @@ def signup_page():
 
 @auth_views.route('/login', methods=['GET'])
 def login_page():
-    return render_template('login.html', title="Login")
+    try:
+        user_id = get_jwt_identity()   # will raise if no/expired token
+        if user_id:
+            user = User.query.get(user_id)
+            if user:
+                return redirect(url_for('event_views.get_staff_events_route'))
+    except Exception:
+        # no valid token, fall through to login page
+        pass
+
+    # ✅ Always render login form if not authenticated
+    return render_template('login.html')
+
 
 @auth_views.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password_page():
@@ -50,23 +64,28 @@ def forgot_password_page():
 
 
 
+from flask_jwt_extended import set_access_cookies
+
 @auth_views.route('/login', methods=['POST'])
 def login_action():
     data = request.form
-    token, user = login(data['username'], data['password'])  # make sure your login() returns both token and user info
-    if not token or not user:                                   # add student redender later
-        flash('Bad username or password given', 'error')
+    result = login(data['username'], data['password'])
+
+    if 'error' in result:
+        flash(result['error'], 'danger')
         return redirect(url_for('auth_views.login_page'))
 
-    response = redirect(url_for('event_views.get_staff_events_route')) if user.get('role') == 'staff' else redirect(url_for('auth_views.login_page'))
-    flash('Login Successful', 'success')
-    set_access_cookies(response, token)
+    token = result.get('access_token')
+    role = result.get('role')
+
+    response = redirect(url_for('event_views.get_staff_events_route')) if role == 'staff' else redirect(url_for('auth_views.login_page'))
+    set_access_cookies(response, token)   # <-- attach JWT to cookie
     return response
 
 
 @auth_views.route('/logout', methods=['GET'])
 def logout_action():
-    response = redirect(request.referrer) 
+    response = redirect(url_for('auth_views.login_page'))
     flash("Logged Out!")
     unset_jwt_cookies(response)
     return response #redirect to login page

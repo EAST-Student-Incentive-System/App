@@ -7,6 +7,7 @@ from App.controllers.rewards import (
 )
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from App.models import User
 
 reward_views = Blueprint('reward_views', __name__, template_folder='../templates')
 
@@ -141,10 +142,11 @@ def toggle_reward_page(reward_id):
 @reward_views.route('/rewards', methods=['GET'])
 @jwt_required()
 def list_rewards_page():
-    user = get_jwt_identity()
-    if not user or user.get('role') != 'staff':
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user or user.role != 'staff':
         flash('Unauthorized', 'error')
-        return redirect(url_for('reward_views.list_rewards_page'))
+        return redirect(url_for('auth_views.login_page'))
     rewards = get_all_rewards()
     return render_template('staff_reward.html', rewards=rewards or [])
 
