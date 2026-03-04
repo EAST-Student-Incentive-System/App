@@ -80,7 +80,7 @@
             <ul class="menu menu-horizontal px-1">
                 <li><a>Events</a></li>
                 <li><a href="/rewards">Rewards</a></li>
-                <li><a>Profile</a></li>
+                <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
             </ul>
         </div>
     </div>
@@ -89,7 +89,7 @@
 
         <!-- Header row -->
         <div class="flex items-center mb-8 gap-4">
-            <a href="/events" class="btn btn-circle btn-purple shadow-md shrink-0" title="Create Event">
+            <a href="{{ url_for('event_views.create_event_route')}}" class="btn btn-circle btn-purple shadow-md shrink-0" title="Create Event">
                 <svg class="w-5 h-5" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>

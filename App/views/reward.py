@@ -69,22 +69,40 @@ def reward_history_page(staff_id):
     res = viewRewardHistory(staff_id)
     return render_template('staff_rewards.html', rewards=res or [])
 
-@reward_views.route('/rewards/new', methods=['POST'])
+@reward_views.route('/rewards/new', methods=['GET', 'POST'])
 @jwt_required()
 def create_reward_page():
-    user = get_jwt_identity() 
-    if not user or user.get('role') != 'staff':
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user or user.role != 'staff':
         flash('Unauthorized', 'error')
         return redirect(url_for('reward_views.list_rewards_page'))
-    else:
+
+    if request.method == 'GET':
+        return render_template('edit_reward.html', reward=None)
+
+    if request.method == 'POST':
         name = request.form.get('name')
         description = request.form.get('description')
-        point_cost = int(request.form.get('point_cost'))
+        point_cost_str = request.form.get('point_cost')
         active = True if request.form.get('active') == 'on' else False
 
+        # Validate point_cost before converting
+        if not point_cost_str:
+            flash('Point cost is required', 'error')
+            return redirect(url_for('reward_views.create_reward_page'))
+
+        try:
+            point_cost = int(point_cost_str)
+        except ValueError:
+            flash('Point cost must be a number', 'error')
+            return redirect(url_for('reward_views.create_reward_page'))
+
+        # Call your controller function
         create_reward(name, description, point_cost, active)
         flash('Reward created successfully!', 'success')
         return redirect(url_for('reward_views.list_rewards_page'))
+
 
 
 @reward_views.route('/rewards/<int:reward_id>', methods=['GET', 'POST'])

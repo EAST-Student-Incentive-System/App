@@ -12,13 +12,14 @@
   <!-- Navbar -->
   <div class="navbar px-6" style="background-color:#9b30ff; color:white;">
   <div class="flex-1">
+    <a href="{{ url_for('event_views.get_staff_events_route')}}" class="btn btn-ghost normal-case text-white"> ← </a>
     <a class="text-xl font-bold">Merit</a>
   </div>
   <div class="flex-none">
     <ul class="menu menu-horizontal px-1">
-      <li><a>Events</a></li>
-      <li><a>Rewards</a></li>
-      <li><a>Profile</a></li>
+      <li><a href="{{ url_for('event_views.get_staff_events_route')}}">Events</a></li>
+      <li><a href="{{ url_for('reward_views.list_rewards_page')}}">Rewards</a></li>
+      <li><a href="{{ url_for('auth_views.logout_action')}}">Logout</a></li>
     </ul>
   </div>
 </div>
