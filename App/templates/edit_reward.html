@@ -1,17 +1,36 @@
-{% extends "layout.html" %}
-{% block title %}Edit Reward{% endblock %}
-{% block page %}Edit Reward{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<body data-theme="light" class="bg-base-200">
 
 <!-- DaisyUI & Tailwind CDN -->
 <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
+  <div class="navbar px-6" style="background-color:#9b30ff; color:white;">
+  <div class="flex-1">
+    <a href="{{ url_for('event_views.get_staff_events_route')}}" class="btn btn-ghost normal-case text-white"> ← </a>
+    <a class="text-xl font-bold">Merit</a>
+  </div>
+  <div class="flex-none">
+    <ul class="menu menu-horizontal px-1">
+      <li><a href="{{ url_for('event_views.get_staff_events_route')}}">Events</a></li>
+      <li><a href="{{ url_for('reward_views.list_rewards_page')}}">Rewards</a></li>
+      <li><a href="{{ url_for('auth_views.logout_action')}}">Logout</a></li>
+    </ul>
+  </div>
+</div>
+
+{% block content %}
 <div class="flex flex-col items-center justify-center min-h-screen bg-base-200">
   <div class="card w-full max-w-xl bg-base-100 shadow-xl">
     <div class="card-body">
       <h2 class="card-title text-2xl font-bold mb-2">{% if reward %}Edit Reward{% else %}Create Reward{% endif %}</h2>
       <p class="mb-4">Fill in the details below to create a new reward or edit an existing one.</p>
-      <form method="POST" action="{% if reward %}{{ url_for('update_reward', reward_id=reward.id) }}{% else %}{{ url_for('create_reward') }}{% endif %}" enctype="multipart/form-data" class="space-y-4">
+      <form method="POST"
+      action="{% if reward %}{{ url_for('reward_views.update_reward_route', reward_id=reward.id) }}
+              {% else %}{{ url_for('reward_views.create_reward_page') }}{% endif %}"
+      enctype="multipart/form-data"
+      class="space-y-4">
         <label class="form-control w-full">
           <span class="label-text font-semibold">Name</span>
           <input type="text" id="name" name="name" value="{{ reward.name if reward else '' }}" class="input input-bordered w-full" required />
@@ -24,7 +43,7 @@
 
         <label class="form-control w-full">
           <span class="label-text font-semibold">Point Cost</span>
-          <input type="number" id="pointCost" name="pointCost" value="{{ reward.pointCost if reward else '' }}" class="input input-bordered w-full" required />
+          <input type="number" id="point_cost" name="point_cost" value="{{ reward.point_cost if reward else '' }}" class="input input-bordered w-full" required />
         </label>
 
         <label class="form-control w-full">
@@ -44,4 +63,7 @@
     </div>
   </div>
 </div>
+{% endblock %}
+</body>
+</html>
 

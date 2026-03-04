@@ -16,8 +16,9 @@ event_views = Blueprint("event_views", __name__)
 @event_views.route("/events/new", methods=["GET","POST"])
 @jwt_required()
 def create_event_route():
-    user = get_jwt_identity()
-    if not user or user.get('role') != 'staff':
+    user_id = get_jwt_identity() 
+    user = Staff.query.get(user_id)
+    if not user or user.role != 'staff':
         flash('Unauthorized', 'error')
         return redirect(url_for('event_views.get_staff_events_route'))
     if request.method == "POST":
