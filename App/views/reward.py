@@ -8,9 +8,19 @@ from App.controllers.rewards import (
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from App.models import User
+from werkzeug.utils import secure_filename
+from App.database import db
+from App.models import Staff, Reward
+import os
+from flask import current_app
 
 reward_views = Blueprint('reward_views', __name__, template_folder='../templates')
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+UPLOAD_FOLDER = 'App/static/uploads'
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 
@@ -22,7 +32,7 @@ def active_rewards_api():
     return jsonify([r.get_json() for r in rewards] if rewards else [])
 
 
-@reward_views.route('/rewards/<int:reward_id>', methods=['GET'])
+@reward_views.route('/reward/<int:reward_id>', methods=['GET'])
 @jwt_required()
 def get_reward_api(reward_id):
     r = get_reward(reward_id)
@@ -62,8 +72,9 @@ def view_rewards_for_student_api(student_id):
 @reward_views.route('/staff/<int:staff_id>/rewards', methods=['GET'])
 @jwt_required()
 def reward_history_page(staff_id):
-    user = get_jwt_identity()
-    if not user or user.get('role') != 'staff' or user.get('id') != staff_id:
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user or user.role != 'staff' or user.get('id') != staff_id:
         flash('Unauthorized', 'error')
         return redirect(url_for('reward_views.list_rewards_page'))
     res = viewRewardHistory(staff_id)
@@ -105,34 +116,67 @@ def create_reward_page():
 
 
 
-@reward_views.route('/rewards/<int:reward_id>', methods=['GET', 'POST'])
+@reward_views.route("/rewards/<int:reward_id>", methods=["GET", "POST"])
 @jwt_required()
 def update_reward_page(reward_id):
-    user = get_jwt_identity() 
-    if not user or user.get('role') != 'staff':
-        flash('Unauthorized', 'error')
-        return redirect(url_for('reward_views.list_rewards_page'))  
-    r = get_reward(reward_id)
-    if not r:
-        flash('Reward not found', 'error')
-        return redirect(url_for('reward_views.list_rewards_page'))
-    if request.method == 'POST':
-        name = request.form.get('name')
-        description = request.form.get('description')
-        point_cost = request.form.get('point_cost')
-        active = True if request.form.get('active') == 'on' else False
+    print("UPDATE REWARD PAGE HIT")
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or user.role != "staff":
+        print("Unauthorized access attempt by user_id:", user_id)
+        flash("Unauthorized", "error")
+        return redirect(url_for("reward_views.list_rewards_page"))
 
-        update_reward(reward_id, name=name, description=description, point_cost=point_cost, active=active)
-        flash('Reward updated successfully!', 'success')
-        return redirect(url_for('reward_views.list_rewards_page'))
-    return render_template('reward_edit.html', reward=r)
-    
+    reward_obj = Reward.query.get(reward_id)
+    if not reward_obj:
+        print("Reward not found with id:", reward_id)
+        flash("Reward not found", "error")
+        return redirect(url_for("reward_views.list_rewards_page"))
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        description = request.form.get("description")
+        point_cost = request.form.get("point_cost")  # match template field name
+        active = True if request.form.get("active") == "on" else False
+        image_file = request.files.get("image")
+
+        if not all([name, description, point_cost]):
+            print("Validation failed: Missing fields")
+            flash("All fields are required", "error")
+            return redirect(url_for("reward_views.update_reward_page", reward_id=reward_id))
+
+        try:
+            print("Updating reward with data:", name, description, point_cost, active)
+            reward_obj.name = name
+            reward_obj.description = description
+            reward_obj.pointCost = int(point_cost)
+            reward_obj.active = active
+
+            if image_file and image_file.filename:
+                filename = secure_filename(image_file.filename)
+                filepath = os.path.join(current_app.static_folder, "uploads", filename)
+                image_file.save(filepath)
+                reward_obj.image = filename
+
+            db.session.commit()
+            flash("Reward updated successfully!", "success")
+            return redirect(url_for("reward_views.list_rewards_page"))
+
+        except ValueError as e:
+            flash(f"Error updating reward: {e}", "error")
+            return redirect(url_for("reward_views.update_reward_page", reward_id=reward_id))
+
+    # GET request → render edit form
+    print("Reached GET for update_reward_page with reward:")
+    return render_template("edit_reward.html", reward=reward_obj)
+ 
 
 @reward_views.route('/rewards/<int:reward_id>/delete', methods=['POST'])
 @jwt_required()
 def delete_reward_page(reward_id):
-    user = get_jwt_identity()
-    if not user or user.get('role') != 'staff':
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user or user.role != 'staff':
         flash('Unauthorized', 'error')
         return redirect(url_for('reward_views.list_rewards_page'))
     ok = delete_reward(reward_id)
@@ -146,8 +190,9 @@ def delete_reward_page(reward_id):
 @reward_views.route('/rewards/<int:reward_id>/toggle', methods=['POST'])
 @jwt_required()
 def toggle_reward_page(reward_id):
-    user = get_jwt_identity()
-    if not user or user.get('role') != 'staff':
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user or user.role != 'staff':
         flash('Unauthorized', 'error')
         return redirect(url_for('reward_views.list_rewards_page'))
     r = toggle_reward(reward_id)
