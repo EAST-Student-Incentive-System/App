@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% if reward %}Edit Reward{% else %}Create Reward{% endif %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+</head>
 <body data-theme="light" class="bg-base-200">
 
-<!-- DaisyUI & Tailwind CDN -->
-<link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-  <div class="navbar px-6" style="background-color:#9b30ff; color:white;">
+<!-- Navbar -->
+<div class="navbar px-6" style="background-color:#9b30ff; color:white;">
   <div class="flex-1">
-    <a href="{{ url_for('event_views.get_staff_events_route')}}" class="btn btn-ghost normal-case text-white"> ← </a>
+    <a href="{{ url_for('reward_views.list_rewards_page')}}" class="btn btn-ghost normal-case text-white"> ← </a>
     <a class="text-xl font-bold">Merit</a>
   </div>
   <div class="flex-none">
@@ -20,50 +23,90 @@
   </div>
 </div>
 
-{% block content %}
-<div class="flex flex-col items-center justify-center min-h-screen bg-base-200">
-  <div class="card w-full max-w-xl bg-base-100 shadow-xl">
-    <div class="card-body">
-      <h2 class="card-title text-2xl font-bold mb-2">{% if reward %}Edit Reward{% else %}Create Reward{% endif %}</h2>
-      <p class="mb-4">Fill in the details below to create a new reward or edit an existing one.</p>
-      <form method="POST"
-      action="{% if reward %}{{ url_for('reward_views.update_reward_route', reward_id=reward.id) }}
-              {% else %}{{ url_for('reward_views.create_reward_page') }}{% endif %}"
-      enctype="multipart/form-data"
-      class="space-y-4">
-        <label class="form-control w-full">
-          <span class="label-text font-semibold">Name</span>
-          <input type="text" id="name" name="name" value="{{ reward.name if reward else '' }}" class="input input-bordered w-full" required />
-        </label>
+<!-- Page wrapper -->
+<div class="max-w-5xl mx-auto p-6">
+  <h1 class="text-2xl font-bold mb-2">{% if reward %}Edit Reward{% else %}Create Reward{% endif %}</h1>
+  <p class="text-gray-600 mb-6">Fill in the details below to create a new reward or edit an existing one.</p>
 
-        <label class="form-control w-full">
-          <span class="label-text font-semibold">Description</span>
-          <textarea id="description" name="description" class="textarea textarea-bordered w-full" rows="3">{{ reward.description if reward else '' }}</textarea>
-        </label>
+  <form id="rewardForm"
+        class="card bg-base-100 shadow-xl p-6 flex gap-6 relative"
+        method="POST"
+        action="{% if reward %}{{ url_for('reward_views.update_reward_page', reward_id=reward.id) }}{% else %}{{ url_for('reward_views.create_reward_page') }}{% endif %}"
+        enctype="multipart/form-data">
 
-        <label class="form-control w-full">
-          <span class="label-text font-semibold">Point Cost</span>
-          <input type="number" id="point_cost" name="point_cost" value="{{ reward.point_cost if reward else '' }}" class="input input-bordered w-full" required />
-        </label>
+    <!-- Hidden reward ID -->
+    {% if reward %}
+      <input type="hidden" name="reward_id" value="{{ reward.id }}">
+    {% endif %}
 
-        <label class="form-control w-full">
-          <span class="label-text font-semibold">Image</span>
-          <input type="file" id="image" name="image" class="file-input file-input-bordered w-full" accept="image/*" />
-        </label>
+    <!-- Left column: Image + Description -->
+    <div class="flex-1 space-y-4">
+      <div class="border rounded-lg flex items-center justify-center min-h-[300px] cursor-pointer bg-base-200" onclick="document.getElementById('rewardImage').click()">
+        {% if reward and reward.image %}
+          <img id="rewardImagePreview" alt="Reward image" src="{{ reward.image }}" class="max-h-[300px] object-cover rounded-lg">
+        {% else %}
+          <span id="rewardImagePlaceholder" class="text-gray-500">Click to upload image</span>
+        {% endif %}
+        <input type="file" id="rewardImage" name="image" accept="image/*" hidden>
+      </div>
 
-        <label class="flex items-center gap-3 cursor-pointer">
-          <span class="label-text font-semibold">Active</span>
-          <input type="checkbox" name="active" class="toggle toggle-primary" {% if reward and reward.active %}checked{% endif %} />
-        </label>
-
-        <div class="card-actions justify-end mt-4">
-          <button type="submit" class="btn btn-primary">{% if reward %}Update Reward{% else %}Create Reward{% endif %}</button>
-        </div>
-      </form>
+      <label class="form-control">
+        <span class="label-text">Description</span>
+        <textarea id="description" name="description" class="textarea textarea-bordered h-32">{{ reward.description if reward else '' }}</textarea>
+      </label>
     </div>
-  </div>
+
+    <!-- Right column: Name, Points, Active -->
+    <div class="flex-1 space-y-4">
+      <label class="form-control">
+        <span class="label-text">Name</span>
+        <input type="text" id="name" name="name" value="{{ reward.name if reward else '' }}" class="input input-bordered" required>
+      </label>
+
+      <label class="form-control">
+        <span class="label-text">Point Cost</span>
+        <input type="number" id="point_cost" name="point_cost" value="{{ reward.pointCost if reward else '' }}" class="input input-bordered" required>
+      </label>
+
+      <label class="form-control flex items-start gap-3 cursor-pointer">
+        <span class="label-text font-semibold mt-1">Active</span>
+        <input type="checkbox" name="active" class="toggle toggle-primary" {% if reward and reward.active %}checked{% endif %}>
+      </label>
+
+      <div class="flex gap-4 mt-4">
+        <button type="submit" class="btn btn-primary">{% if reward %}Update Reward{% else %}Create Reward{% endif %}</button>
+      </div>
+    </div>
+  </form>
 </div>
-{% endblock %}
+
+<script>
+  // Preview uploaded image
+  const fileInput = document.getElementById('rewardImage');
+  const previewBox = document.getElementById('rewardImagePreview');
+  const placeholder = document.getElementById('rewardImagePlaceholder');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          if (previewBox) {
+            previewBox.src = e.target.result;
+          } else {
+            const img = document.createElement('img');
+            img.id = "rewardImagePreview";
+            img.src = e.target.result;
+            img.className = "max-h-[300px] object-cover rounded-lg";
+            fileInput.parentNode.insertBefore(img, fileInput);
+            if (placeholder) placeholder.style.display = "none";
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+</script>
 </body>
 </html>
-

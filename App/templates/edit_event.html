@@ -31,8 +31,8 @@
 
     <form id="eventForm"
           class="card bg-base-100 shadow-xl p-6 flex gap-6 relative"
-          method="post"
-          action="{% if event %}/events/{{ event.id }}{% else %}/events{% endif %}"
+          method="POST"
+          action="{% if event %}{{ url_for('event_views.update_event_route', event_id=event.id) }}{% else %}{{ url_for('event_views.create_event_route') }}{% endif %}"
           enctype="multipart/form-data">
 
       <!-- Hidden event ID -->
@@ -43,8 +43,8 @@
       <!-- Left column -->
       <div class="flex-1 space-y-4">
         <div class="border rounded-lg flex items-center justify-center min-h-[300px] cursor-pointer bg-base-200" onclick="document.getElementById('eventImage').click()">
-          {% if event and event.image_url %}
-            <img src="{{ event.image_url }}" class="max-h-[300px] object-cover rounded-lg">
+          {% if event and event.image %}
+             <img alt=" No image found "src="{{ event.image }}" class="max-h-[300px] object-cover rounded-lg">
           {% else %}
             <span class="text-gray-500">Click to upload image</span>
           {% endif %}
@@ -66,12 +66,12 @@
 
         <label class="form-control">
           <span class="label-text">Start Date/Time</span>
-          <input type="datetime-local" id="start" name="start" value="{{ event.start if event else '' }}" class="input input-bordered" required>
+          <input type="datetime-local" id="start" name="start" value="{{ event.start.strftime('%Y-%m-%dT%H:%M') if event else '' }}" class="input input-bordered" required>
         </label>
 
         <label class="form-control">
           <span class="label-text">End Date/Time</span>
-          <input type="datetime-local" id="end" name="end" value="{{ event.end if event else '' }}" class="input input-bordered" required>
+          <input type="datetime-local" id="end" name="end" value="{{ event.end.strftime('%Y-%m-%dT%H:%M') if event else '' }}" class="input input-bordered" required>
         </label>
 
         <label class="form-control">
@@ -92,7 +92,13 @@
         <div class="flex gap-4 mt-4">
           <button type="submit" class="btn btn-primary">Save changes</button>
           {% if event %}
-          <button type="button" class="btn btn-error" onclick="deleteEvent({{ event.id }})">Delete</button>
+          <button type="submit"
+        class="btn btn-error"
+        formaction="{{ url_for('event_views.delete_event_route', event_id=event.id) }}"
+        formmethod="POST"
+        onclick="return confirm('Are you sure you want to delete this event?')">
+       Delete
+      </button>
           {% endif %}
         </div>
       </div>
@@ -121,17 +127,7 @@
       });
     }
 
-    // Delete event
-    function deleteEvent(eventId) {
-      if (!confirm("Are you sure you want to delete this event?")) return;
-      fetch(`/events/${eventId}`, { method: 'DELETE' })
-        .then(res => res.json())
-        .then(data => {
-          alert(data.message || "Deleted");
-          window.location.href = "/events";
-        })
-        .catch(err => alert("Error deleting event"));
-    }
+    
   </script>
 </body>
 </html>

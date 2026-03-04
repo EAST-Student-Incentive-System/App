@@ -35,7 +35,7 @@ def signup_page():
             flash(result['error'])
         else:
             flash(f"Account created for {result['user']['username']} as {result['user']['role']}")
-            return redirect(url_for('index_views.index_page'))
+            return redirect(url_for('auth_views.login_page'))
     return render_template('signup.html', title="Sign Up")
 
 @auth_views.route('/login', methods=['GET'])
