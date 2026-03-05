@@ -6,43 +6,174 @@ from App.models.student import Student
 from App.models.staff import Staff
 from App.models.attendance import Attendance
 from App.controllers import event  # import your controller functions
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from datetime import datetime, timedelta
+from App.models import User
+from App.database import db
+from werkzeug.utils import secure_filename
+from App.controllers.event import generate_qr_code
+from os import path, makedirs
+import os
+import qrcode
+import io
+import base64
 
 event_views = Blueprint("event_views", __name__)
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+UPLOAD_FOLDER = 'App/static/uploads'
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # ---------------- Event CRUD ----------------
 
-@event_views.route("/events", methods=["POST"])
+# ---------- CREATE EVENT ----------
+@event_views.route("/events/new", methods=["GET","POST"])
 @jwt_required()
 def create_event_route():
-    data = request.json
-    staff_id = get_jwt_identity()  # assumes staff is logged in
-    new_event = event.create_event(
-        staff_id=staff_id,
-        name=data["name"],
-        type=data["type"],
-        description=data["description"],
-        start=data["start"],
-        end=data["end"]
-    )
-    return jsonify(new_event), 201
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or user.role != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('event_views.get_staff_events_route'))
 
-@event_views.route("/events/<int:event_id>", methods=["PUT"])
+    if request.method == "POST":
+        name = request.form.get("name")
+        description = request.form.get("description")
+        type_ = request.form.get("type")
+        start_str = request.form.get("start")
+        end_str = request.form.get("end")
+        location = request.form.get("location")
+        image_file = request.files.get("image")
+
+        if not all([name, description, start_str, end_str, location, type_]):
+            flash('All fields are required', 'error')
+            return redirect(url_for('event_views.get_staff_events_route'))
+
+        try:
+            start_dt = datetime.strptime(start_str, "%Y-%m-%dT%H:%M")
+            end_dt = datetime.strptime(end_str, "%Y-%m-%dT%H:%M")
+
+            new_event = Event(
+                staffId=user.id,
+                name=name,
+                type=type_,
+                description=description,
+                start=start_dt,
+                end=end_dt,
+                location=location
+            )
+
+            if image_file and image_file.filename:
+                filename = secure_filename(image_file.filename)
+                filepath = os.path.join(current_app.static_folder, 'uploads', filename)
+                image_file.save(filepath)
+                new_event.image = filename  # or event.image = filename for update
+                
+
+            # Generate QR code
+            db.session.add(new_event)
+            db.session.flush()  # flush to get ID
+            new_event.qr = generate_qr_code(new_event.id)
+
+            db.session.commit()
+            flash('Event created successfully!', 'success')
+            return redirect(url_for('event_views.get_staff_events_route'))
+
+        except ValueError as e:
+            flash(f"Error: {e}", 'error')
+            return redirect(url_for('event_views.get_staff_events_route'))
+
+    return render_template("edit_event.html")
+
+# ---------- UPDATE EVENT ----------
+@event_views.route("/events/<int:event_id>", methods=["GET","POST"])
 @jwt_required()
 def update_event_route(event_id):
-    data = request.json
-    updated = event.update_event(event_id, **data)
-    if not updated:
-        return jsonify({"error": "Event not found"}), 404
-    return jsonify(updated), 200
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or user.role != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('event_views.get_staff_events_route'))
 
-@event_views.route("/events/<int:event_id>", methods=["DELETE"])
+    event_obj = Event.query.get(event_id)
+    if not event_obj:
+        flash('Event not found', 'error')
+        return redirect(url_for('event_views.get_staff_events_route'))
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        description = request.form.get("description")
+        type_ = request.form.get("type")
+        start_str = request.form.get("start")
+        end_str = request.form.get("end")
+        location = request.form.get("location")
+        image_file = request.files.get("image")
+
+        if not all([name, description, start_str, end_str, location, type_]):
+            flash('All fields are required', 'error')
+            return redirect(url_for('event_views.update_event_route', event_id=event_id))
+
+        try:
+            start_dt = datetime.strptime(start_str, "%Y-%m-%dT%H:%M")
+            end_dt = datetime.strptime(end_str, "%Y-%m-%dT%H:%M")
+
+            event_obj.name = name
+            event_obj.description = description
+            event_obj.type = type_
+            event_obj.start = start_dt
+            event_obj.end = end_dt
+            event_obj.location = location
+
+            if image_file and image_file.filename:
+                filename = secure_filename(image_file.filename)
+                filepath = os.path.join(current_app.static_folder, 'uploads', filename)
+                image_file.save(filepath)
+                event_obj.image = filename
+
+            db.session.commit()
+            flash('Event updated successfully!', 'success')
+            return redirect(url_for('event_views.get_staff_events_route'))
+
+        except ValueError as e:
+            flash(f"Error updating event: {e}", 'error')
+            return redirect(url_for('event_views.update_event_route', event_id=event_id))
+
+    return render_template("edit_event.html", event=event_obj)     
+
+@event_views.route("/events/<int:event_id>/delete", methods=["POST"])
 @jwt_required()
 def delete_event_route(event_id):
-    deleted = event.delete_event(event_id)
-    if not deleted:
-        return jsonify({"error": "Event not found"}), 404
-    return jsonify({"message": "Event deleted"}), 200
+    print("DELETE ROUTE HIT")
+    user_id = int(get_jwt_identity())  # <-- cast here
 
+    ok = event.delete_event(event_id, user_id)
+
+    if not ok:
+        flash('Event not found or unauthorized', 'error')
+    else:
+        flash('Event deleted', 'success')
+
+    return redirect(url_for('event_views.get_staff_events_route'))
+    
+
+@event_views.route("/events/staff", methods=["GET"])
+@jwt_required()
+def get_staff_events_route():
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or user.role != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('event_views.view_upcoming_events_route'))
+    staff_id = user.id
+    events = event.view_event_history(staff_id=staff_id)
+    print("DEBUG: Events for staff_id", staff_id, "=", [e.name for e in events])
+    return render_template("staff_events.html", events=events)
+
+
+# ---------------- Student Event Actions ----------------
 @event_views.route("/events/upcoming", methods=["GET"])
 @jwt_required()
 def view_upcoming_events_route():
@@ -54,16 +185,6 @@ def view_upcoming_events_route():
 def view_all_events_route():
     events = event.view_all_events()
     return jsonify([e.get_json() for e in events]), 200
-
-@event_views.route("/events/staff", methods=["GET"])
-@jwt_required()
-def get_staff_events_route():
-    staff_id = get_jwt_identity()
-    events = event.view_event_history(staff_id=staff_id)
-    events_data = [e.get_json() for e in events]
-    return render_template("staff_events.html", events=events_data)
-
-# ---------------- Student Event Actions ----------------
 
 @event_views.route("/events/<int:event_id>/join/<int:student_id>", methods=["POST"])
 @jwt_required()
@@ -85,12 +206,3 @@ def log_attendance_route(event_id, student_id):
         return jsonify({"message": "Attendance not valid"}), 400
     return jsonify(attendance), 201
 
-# ---------------- QR Code ----------------
-
-@event_views.route("/events/<int:event_id>/qr", methods=["GET"])
-@jwt_required()
-def generate_qr_code_route(event_id):
-    qr_data = event.generate_qr_code(event_id)
-    if not qr_data:
-        return jsonify({"error": "Event not found"}), 404
-    return jsonify({"qr_code": qr_data}), 200

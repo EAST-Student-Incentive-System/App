@@ -113,15 +113,19 @@
         <ul class="menu menu-horizontal px-1 items-center gap-3">
 
             <li>
-                <a href="{{ url_for('event.get_staff_events_route') }}">Events</a>
+                <a href="{{ url_for('event_views.get_staff_events_route') }}">Events</a>
             </li>
 
             <li>
                 <a class="font-semibold underline">Rewards</a>
             </li>
 
-            <!-- Better Profile Icon (solid + cleaner) -->
             <li>
+                <a class="" href="{{ url_for('auth_views.logout_action') }}">Logout</a>
+            </li>
+
+            <!-- Better Profile Icon (solid + cleaner) -->
+        <!--    <li>
                 <a href="/profile" class="btn btn-ghost btn-circle">
                     <svg xmlns="http://www.w3.org/2000/svg"
                          class="h-7 w-7"
@@ -130,7 +134,7 @@
                         <path d="M12 12c2.7 0 5-2.3 5-5s-2.3-5-5-5-5 2.3-5 5 2.3 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/>
                     </svg>
                 </a>
-            </li>
+            </li> -->
 
         </ul>
     </div>
@@ -143,7 +147,7 @@
     <div class="flex items-center mb-8 gap-4">
 
         <!-- Add Button -->
-        <a href="{{ url_for('reward.create_reward_route') }}"
+        <a href="{{ url_for('reward_views.create_reward_page') }}"
            class="btn btn-circle btn-purple shadow-md shrink-0">
             +
         </a>
@@ -221,14 +225,15 @@
 
             <div class="flex-1 text-sm text-gray-600 space-y-1 mb-3">
                 <p><span class="font-semibold text-gray-800">Name:</span> {{ reward.name }}</p>
-                <p><span class="font-semibold text-gray-800">Points:</span> {{ reward.points }}</p>
+                <p><span class="font-semibold text-gray-800">Description:</span> {{ reward.description }}</p>
+                <p><span class="font-semibold text-gray-800">Points:</span> {{ reward.pointCost }}</p>
                 <p><span class="font-semibold text-gray-800">Status:</span>
                     {% if reward.active %} Active {% else %} Inactive {% endif %}
                 </p>
             </div>
 
             <div class="pt-2 border-t border-purple-50">
-                <a href="{{ url_for('reward.edit_reward_route', reward_id=reward.id) }}"
+                <a href="{{ url_for('reward_views.update_reward_page', reward_id=reward.id) }}"
                    class="btn btn-sm btn-outline-purple rounded-full w-full">
                     Edit
                 </a>
