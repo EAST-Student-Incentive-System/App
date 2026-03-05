@@ -79,8 +79,8 @@
         <div class="flex-none">
             <ul class="menu menu-horizontal px-1">
                 <li><a>Events</a></li>
-                <li><a>Rewards</a></li>
-                <li><a>Profile</a></li>
+                <li><a href="/rewards">Rewards</a></li>
+                <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
             </ul>
         </div>
     </div>
@@ -89,7 +89,7 @@
 
         <!-- Header row -->
         <div class="flex items-center mb-8 gap-4">
-            <a href="/events" class="btn btn-circle btn-purple shadow-md shrink-0" title="Create Event">
+            <a href="{{ url_for('event_views.create_event_route')}}" class="btn btn-circle btn-purple shadow-md shrink-0" title="Create Event">
                 <svg class="w-5 h-5" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -133,30 +133,48 @@
                     data-end="{{ event.end }}">
 
                     <div class="event-img mb-3">
-                        <svg class="w-12 h-12" viewBox="0 0 64 64" fill="none" stroke="#9b30ff" stroke-width="2">
-                            <rect x="4" y="10" width="56" height="44" rx="6"/>
-                            <circle cx="22" cy="26" r="6"/>
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 46l14-14 10 10 10-12 22 16"/>
-                        </svg>
+                        {% if event.image %}
+                            <img 
+                                src="{{ url_for('static', filename='uploads/' ~ event.image) }}" 
+                                alt="Event image" 
+                                class="w-full h-full object-cover rounded-lg"
+                            >
+                        {% else %}
+                            <span class="text-gray-400">🖼️</span>
+                        {% endif %}
                     </div>
 
                     <div class="flex-1 text-sm text-gray-600 space-y-0.5 mb-3">
                         <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
                         <p><span class="font-semibold text-gray-800">Type:</span> {{ event.type }}</p>
                         <p><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
-                        <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start }}</p>
-                        <p><span class="font-semibold text-gray-800">End:</span> {{ event.end }}</p>
+                        <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
+                        <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
                     </div>
 
                     <div class="flex items-center gap-2 pt-2 border-t border-purple-50">
                         <a href="/events/{{event.id}}" class="btn btn-sm btn-outline-purple rounded-full px-5">Edit</a>
-                        <a href="/events/{{event.id}}/qr" class="btn btn-sm btn-purple rounded-full px-4 ml-auto flex items-center gap-1.5">
-                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                                <rect x="3" y="14" width="7" height="7" rx="1"/>
-                                <path d="M14 14h3v3h-3zM17 17h3v3h-3zM14 20h3"/>
-                            </svg>
-                            QR Code
+                        <!-- Small QR Preview -->
+                        <label for="qr-modal-{{ event.id }}" class="ml-auto cursor-pointer">
+                            <img 
+                                src="data:image/png;base64,{{ event.qr_code }}"
+                                class="w-16 h-16 hover:scale-105 transition-transform duration-200"
+                            >
+                        </label>
+
+                            <!-- DaisyUI Modal -->
+                            <input type="checkbox" id="qr-modal-{{ event.id }}" class="modal-toggle" />
+                            <div class="modal">
+                            <div class="modal-box text-center">
+                                <h3 class="font-bold text-lg mb-4">Event QR Code</h3>
+                                <img 
+                                    src="data:image/png;base64,{{ event.qr_code }}"
+                                    class="w-72 h-72 mx-auto">
+                                <div class="modal-action">
+                                <label for="qr-modal-{{ event.id }}" class="btn">Close</label>
+                                </div>
+                            </div>
+                            </div>
                         </a>
                     </div>
                 </div>
