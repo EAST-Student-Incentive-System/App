@@ -44,13 +44,15 @@
       <div class="flex-1 space-y-4">
         <div class="border rounded-lg flex items-center justify-center min-h-[300px] cursor-pointer bg-base-200" onclick="document.getElementById('eventImage').click()">
           {% if event and event.image %}
-             <img alt=" No image found "src="{{ event.image }}" class="max-h-[300px] object-cover rounded-lg">
+  <         <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
+       class="max-h-[300px] object-cover rounded-lg">
           {% else %}
-            <span class="text-gray-500">Click to upload image</span>
-          {% endif %}
+      <span class="text-gray-500">Click to upload image</span>
+        {% endif %}
           <input type="file" id="eventImage" name="image" accept="image/*" hidden>
         </div>
 
+        
         <label class="form-control">
           <span class="label-text">Description</span>
           <textarea id="description" name="description" class="textarea textarea-bordered h-32">{{ event.description if event else '' }}</textarea>

@@ -35,6 +35,7 @@ class Event(db.Model):
             'start': self.start.isoformat(),
             'end': self.end.isoformat(),
             'location': self.location,
+            'image' : self.image
         }
     
     def __repr__(self):
