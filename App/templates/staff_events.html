@@ -132,17 +132,15 @@
                     data-start="{{ event.start }}"
                     data-end="{{ event.end }}">
 
-                    <div class="event-img mb-3">
-                        {% if event.image %}
-                            <img 
-                                src="{{ url_for('static', filename='uploads/' ~ event.image) }}" 
-                                alt="Event image" 
-                                class="w-full h-full object-cover rounded-lg"
-                            >
-                        {% else %}
-                            <span class="text-gray-400">🖼️</span>
-                        {% endif %}
+                <div class="event-img mb-4">
+                    {% if event.image %}
+                        <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
+                            class="object-cover rounded-lg max-h-[110px] w-full">
+                    {% else %}
+                        🖼️
+                    {% endif %}
                     </div>
+
 
                     <div class="flex-1 text-sm text-gray-600 space-y-0.5 mb-3">
                         <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>

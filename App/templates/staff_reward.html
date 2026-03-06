@@ -219,9 +219,13 @@
              data-name="{{ reward.name|lower }}"
              data-status="{{ 'active' if reward.active else 'inactive' }}">
 
-            <div class="reward-img mb-4">
-                🎁
-            </div>
+        {% if reward.image %}
+        <img src="{{ url_for('static', filename='uploads/' ~ reward.image) }}"
+            class="object-cover rounded-lg max-h-[110px] w-full">
+            {% else %}
+            🎁
+            {% endif %}
+
 
             <div class="flex-1 text-sm text-gray-600 space-y-1 mb-3">
                 <p><span class="font-semibold text-gray-800">Name:</span> {{ reward.name }}</p>

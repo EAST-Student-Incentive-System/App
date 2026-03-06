@@ -66,17 +66,22 @@ def create_event_route():
                 location=location
             )
 
+            # Handle image upload safely
             if image_file and image_file.filename:
                 filename = secure_filename(image_file.filename)
-                filepath = os.path.join(current_app.static_folder, 'uploads', filename)
+                upload_folder = os.path.join(current_app.static_folder, "uploads")
+                os.makedirs(upload_folder, exist_ok=True)  # ensure folder exists
+                filepath = os.path.join(upload_folder, filename)
                 image_file.save(filepath)
-                new_event.image = filename  # or event.image = filename for update
-                
+                new_event.image = filename
 
-            # Generate QR code
+            
             db.session.add(new_event)
             db.session.flush()  # flush to get ID
-            new_event.qr = generate_qr_code(new_event.id)
+            #new_event.qr = generate_qr_code(new_event.id)
+
+            print("Image file:", image_file)
+            print("Filename:", filename if image_file else None)
 
             db.session.commit()
             flash('Event created successfully!', 'success')
@@ -104,6 +109,8 @@ def update_event_route(event_id):
         return redirect(url_for('event_views.get_staff_events_route'))
 
     if request.method == "POST":
+        print("FILES RECEIVED:", request.files)
+        print("FORM DATA:", request.form)
         name = request.form.get("name")
         description = request.form.get("description")
         type_ = request.form.get("type")
@@ -126,13 +133,22 @@ def update_event_route(event_id):
             event_obj.start = start_dt
             event_obj.end = end_dt
             event_obj.location = location
+            #event_obj.qr = generate_qr_code(event_obj.id)
+            
+
+            image_file = request.files.get("image")
 
             if image_file and image_file.filename:
                 filename = secure_filename(image_file.filename)
-                filepath = os.path.join(current_app.static_folder, 'uploads', filename)
+                upload_folder = os.path.join(current_app.static_folder, "uploads")
+                os.makedirs(upload_folder, exist_ok=True)
+                filepath = os.path.join(upload_folder, filename)
                 image_file.save(filepath)
-                event_obj.image = filename
 
+                event_obj.image = filename  # replace only if new image uploaded
+# else → do nothing, keep existing image
+
+            print("Saved image name in DB:", event_obj.image)
             db.session.commit()
             flash('Event updated successfully!', 'success')
             return redirect(url_for('event_views.get_staff_events_route'))
@@ -141,7 +157,7 @@ def update_event_route(event_id):
             flash(f"Error updating event: {e}", 'error')
             return redirect(url_for('event_views.update_event_route', event_id=event_id))
 
-    return render_template("edit_event.html", event=event_obj)     
+    return render_template("edit_event.html", event=event_obj)
 
 @event_views.route("/events/<int:event_id>/delete", methods=["POST"])
 @jwt_required()
