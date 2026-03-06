@@ -29,8 +29,8 @@ def view_event_history(student_id=None, staff_id=None):
 
 # ---------------- Event CRUD ----------------
 
-def create_event(staff_id, name, type, description, start, end, location):
-    new_event = Event(staffId=staff_id, name=name, type=type, description=description, start=start, end=end, location=location)
+def create_event(staff_id, name, type, description, start, end, location, image):
+    new_event = Event(staffId=staff_id, name=name, type=type, description=description, start=start, end=end, location=location, image=image)
     db.session.add(new_event)
     db.session.flush()
     new_event.qr = generate_qr_code(new_event.id)  # Generate QR code data for the event
@@ -48,7 +48,8 @@ def update_event(event_id, **kwargs):
         'description': 'description',
         'start': 'start',
         'end': 'end',
-        'location': 'location'
+        'location': 'location',
+        'image': 'image'
     }
 
     for key, value in kwargs.items():
