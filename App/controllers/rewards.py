@@ -8,8 +8,8 @@ reward = Blueprint("reward", __name__)
 # Reward CRUD
 
 
-def create_reward(name, description, point_cost, active=True):
-    reward = Reward(name=name, description=description, pointCost=point_cost, active=active)
+def create_reward(name, description, point_cost, active=True, image=None):
+    reward = Reward(name=name, description=description, pointCost=point_cost, active=active, image=image)
     db.session.add(reward)
     db.session.commit()
     return reward
@@ -49,6 +49,7 @@ def update_reward(reward_id, **kwargs):
         'active': 'active',
         'name': 'name',
         'description': 'description',
+        'image': 'image'
     }
 
     for key, value in kwargs.items():

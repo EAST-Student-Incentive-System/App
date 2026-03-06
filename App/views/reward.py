@@ -97,22 +97,31 @@ def create_reward_page():
         description = request.form.get('description')
         point_cost_str = request.form.get('point_cost')
         active = True if request.form.get('active') == 'on' else False
+        image_file = request.files.get('image')
 
-        # Validate point_cost before converting
-        if not point_cost_str:
-            flash('Point cost is required', 'error')
-            return redirect(url_for('reward_views.create_reward_page'))
+    if not point_cost_str:
+        flash('Point cost is required', 'error')
+        return redirect(url_for('reward_views.create_reward_page'))
 
-        try:
-            point_cost = int(point_cost_str)
-        except ValueError:
-            flash('Point cost must be a number', 'error')
-            return redirect(url_for('reward_views.create_reward_page'))
+    try:
+        point_cost = int(point_cost_str)
+    except ValueError:
+        flash('Point cost must be a number', 'error')
+        return redirect(url_for('reward_views.create_reward_page'))
 
-        # Call your controller function
-        create_reward(name, description, point_cost, active)
-        flash('Reward created successfully!', 'success')
-        return redirect(url_for('reward_views.list_rewards_page'))
+    filename = None
+    if image_file and image_file.filename:
+        filename = secure_filename(image_file.filename)
+        upload_folder = os.path.join(current_app.static_folder, "uploads") 
+        os.makedirs(upload_folder, exist_ok=True) 
+        filepath = os.path.join(upload_folder, filename) 
+        image_file.save(filepath)
+
+    # Call your controller function with image
+    create_reward(name, description, point_cost, active, image=filename)
+    flash('Reward created successfully!', 'success')
+    return redirect(url_for('reward_views.list_rewards_page'))
+
 
 
 
@@ -152,9 +161,12 @@ def update_reward_page(reward_id):
             reward_obj.pointCost = int(point_cost)
             reward_obj.active = active
 
+            # Only update image if a new file is uploaded
             if image_file and image_file.filename:
                 filename = secure_filename(image_file.filename)
-                filepath = os.path.join(current_app.static_folder, "uploads", filename)
+                upload_folder = os.path.join(current_app.static_folder, "uploads")
+                os.makedirs(upload_folder, exist_ok=True)  # ensure folder exists
+                filepath = os.path.join(upload_folder, filename)
                 image_file.save(filepath)
                 reward_obj.image = filename
 
@@ -169,6 +181,7 @@ def update_reward_page(reward_id):
     # GET request → render edit form
     print("Reached GET for update_reward_page with reward:")
     return render_template("edit_reward.html", reward=reward_obj)
+
  
 
 @reward_views.route('/rewards/<int:reward_id>/delete', methods=['POST'])
