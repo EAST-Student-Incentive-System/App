@@ -52,7 +52,7 @@ def login_page():
         # no valid token, fall through to login page
         pass
 
-    # ✅ Always render login form if not authenticated
+    #  Always render login form if not authenticated
     return render_template('login.html')
 
 
