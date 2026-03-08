@@ -189,7 +189,7 @@ def get_staff_events_route():
     staff_id = user.id
     events = event.view_event_history(staff_id=staff_id)
     print("DEBUG: Events for staff_id", staff_id, "=", [e.name for e in events])
-    return render_template("staff_events.html", events=events)
+    return render_template("staff_events.html", events=events, user=user)
 
 
 @event_views.route("/events/<int:event_id>/attendance")
@@ -208,13 +208,28 @@ def event_qr_page(event_id):
     )
 
 # ---------------- Student Event Actions ----------------
+@event_views.route("/events/student", methods=["GET"])
+@jwt_required()
+def get_student_events_route():
+    print("STUDENT EVENTS ROUTE HIT")
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    if not user or user.role != 'student':
+        print("Unauthorized access attempt by user_id:", user_id)
+        flash('Unauthorized', 'error')
+        return redirect(url_for('auth_views.login_page'))
+    student_id = user.id
+    events = Event.query.filter_by(active=True).all()
+    print("DEBUG: Events for student_id", student_id, "=", [e.name for e in events])
+    return render_template("student_event.html", events=events, student=user, user=user)
+
 @event_views.route("/events/upcoming", methods=["GET"])
 @jwt_required()
 def view_upcoming_events_route():
     events = event.view_upcoming_events()
     return jsonify([e.get_json() for e in events]), 200
 
-@event_views.route("/events/student", methods=["GET"])
+@event_views.route("/api/events/student", methods=["GET"])
 @jwt_required()
 def view_all_events_route():
     events = event.view_all_events()
