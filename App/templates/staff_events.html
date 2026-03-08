@@ -108,7 +108,7 @@
           </a>
         </div>
 
-        {% if event.qr_code %}
+       {# {% if event.qr_code %}
         <label for="qr-modal-{{ event.id }}" class="mt-2 cursor-pointer flex justify-center">
           <img src="data:image/png;base64,{{ event.qr_code }}"
                class="w-16 h-16 hover:scale-105 transition-transform duration-200">
@@ -123,7 +123,16 @@
             </div>
           </div>
         </div>
-        {% endif %}
+        {% endif %}#}
+
+        <div class="pt-2 border-t">
+  <!-- Staff sees Start Attendance button -->
+  <a href="{{ url_for('event_views.event_qr_page', event_id=event.id) }}"
+     class="btn btn-sm btn-warning w-full">
+    Start Attendance
+  </a>
+</div>
+
       </div>
       {% endfor %}
     </div>
