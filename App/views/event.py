@@ -47,6 +47,7 @@ def create_event_route():
         end_str = request.form.get("end")
         location = request.form.get("location")
         image = request.files.get("image")
+        active = bool(request.form.get("active"))
 
         if not all([name, description, start_str, end_str, location, type_]):
             flash('All fields are required', 'error')
@@ -63,7 +64,8 @@ def create_event_route():
                 description=description,
                 start=start_dt,
                 end=end_dt,
-                location=location
+                location=location,
+                active = active
             )
 
             # Handle image upload safely
@@ -119,6 +121,7 @@ def update_event_route(event_id):
         end_str = request.form.get("end")
         location = request.form.get("location")
         image_file = request.files.get("image")
+        active = bool(request.form.get("active"))
 
         if not all([name, description, start_str, end_str, location, type_]):
             flash('All fields are required', 'error')
@@ -135,6 +138,7 @@ def update_event_route(event_id):
             event_obj.end = end_dt
             event_obj.location = location
             #event_obj.qr = generate_qr_code(event_obj.id)
+            event_obj.active = active
             
 
             image_file = request.files.get("image")
