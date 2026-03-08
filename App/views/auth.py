@@ -44,8 +44,10 @@ def login_page():
         user_id = get_jwt_identity()   # will raise if no/expired token
         if user_id:
             user = User.query.get(user_id)
-            if user:
+            if user.role == 'staff':
                 return redirect(url_for('event_views.get_staff_events_route'))
+            if user.role == 'student':
+                return redirect(url_for('event_views.get_student_events_route'))
     except Exception:
         # no valid token, fall through to login page
         pass
@@ -78,7 +80,12 @@ def login_action():
     token = result.get('access_token')
     role = result.get('role')
 
-    response = redirect(url_for('event_views.get_staff_events_route')) if role == 'staff' else redirect(url_for('auth_views.login_page'))
+    if role == 'staff':
+        response = redirect(url_for('event_views.get_staff_events_route')) 
+    elif role == 'student':
+        response = redirect(url_for('event_views.get_student_events_route'))
+    else:
+        response = redirect(url_for('index_views.index_page')) 
     set_access_cookies(response, token)   # <-- attach JWT to cookie
     return response
 
