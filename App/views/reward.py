@@ -180,7 +180,7 @@ def update_reward_page(reward_id):
 
     # GET request → render edit form
     print("Reached GET for update_reward_page with reward:")
-    return render_template("edit_reward.html", reward=reward_obj)
+    return render_template("edit_reward.html", reward=reward_obj, user=user)
 
  
 
@@ -224,7 +224,7 @@ def list_rewards_page():
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))
     rewards = get_all_rewards()
-    return render_template('staff_reward.html', rewards=rewards or [])
+    return render_template('staff_reward.html', rewards=rewards or [], user=user)
 
 
 ''''@reward.route("/rewards", methods=["GET"])

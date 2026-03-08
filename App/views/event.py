@@ -210,7 +210,8 @@ def event_qr_page(event_id):
     return render_template(
         "attendance_qr.html",
         event=event,
-        qr=qr
+        qr=qr,
+        user=user
     )
 
 # ---------------- Student Event Actions ----------------
@@ -241,7 +242,7 @@ def view_all_events_route():
     events = event.view_all_events()
     return jsonify([e.get_json() for e in events]), 200
 
-@event_views.route("/events/<int:event_id>/join/<int:student_id>", methods=["POST"])
+@event_views.route("/api/events/<int:event_id>/join/<int:student_id>", methods=["POST"])
 @jwt_required()
 def join_event_route(event_id, student_id):
     joined = event.join_event(student_id, event_id)
@@ -270,6 +271,8 @@ def scan_qr_page():
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))
     return render_template("scan_qr.html", user=user)
+
+
 
 
 
