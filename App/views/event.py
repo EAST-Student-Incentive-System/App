@@ -92,7 +92,7 @@ def create_event_route():
             flash(f"Error: {e}", 'error')
             return redirect(url_for('event_views.get_staff_events_route'))
 
-    return render_template("edit_event.html")
+    return render_template("edit_event.html", user=user)
 
 # ---------- UPDATE EVENT ----------
 @event_views.route("/events/<int:event_id>", methods=["GET","POST"])
@@ -160,7 +160,7 @@ def update_event_route(event_id):
             flash(f"Error updating event: {e}", 'error')
             return redirect(url_for('event_views.update_event_route', event_id=event_id))
 
-    return render_template("edit_event.html", event=event_obj)
+    return render_template("edit_event.html", event=event_obj, user=user)
 
 @event_views.route("/events/<int:event_id>/delete", methods=["POST"])
 @jwt_required()
@@ -189,11 +189,17 @@ def get_staff_events_route():
     staff_id = user.id
     events = event.view_event_history(staff_id=staff_id)
     print("DEBUG: Events for staff_id", staff_id, "=", [e.name for e in events])
-    return render_template("staff_events.html", events=events, user=user)
+    return render_template("staff_events.html", events=events, staff=user, user=user)
 
 
 @event_views.route("/events/<int:event_id>/attendance")
+@jwt_required()
 def event_qr_page(event_id):
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or user.role != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('event_views.get_staff_events_route'))
     event = Event.query.get(event_id)
 
     if not event:
@@ -258,7 +264,12 @@ def log_attendance_route(event_id, student_id):
 @event_views.route("/scan", methods=["GET"])
 @jwt_required()
 def scan_qr_page():
-    return render_template("scan_qr.html")
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    if not user or user.role != 'student':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('auth_views.login_page'))
+    return render_template("scan_qr.html", user=user)
 
 
 

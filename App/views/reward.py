@@ -78,7 +78,7 @@ def reward_history_page(staff_id):
         flash('Unauthorized', 'error')
         return redirect(url_for('reward_views.list_rewards_page'))
     res = viewRewardHistory(staff_id)
-    return render_template('staff_rewards.html', rewards=res or [])
+    return render_template('staff_rewards.html', rewards=res or [], user=user)
 
 @reward_views.route('/rewards/new', methods=['GET', 'POST'])
 @jwt_required()
@@ -90,7 +90,7 @@ def create_reward_page():
         return redirect(url_for('reward_views.list_rewards_page'))
 
     if request.method == 'GET':
-        return render_template('edit_reward.html', reward=None)
+        return render_template('edit_reward.html', reward=None, user=user)
 
     if request.method == 'POST':
         name = request.form.get('name')
