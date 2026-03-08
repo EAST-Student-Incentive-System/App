@@ -18,12 +18,19 @@ class Event(db.Model):
     students = db.relationship('Student', secondary=student_event, back_populates='events')
     qr = db.Column(db.Text, nullable=True) #store QR code data or path here, can be generated on demand or stored after creation
     image = db.Column(db.String(200), nullable=True) #optional image for event, can be used in UI to make it more appealing
+    active = db.Column(db.Boolean, default=False) #soft delete flag, set to False instead of deleting record
 
-    @property
-    def image_url(self):
-        if self.image:
-            return url_for('static', filename=f'uploads/{self.image}')
-        return None
+    def __init__(self, staffId, name, type, description, start, end, location=None, qr=None, image=None, active=False):
+        self.staffId = staffId
+        self.name = name
+        self.type = type
+        self.description = description
+        self.start = start
+        self.end = end
+        self.location = location
+        self.qr = qr
+        self.image = image
+        self.active = active
 
     def get_json(self):
         return {
@@ -35,7 +42,9 @@ class Event(db.Model):
             'start': self.start.isoformat(),
             'end': self.end.isoformat(),
             'location': self.location,
-            'image' : self.image
+            'image' : self.image,
+            'qr': self.qr,
+            'active': self.active
         }
     
     def __repr__(self):
