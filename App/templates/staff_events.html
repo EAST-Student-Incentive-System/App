@@ -1,229 +1,181 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Events</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
-    <style>
-        :root {
-            --purple: #9b30ff;
-            --purple-light: #f3e8ff;
-            --purple-dark: #7a22cc;
-        }
-        body { background-color: #f9f6ff; min-height: 100vh; }
-        html { background-color: #f9f6ff; }
+{% extends "layout.html" %}
 
-        .search-box {
-            border: 1.5px solid #d8b4fe;
-            border-radius: 9999px;
-            background: white;
-        }
-        .search-box:focus-within {
-            border-color: var(--purple);
-            box-shadow: 0 0 0 3px rgba(155,48,255,0.12);
-        }
-        .search-box input {
-            background: transparent;
-            outline: none;
-            width: 100%;
-        }
+{% block title %}Events{% endblock %}
 
-        .filter-toggle {
-            color: var(--purple);
-            border: 1.5px solid #d8b4fe;
-            background: white;
-            border-radius: 9999px;
-        }
-        .filter-toggle:hover { background: var(--purple-light); }
+{% block content %}
+  <div class="max-w-6xl mx-auto px-6 py-8">
 
-        .filter-option:hover { background-color: var(--purple-light) !important; color: #4b0082; }
-        .filter-option.selected { background-color: var(--purple) !important; color: white !important; }
+    <!-- HEADER ROW -->
+    <div class="flex items-center mb-8 gap-4">
 
-        .event-card {
-            background: white;
-            border-radius: 1rem;
-            border: 1.5px solid #e5d9f7;
-            box-shadow: 0 2px 8px rgba(155,48,255,0.06);
-            transition: box-shadow 0.2s, transform 0.2s;
-        }
-        .event-card:hover {
-            box-shadow: 0 6px 24px rgba(155,48,255,0.15);
-            transform: translateY(-2px);
-        }
+      <!-- Add Button -->
+      <a href="{{ url_for('event_views.create_event_route') }}"
+         class="btn btn-circle btn-accent shadow-md shrink-0" title="Create Event">
+        +
+      </a>
 
-        .event-img {
-            background: #ede9fe;
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 110px;
-        }
+      <h1 class="text-3xl font-bold text-gray-800 flex-1 text-center">
+        Events
+      </h1>
 
-        .btn-purple { background-color: var(--purple); border-color: var(--purple); color: white; }
-        .btn-purple:hover { background-color: var(--purple-dark); border-color: var(--purple-dark); color: white; }
-        .btn-outline-purple { background: white; border: 1.5px solid var(--purple); color: var(--purple); }
-        .btn-outline-purple:hover { background-color: var(--purple-light); }
-    </style>
-</head>
-<body>
+      <!-- Search + Filter -->
+      <div class="flex items-center gap-3 shrink-0">
 
-    <!-- Navbar -->
-    <div class="navbar px-6" style="background-color:#9b30ff; color:white;">
-        <div class="flex-1">
-            <a class="text-xl font-bold">Merit</a>
+        <!-- Search -->
+        <div class="form-control">
+          <div class="input-group">
+            <input id="event-search"
+                   type="text"
+                   placeholder="Search..."
+                   class="input input-bordered"
+                   oninput="filterEvents()" />
+            <button class="btn btn-square btn-accent">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="h-5 w-5"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+              </svg>
+            </button>
+          </div>
         </div>
-        <div class="flex-none">
-            <ul class="menu menu-horizontal px-1">
-                <li><a>Events</a></li>
-                <li><a href="/rewards">Rewards</a></li>
-                <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
-            </ul>
+
+        <!-- Filter Dropdown -->
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
+            <span id="filter-label">All</span>
+          </label>
+          <ul tabindex="0"
+              class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
+            <li><a class="filter-option selected" data-filter="all"
+                   onclick="setFilter('all','All')">All</a></li>
+            <li><a class="filter-option" data-filter="ongoing"
+                   onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
+            <li><a class="filter-option" data-filter="upcoming"
+                   onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
+            <li><a class="filter-option" data-filter="previous"
+                   onclick="setFilter('previous','Previous')">Previous</a></li>
+            <li><a class="filter-option" data-filter="active"
+                onclick="setFilter('active','Active')">Active</a></li>
+            <li><a class="filter-option" data-filter="inactive"
+                 onclick="setFilter('inactive','Inactive')">Inactive</a></li>
+          </ul>
         </div>
+      </div>
     </div>
 
-    <div class="max-w-6xl mx-auto px-6 py-8">
+    <!-- EVENTS GRID -->
+    <div id="events-container"
+         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
-        <!-- Header row -->
-        <div class="flex items-center mb-8 gap-4">
-            <a href="{{ url_for('event_views.create_event_route')}}" class="btn btn-circle btn-purple shadow-md shrink-0" title="Create Event">
-                <svg class="w-5 h-5" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                </svg>
-            </a>
+      {% for event in events %}
+      <div class="card bg-base-100 shadow-md p-4 event-card"
+           data-name="{{ event.name|lower }}"
+           data-description="{{ event.description|lower }}"
+           data-type="{{ event.type|lower }}"
+           data-start="{{ event.start }}"
+           data-end="{{ event.end }}"
+           data-location="{{ event.location|lower }}"
+           data-active="{{ 'true' if event.active else 'false' }}">
 
-            <h1 class="text-3xl font-bold text-gray-800 flex-1 text-center">Event</h1>
+        {% if event.image %}
+          <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
+               alt="{{ event.name }}"
+               class="object-cover rounded-lg max-h-[110px] w-full"
+               onerror="this.replaceWith(document.createTextNode('🖼️'))">
+        {% else %}
+          <div class="flex items-center justify-center h-[110px] bg-base-200 rounded-lg text-3xl">🖼️</div>
+        {% endif %}
 
-            <div class="flex items-center gap-3 shrink-0">
-                <div class="search-box flex items-center gap-2 px-4 py-2 w-52">
-                    <input id="event-search" type="text" placeholder="Search..." oninput="filterEvents()"/>
-                    <svg class="w-4 h-4 shrink-0" style="color:#9b30ff" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                        <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
-                    </svg>
-                </div>
+        <div class="flex-1 text-sm text-gray-600 space-y-1 mb-3 mt-2">
+          <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
+          <p><span class="font-semibold text-gray-800">Type:</span> {{ event.type }}</p>
+          <p><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
+          <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
+          <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
+            <p><span class="font-semibold text-gray-800">Location:</span> {{ event.location }}</p>
+            <p><span class="font-semibold text-gray-800">Status:</span>
+                {% if event.active %} Active {% else %} Inactive {% endif %}
+        </div>
 
-                <div class="dropdown dropdown-end">
-                    <button tabindex="0" class="filter-toggle btn btn-sm flex items-center gap-1 px-3">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M7 10h10M11 16h2"/>
-                        </svg>
-                        <span id="filter-label" class="text-sm font-medium">All</span>
-                    </button>
-                    <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-white rounded-xl w-40 border border-purple-100 z-50 mt-1">
-                        <li><a class="filter-option selected rounded-lg" data-filter="all" onclick="setFilter('all','All')">All</a></li>
-                        <li><a class="filter-option rounded-lg" data-filter="ongoing" onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
-                        <li><a class="filter-option rounded-lg" data-filter="upcoming" onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
-                        <li><a class="filter-option rounded-lg" data-filter="previous" onclick="setFilter('previous','Previous')">Previous</a></li>
-                    </ul>
-                </div>
+        <div class="pt-2 border-t">
+
+          <a href="{{ url_for('event_views.update_event_route', event_id=event.id) }}"
+             class="btn btn-sm btn-outline btn-accent w-full">
+            Edit
+          </a>
+        </div>
+
+        {% if event.qr_code %}
+        <label for="qr-modal-{{ event.id }}" class="mt-2 cursor-pointer flex justify-center">
+          <img src="data:image/png;base64,{{ event.qr_code }}"
+               class="w-16 h-16 hover:scale-105 transition-transform duration-200">
+        </label>
+        <input type="checkbox" id="qr-modal-{{ event.id }}" class="modal-toggle" />
+        <div class="modal">
+          <div class="modal-box text-center">
+            <h3 class="font-bold text-lg mb-4">Event QR Code</h3>
+            <img src="data:image/png;base64,{{ event.qr_code }}" class="w-72 h-72 mx-auto">
+            <div class="modal-action">
+              <label for="qr-modal-{{ event.id }}" class="btn">Close</label>
             </div>
+          </div>
         </div>
-
-        <!-- Events Grid -->
-        <div id="events-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for event in events %}
-                <div class="event-card p-3 flex flex-col"
-                    data-name="{{ event.name | lower }}"
-                    data-description="{{ event.description | lower }}"
-                    data-type="{{ event.type | lower }}"
-                    data-start="{{ event.start }}"
-                    data-end="{{ event.end }}">
-
-                <div class="event-img mb-4">
-                    {% if event.image %}
-                        <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
-                            class="object-cover rounded-lg max-h-[110px] w-full">
-                    {% else %}
-                        🖼️
-                    {% endif %}
-                    </div>
-
-
-                    <div class="flex-1 text-sm text-gray-600 space-y-0.5 mb-3">
-                        <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
-                        <p><span class="font-semibold text-gray-800">Type:</span> {{ event.type }}</p>
-                        <p><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
-                        <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
-                        <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
-                    </div>
-
-                    <div class="flex items-center gap-2 pt-2 border-t border-purple-50">
-                        <a href="/events/{{event.id}}" class="btn btn-sm btn-outline-purple rounded-full px-5">Edit</a>
-                        <!-- Small QR Preview -->
-                        <label for="qr-modal-{{ event.id }}" class="ml-auto cursor-pointer">
-                            <img 
-                                src="data:image/png;base64,{{ event.qr_code }}"
-                                class="w-16 h-16 hover:scale-105 transition-transform duration-200"
-                            >
-                        </label>
-
-                            <!-- DaisyUI Modal -->
-                            <input type="checkbox" id="qr-modal-{{ event.id }}" class="modal-toggle" />
-                            <div class="modal">
-                            <div class="modal-box text-center">
-                                <h3 class="font-bold text-lg mb-4">Event QR Code</h3>
-                                <img 
-                                    src="data:image/png;base64,{{ event.qr_code }}"
-                                    class="w-72 h-72 mx-auto">
-                                <div class="modal-action">
-                                <label for="qr-modal-{{ event.id }}" class="btn">Close</label>
-                                </div>
-                            </div>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
-        <!-- Empty State -->
-        <div id="no-results" class="hidden text-center py-20">
-            <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="#9b30ff" stroke-width="1.5" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
-            </svg>
-            <p class="text-gray-500 font-medium">No events found</p>
-            <p class="text-gray-400 text-sm mt-1">Try a different search or filter.</p>
-        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
     </div>
 
-    <script>
-        let activeFilter = 'all';
+    <!-- EMPTY STATE -->
+    <div id="no-results" class="hidden text-center py-20">
+      <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+      </svg>
+      <p class="text-gray-500 font-medium">No events found</p>
+      <p class="text-gray-400 text-sm mt-1">Try a different search or filter.</p>
+    </div>
+  </div>
 
-        function getEventStatus(card) {
-            const now = new Date(), start = new Date(card.dataset.start), end = new Date(card.dataset.end);
-            if (now < start) return 'upcoming';
-            if (now > end) return 'previous';
-            return 'ongoing';
-        }
+  <script>
+    let activeFilter = 'all';
 
-        function setFilter(filter, label) {
-            activeFilter = filter;
-            document.getElementById('filter-label').textContent = label;
-            document.querySelectorAll('.filter-option').forEach(opt => {
-                opt.classList.toggle('selected', opt.dataset.filter === filter);
-            });
-            document.activeElement?.blur();
-            filterEvents();
-        }
+    function getEventStatus(card) {
+      const now = new Date(), start = new Date(card.dataset.start), end = new Date(card.dataset.end);
+      if (now < start) return 'upcoming';
+      if (now > end) return 'previous';
+      return 'ongoing';
+    }
 
-        function filterEvents() {
-            const query = document.getElementById('event-search').value.toLowerCase().trim();
-            const cards = document.querySelectorAll('.event-card');
-            let visible = 0;
-            cards.forEach(card => {
-                const matchesSearch = !query ||
-                    card.dataset.name.includes(query) ||
-                    card.dataset.description.includes(query) ||
-                    card.dataset.type.includes(query);
-                const matchesFilter = activeFilter === 'all' || getEventStatus(card) === activeFilter;
-                card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
-                if (matchesSearch && matchesFilter) visible++;
-            });
-            document.getElementById('no-results').classList.toggle('hidden', visible > 0);
-        }
-    </script>
-</body>
-</html>
+    function setFilter(filter, label) {
+      activeFilter = filter;
+      document.getElementById('filter-label').textContent = label;
+      document.querySelectorAll('.filter-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.filter === filter);
+      });
+      filterEvents();
+    }
+
+    function filterEvents() {
+      const query = document.getElementById('event-search').value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.event-card');
+      let visible = 0;
+      cards.forEach(card => {
+        const matchesSearch = !query ||
+          card.dataset.name.includes(query) ||
+          card.dataset.description.includes(query) ||
+          card.dataset.type.includes(query);
+        
+        const status = getEventStatus(card);
+        const isActive = card.dataset.active === 'true';
+
+        const matchesFilter = activeFilter === 'all' || getEventStatus(card) === activeFilter || (activeFilter === 'active' && isActive) || (activeFilter === 'inactive' && !isActive);
+
+        card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+        if (matchesSearch && matchesFilter) visible++;
+      });
+      document.getElementById('no-results').classList.toggle('hidden', visible > 0);
+    }
+  </script>
+{% endblock %}

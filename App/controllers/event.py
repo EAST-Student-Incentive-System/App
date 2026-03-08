@@ -29,8 +29,8 @@ def view_event_history(student_id=None, staff_id=None):
 
 # ---------------- Event CRUD ----------------
 
-def create_event(staff_id, name, type, description, start, end, location, image):
-    new_event = Event(staffId=staff_id, name=name, type=type, description=description, start=start, end=end, location=location, image=image)
+def create_event(staff_id, name, type, description, start, end, location, image, active):
+    new_event = Event(staffId=staff_id, name=name, type=type, description=description, start=start, end=end, location=location, image=image, active=active)
     db.session.add(new_event)
     db.session.flush()
     new_event.qr = generate_qr_code(new_event.id)  # Generate QR code data for the event
@@ -49,7 +49,8 @@ def update_event(event_id, **kwargs):
         'start': 'start',
         'end': 'end',
         'location': 'location',
-        'image': 'image'
+        'image': 'image',
+        'active': 'active'
     }
 
     for key, value in kwargs.items():
@@ -88,7 +89,7 @@ def join_event(student_id, event_id):
         return False
     event.students.append(student)
     db.session.commit()
-    return True
+    return True  # needs to also update the student_event association table with the join timestampSS
 
 def log_attendance(student_id, event_id):
     student = db.session.get(Student, student_id)
