@@ -240,6 +240,12 @@ def log_attendance_route(event_id, student_id):
         return jsonify({"message": "Attendance not valid"}), 400
     return jsonify(attendance), 201
 
+@event_views.route("/scan", methods=["GET"])
+@jwt_required()
+def scan_qr_page():
+    return render_template("scan_qr.html")
+
+
 
 
 
