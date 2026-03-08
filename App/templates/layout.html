@@ -55,15 +55,16 @@
 
   <!-- Student Bottom Nav -->
   {% if user is defined and user.role == "student" %}
-  <div class="btm-nav" style="background-color:#A020F0; color:white;">
-   <a href="{{ url_for('event_views.get_student_events_route') }}" class="btn">
-  Events
-</a>
-    <a href="{{ url_for('event_views.scan_qr_page') }}" class="btn">
-      Scan QR
-    </a>    
-  </div>
-  {% endif %}
+<div class="btm-nav" style="background-color:#db9d20; color:white;">
+  <a href="{{ url_for('event_views.get_student_events_route') }}" class="btm-nav-item">
+    Events
+  </a>
+  <a href="{{ url_for('event_views.scan_qr_page') }}" class="btm-nav-item">
+    Scan QR
+  </a>
+</div>
+{% endif %}
+
 
   <!-- FontAwesome for icons -->
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
