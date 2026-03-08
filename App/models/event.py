@@ -19,11 +19,16 @@ class Event(db.Model):
     qr = db.Column(db.Text, nullable=True) #store QR code data or path here, can be generated on demand or stored after creation
     image = db.Column(db.String(200), nullable=True) #optional image for event, can be used in UI to make it more appealing
 
-    @property
-    def image_url(self):
-        if self.image:
-            return url_for('static', filename=f'uploads/{self.image}')
-        return None
+    def __init__(self, staffId, name, type, description, start, end, location=None, qr=None, image=None):
+        self.staffId = staffId
+        self.name = name
+        self.type = type
+        self.description = description
+        self.start = start
+        self.end = end
+        self.location = location
+        self.qr = qr
+        self.image = image
 
     def get_json(self):
         return {
