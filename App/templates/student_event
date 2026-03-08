@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+
+{% block title %}Events{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-8">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Events</h1>
+
+  <!-- Search + Filter -->
+  <div class="flex items-center mb-6 gap-3">
+    <div class="form-control flex-1">
+      <input id="event-search"
+             type="text"
+             placeholder="Search..."
+             class="input input-bordered w-full"
+             oninput="filterEvents()" />
+    </div>
+
+    <div class="dropdown dropdown-end">
+      <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
+        <span id="filter-label">All</span>
+      </label>
+      <ul tabindex="0"
+          class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
+        <li><a class="filter-option selected" data-filter="all"
+               onclick="setFilter('all','All')">All</a></li>
+        <li><a class="filter-option" data-filter="ongoing"
+               onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
+        <li><a class="filter-option" data-filter="upcoming"
+               onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
+        <li><a class="filter-option" data-filter="previous"
+               onclick="setFilter('previous','Previous')">Previous</a></li>
+        <li><a class="filter-option" data-filter="joined"
+               onclick="setFilter('joined','Joined')">Joined</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Events Grid -->
+  <div id="events-container"
+       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    {% for event in events if event.active %}
+    <div class="card bg-base-100 shadow-md p-4 event-card"
+         data-name="{{ event.name|lower }}"
+         data-description="{{ event.description|lower }}"
+         data-type="{{ event.type|lower }}"
+         data-start="{{ event.start }}"
+         data-end="{{ event.end }}"
+         data-joined="{% if event in student.events %}true{% else %}false{% endif %}">
+
+      {% if event.image %}
+        <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
+             alt="{{ event.name }}"
+             class="object-cover rounded-lg max-h-[110px] w-full"
+             onerror="this.replaceWith(document.createTextNode('🖼️'))">
+      {% else %}
+        <div class="flex items-center justify-center h-[110px] bg-base-200 rounded-lg text-3xl">🖼️</div>
+      {% endif %}
+
+      <!-- Expandable description -->
+      <div class="text-sm text-gray-600 mb-3 mt-2">
+        <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
+        <p><span class="font-semibold text-gray-800">Type:</span> {{ event.type }}</p>
+        <details>
+          <summary class="cursor-pointer text-purple-600">Description</summary>
+          <p>{{ event.description }}</p>
+        </details>
+        <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
+        <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
+      </div>
+
+      <div class="pt-2 border-t">
+        {% if event in student.events %}
+          <button class="btn btn-sm btn-success w-full" disabled>Joined</button>
+        {% else %}
+          <!-- Uncomment once route is confirmed -->
+          <!-- <form action="{{ url_for('student_views.join_event', event_id=event.id) }}" method="post"> -->
+            <button type="submit" class="btn btn-sm btn-accent w-full">Join</button>
+          <!-- </form> -->
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Empty State -->
+  <div id="no-results" class="hidden text-center py-20">
+    <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+    </svg>
+    <p class="text-gray-500 font-medium">No events found</p>
+    <p class="text-gray-400 text-sm mt-1">Try a different search or filter.</p>
+  </div>
+</div>
+
+<script>
+  let activeFilter = 'all';
+
+  function getEventStatus(card) {
+    const now = new Date(), start = new Date(card.dataset.start), end = new Date(card.dataset.end);
+    if (now < start) return 'upcoming';
+    if (now > end) return 'previous';
+    return 'ongoing';
+  }
+
+  function setFilter(filter, label) {
+    activeFilter = filter;
+    document.getElementById('filter-label').textContent = label;
+    document.querySelectorAll('.filter-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.dataset.filter === filter);
+    });
+    filterEvents();
+  }
+
+  function filterEvents() {
+    const query = document.getElementById('event-search').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.event-card');
+    let visible = 0;
+
+    cards.forEach(card => {
+      const matchesSearch = !query ||
+        card.dataset.name.includes(query) ||
+        card.dataset.description.includes(query) ||
+        card.dataset.type.includes(query);
+
+      const status = getEventStatus(card);
+      const joined = card.dataset.joined === 'true';
+
+      const matchesFilter =
+        activeFilter === 'all' ||
+        status === activeFilter ||
+        (activeFilter === 'joined' && joined);
+
+      card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+      if (matchesSearch && matchesFilter) visible++;
+    });
+
+    document.getElementById('no-results').classList.toggle('hidden', visible > 0);
+  }
+</script>
+{% endblock %}
