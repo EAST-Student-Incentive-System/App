@@ -89,7 +89,7 @@ def join_event(student_id, event_id):
         return False
     event.students.append(student)
     db.session.commit()
-    return True
+    return True  # needs to also update the student_event association table with the join timestampSS
 
 def log_attendance(student_id, event_id):
     student = db.session.get(Student, student_id)
