@@ -57,6 +57,10 @@
                    onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
             <li><a class="filter-option" data-filter="previous"
                    onclick="setFilter('previous','Previous')">Previous</a></li>
+            <li><a class="filter-option" data-filter="active"
+                onclick="setFilter('active','Active')">Active</a></li>
+            <li><a class="filter-option" data-filter="inactive"
+                 onclick="setFilter('inactive','Inactive')">Inactive</a></li>
           </ul>
         </div>
       </div>
@@ -72,7 +76,9 @@
            data-description="{{ event.description|lower }}"
            data-type="{{ event.type|lower }}"
            data-start="{{ event.start }}"
-           data-end="{{ event.end }}">
+           data-end="{{ event.end }}"
+           data-location="{{ event.location|lower }}"
+           data-active="{{ 'true' if event.active else 'false' }}">
 
         {% if event.image %}
           <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
@@ -89,9 +95,13 @@
           <p><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
           <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
           <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
+            <p><span class="font-semibold text-gray-800">Location:</span> {{ event.location }}</p>
+            <p><span class="font-semibold text-gray-800">Status:</span>
+                {% if event.active %} Active {% else %} Inactive {% endif %}
         </div>
 
         <div class="pt-2 border-t">
+
           <a href="{{ url_for('event_views.update_event_route', event_id=event.id) }}"
              class="btn btn-sm btn-outline btn-accent w-full">
             Edit
@@ -156,7 +166,12 @@
           card.dataset.name.includes(query) ||
           card.dataset.description.includes(query) ||
           card.dataset.type.includes(query);
-        const matchesFilter = activeFilter === 'all' || getEventStatus(card) === activeFilter;
+        
+        const status = getEventStatus(card);
+        const isActive = card.dataset.active === 'true';
+
+        const matchesFilter = activeFilter === 'all' || getEventStatus(card) === activeFilter || (activeFilter === 'active' && isActive) || (activeFilter === 'inactive' && !isActive);
+
         card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
         if (matchesSearch && matchesFilter) visible++;
       });

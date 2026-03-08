@@ -81,6 +81,13 @@
         </select>
       </label>
 
+      <label class="form-control flex items-start gap-3 cursor-pointer">
+          <span class="label-text font-semibold mt-1">Active</span>
+          <input type="checkbox" name="active" class="toggle toggle-primary"
+         {% if event and event.active %}checked{% endif %}>
+</label>
+
+
       <div class="flex gap-4 mt-4">
         <button type="submit" class="btn btn-primary">Save changes</button>
         {% if event %}
