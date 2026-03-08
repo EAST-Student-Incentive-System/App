@@ -10,7 +10,7 @@
 <body data-theme="light" class="bg-base-200 text-neutral">
 
   <!-- Staff Navbar -->
- {% if user.role == "staff" %}
+ {% if user is defined and user.role == "staff" %}
 <div class="navbar px-6" style="background-color:#A020F0; color:white;">
   <div class="flex-1">
     <a href="{{ url_for('event_views.get_staff_events_route')}}" 
@@ -25,7 +25,7 @@
     </ul>
   </div>
 </div>
-  {% elif user.role == "student" %}
+  {% elif user is defined and user.role == "student" %}
   <!-- Student Navbar (top) -->
   <div class="navbar px-6" style="background-color:#A020F0; color:white;">
     <div class="flex-1">
@@ -56,7 +56,7 @@
   </div>
 
   <!-- Student Bottom Nav -->
-  {% if user.role == "student" %}
+  {% if user is defined and user.role == "student" %}
   <div class="btm-nav" style="background-color:#A020F0; color:white;">
    <a href="{{ url_for('event_views.get_student_events_route') }}" class="btn">
   Events
