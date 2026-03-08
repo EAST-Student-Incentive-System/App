@@ -6,18 +6,16 @@ from App.models.student import Student
 from App.models.staff import Staff
 from App.models.attendance import Attendance
 from App.controllers import event  # import your controller functions
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app, abort, Flask
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 from App.models import User
 from App.database import db
 from werkzeug.utils import secure_filename
-from App.controllers.event import generate_qr_code
+from App.controllers.event import generate_qr
 from os import path, makedirs
 import os
-import qrcode
-import io
-import base64
+import secrets
 
 event_views = Blueprint("event_views", __name__)
 
@@ -194,6 +192,21 @@ def get_staff_events_route():
     return render_template("staff_events.html", events=events)
 
 
+@event_views.route("/events/<int:event_id>/attendance")
+def event_qr_page(event_id):
+    event = Event.query.get(event_id)
+
+    if not event:
+        return "Event not found", 404
+
+    qr = generate_qr(event_id)
+
+    return render_template(
+        "attendance_qr.html",
+        event=event,
+        qr=qr
+    )
+
 # ---------------- Student Event Actions ----------------
 @event_views.route("/events/upcoming", methods=["GET"])
 @jwt_required()
@@ -226,4 +239,10 @@ def log_attendance_route(event_id, student_id):
     if attendance is False:
         return jsonify({"message": "Attendance not valid"}), 400
     return jsonify(attendance), 201
+
+
+
+
+
+
 

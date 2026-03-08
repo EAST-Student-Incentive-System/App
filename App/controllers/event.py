@@ -6,6 +6,7 @@ from datetime import datetime
 import qrcode
 import io
 import base64
+import time
 
 
 
@@ -33,7 +34,7 @@ def create_event(staff_id, name, type, description, start, end, location, image,
     new_event = Event(staffId=staff_id, name=name, type=type, description=description, start=start, end=end, location=location, image=image, active=active)
     db.session.add(new_event)
     db.session.flush()
-    new_event.qr = generate_qr_code(new_event.id)  # Generate QR code data for the event
+    #new_event.qr = generate_qr_code(new_event.id)  # Generate QR code data for the event
     db.session.commit()
     return new_event
 
@@ -108,18 +109,24 @@ def log_attendance(student_id, event_id):
 
 # ---------------- QR Code & Attendance Management ----------------
 
-def generate_qr_code(event_id):
-    event = db.session.get(Event, event_id)
-    if not event:
-        return None
+def generate_qr(event_id):
+    timestamp = int(time.time() / 30)
+
+    data = f"event:{event_id}|t:{timestamp}"
+
     qr = qrcode.QRCode(box_size=10, border=5)
-    qr.add_data(f'event:{event_id}')
+    qr.add_data(data)
     qr.make(fit=True)
-    img = qr.make_image(fill='black', back_color='white')
+
+    img = qr.make_image(fill="black", back_color="white")
+
     buffer = io.BytesIO()
     img.save(buffer, format="PNG")
-    qr_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
-    return qr_data  # you can embed this in HTML
+
+    qr_data = base64.b64encode(buffer.getvalue()).decode()
+
+    return qr_data
+
 
 
 #needs a scan attendance function that takes the QR data, extracts the event ID, and logs attendance for the student if valid
