@@ -107,9 +107,9 @@
               <tbody>
                 {% for entry in history.rewards %}
                   <tr>
-                    <td>{{ entry.name }}</td>
+                    <td>{{ entry.rewardName }}</td>
                     <td>{{ entry.pointCost }}</td>
-                    <td>{{ entry.redeemedAt }}</td>
+                    <td>{{ entry.redeemedAt[2:4] }}/{{ entry.redeemedAt[5:7] }}/{{ entry.redeemedAt[8:10] }} | {{ entry.redeemedAt[11:16] }}</td>
                   </tr>
                 {% endfor %}
               </tbody>
