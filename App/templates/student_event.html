@@ -17,12 +17,12 @@
                oninput="filterEvents()" />
       </div>
 
-      <div class="dropdown dropdown-end">
+      <div class="dropdown dropdown-end relative z-50">
         <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
           <span id="filter-label">All</span>
         </label>
         <ul tabindex="0"
-            class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
+            class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-70">
           <li><a class="filter-option selected" data-filter="all"
                  onclick="setFilter('all','All')">All</a></li>
           <li><a class="filter-option" data-filter="ongoing"
@@ -69,12 +69,24 @@
         </div>
 
         <div class="pt-2 border-t">
-          {% if event in student.events %}
-            <button class="btn btn-sm btn-success w-full">Joined</button>
-          {% else %}
-            <button class="btn btn-sm btn-accent w-full">Join</button>
-          {% endif %}
-        </div>
+
+{% if event in student.events %}
+
+<button class="btn btn-sm btn-success w-full">
+Joined
+</button>
+
+{% else %}
+
+<form method="POST" action="{{ url_for('event_views.join_event_action', event_id=event.id) }}">
+<button class="btn btn-sm btn-accent w-full">
+Join
+</button>
+</form>
+
+{% endif %}
+
+</div>
       </div>
       {% endfor %}
     </div>

@@ -2,12 +2,16 @@ from flask import Blueprint, request, jsonify, render_template
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from App.database import db
 from App.models.event import Event
+from App.controllers import event  # import your controller functions
 from App.models.student import Student
 from App.models.staff import Staff
+from App.models.student_event import student_event
 from App.models.attendance import Attendance
 from App.controllers import event
 from App.controllers.event import log_attendance  # import your controller functions
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app, abort, Flask
+from App.controllers.event import join_event,get_participant_count # import your controller functions
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
 from App.models import User
@@ -92,8 +96,9 @@ def create_event_route():
         except ValueError as e:
             flash(f"Error: {e}", 'error')
             return redirect(url_for('event_views.get_staff_events_route'))
+        
 
-    return render_template("edit_event.html", user=user)
+    return render_template("edit_event.html", event=None)
 
 # ---------- UPDATE EVENT ----------
 @event_views.route("/events/<int:event_id>", methods=["GET","POST"])
@@ -160,6 +165,7 @@ def update_event_route(event_id):
         except ValueError as e:
             flash(f"Error updating event: {e}", 'error')
             return redirect(url_for('event_views.update_event_route', event_id=event_id))
+    
 
     return render_template("edit_event.html", event=event_obj, user=user)
 
@@ -191,6 +197,34 @@ def get_staff_events_route():
     events = event.view_event_history(staff_id=staff_id)
     print("DEBUG: Events for staff_id", staff_id, "=", [e.name for e in events])
     return render_template("staff_events.html", events=events, staff=user, user=user)
+
+@event_views.route("/events/<int:event_id>/filter_participants", methods=["POST"])
+def filter_participants(event_id):
+    print("FILTER PARTICIPANTS ROUTE HIT")
+    participant_count = get_participant_count(event_id)
+    print("Participant count for event_id", event_id, "=", participant_count)
+
+    rows = db.session.query(student_event).filter(
+    student_event.c.event_id == event_id).all()
+
+    for r in rows:
+        print("DEBUG row:", r.student_id, r.event_id, r.joined_at)
+        event = Event.query.get_or_404(event_id)
+        cutoff_str = request.form.get("cutoff")
+
+    if cutoff_str:
+        cutoff = datetime.fromisoformat(cutoff_str)
+        participant_count = get_participant_count(event_id, cutoff)
+
+    print("Filtered participant count for event_id", event_id, "with cutoff", cutoff_str, "=", participant_count)
+
+    return render_template(
+        "edit_event.html",
+        event=event,
+        participant_count=participant_count,
+        cutoff=cutoff
+    )
+
 
 
 @event_views.route("/events/<int:event_id>/attendance")
@@ -243,15 +277,39 @@ def view_all_events_route():
     events = event.view_all_events()
     return jsonify([e.get_json() for e in events]), 200
 
-@event_views.route("/api/events/<int:event_id>/join/<int:student_id>", methods=["POST"])
+@event_views.route("/api/events/<int:event_id>/join", methods=["POST"])
 @jwt_required()
-def join_event_route(event_id, student_id):
+def join_event_route(event_id):
+
+    student_id = get_jwt_identity()
+
     joined = event.join_event(student_id, event_id)
+
     if joined is None:
         return jsonify({"error": "Invalid student or event"}), 404
+
     if joined is False:
         return jsonify({"message": "Student already joined"}), 400
+
     return jsonify({"message": "Student joined event"}), 200
+
+
+@event_views.route("/events/<int:event_id>/join", methods=["POST"])
+@jwt_required()
+def join_event_action(event_id):
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    if not user or user.role != 'student':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('auth_views.login_page'))
+    student_id = user.id
+    joined = join_event(student_id, event_id)   # <-- call the function, not event.join_event
+    if joined:
+        flash("You’ve joined this event!")
+    else:
+        flash("Already joined or invalid event.")
+    return redirect(url_for("event_views.get_student_events_route"))
+
 
 @event_views.route("/events/<int:event_id>/attendance/<int:student_id>", methods=["POST"])
 @jwt_required()
