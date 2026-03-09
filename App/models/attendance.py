@@ -18,7 +18,16 @@ class Attendance(db.Model):
             'id': self.id,
             'studentId': self.student_id,
             'eventId': self.event_id,
-            'timestamp': self.timestamp.isoformat()
+            'timestamp': self.timestamp.isoformat(),
+            'event': {
+                'id': self.event.id,
+                'name': self.event.name,
+                'type': self.event.type,
+                'description': self.event.description,
+                'location': self.event.location,
+                'start': self.event.start.isoformat(),
+                'end': self.event.end.isoformat()
+            } if self.event else None
         }
 
     def __repr__(self):

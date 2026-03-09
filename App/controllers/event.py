@@ -98,7 +98,7 @@ def log_attendance(student_id, event_id):
         return None
     if student not in event.students:
         return False
-    if not event.isWithintTimeFrame():
+    if datetime.now() < event.start:
         return False
     student.add_points(event.calculate_point_value())
     attendance = Attendance(student_id=student_id, event_id=event_id)

@@ -46,11 +46,12 @@
         {% if history.events %}
           <div class="overflow-x-auto">
             <table class="table w-full table- data-table">
-              <thead><tr><th>Event ID</th><th>Timestamp</th></tr></thead>
+              <thead><tr><th>Event Name</th><th>Type</th><th>Attended At</th></tr></thead>
               <tbody>
                 {% for entry in history.events %}
                   <tr>
-                    <td>{{ entry.eventId }}</td>
+                    <td>{{ entry.event.name }}</td>
+                    <td>{{ entry.event.type }}</td>
                     <td>{{ entry.timestamp }}</td>
                   </tr>
                 {% endfor %}
