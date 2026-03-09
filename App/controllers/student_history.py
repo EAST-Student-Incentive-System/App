@@ -23,8 +23,9 @@ def get_student_history(student_id):
     badges = [sb.get_json() for sb in student.student_badges]
     events = [att.get_json() for att in student.attendances]
 
-    # also pull redeemed rewards through relationship for convenience
-    rewards = [rr.get_json() for rr in student.redeemed_rewards]
+    # pull redeemed rewards directly from RedeemedReward table
+    redeemed_rr = db.session.query(RedeemedReward).filter_by(student_id=student_id).all()
+    rewards = [rr.get_json() for rr in redeemed_rr]
 
     # sort each list chronologically if timestamp/earnedAt/redeemedAt available
     try:
