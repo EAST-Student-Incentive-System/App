@@ -25,9 +25,9 @@ def initialize():
     from App.controllers.event import create_event, join_event, log_attendance
     from datetime import datetime, timedelta
     now = datetime.now()
-    event1 = create_event(jane.id, 'Orientation', 'Seminar', 'Welcome event for new students', now - timedelta(days=10), now - timedelta(days=10, hours=-2))
-    event2 = create_event(jane.id, 'Hackathon', 'Competition', 'Coding competition', now - timedelta(days=5), now - timedelta(days=5, hours=-4))
-    event3 = create_event(jane.id, 'Workshop', 'Workshop', 'Python workshop', now - timedelta(days=2), now - timedelta(days=2, hours=-3))
+    event1 = create_event(jane.id, 'Orientation', 'Seminar', 'Welcome event for new students', now - timedelta(days=10), now - timedelta(days=10, hours=-2), 'Campus Hall', None, True)
+    event2 = create_event(jane.id, 'Hackathon', 'Competition', 'Coding competition', now - timedelta(days=5), now - timedelta(days=5, hours=-4), 'Tech Lab', None, True)
+    event3 = create_event(jane.id, 'Workshop', 'Workshop', 'Python workshop', now - timedelta(days=2), now - timedelta(days=2, hours=-3), 'Lecture Room 101', None, True)
 
     # Give Bob some points for demo
     from App.models import Student
@@ -41,17 +41,28 @@ def initialize():
         for badge in [badge_25, badge_50, badge_75]:
             if badge:
                 awardBadge(bob_obj.id, badge.id)
-
+            else:
+                print(f'Failed to create badge: {badge}')
+        print(f'Bob has been awarded badges: {[badge.name for badge in [badge_25, badge_50, badge_75] if badge]}')
+        
         # Join Bob to events and log attendance
+        print("Now attempting to join events and log attendance for Bob...")
         for event in [event1, event2, event3]:
             event_id = event['id'] if event and isinstance(event, dict) and 'id' in event else None
             if event_id:
                 join_event(bob_obj.id, event_id)
                 log_attendance(bob_obj.id, event_id)
+                print(f'Bob attended event: {event["id"]} - {event["name"]}')
+            else:
+                print(f'Failed to create event: {event}')
 
         # Redeem rewards for Bob
         for reward in [reward_1, reward_2]:
             if reward:
                 redeem_reward(bob_obj.id, reward.id)
+                print(f'Bob redeemed reward: {reward.name}')
+            else:
+                print(f'Failed to create reward: {reward}')
         db.session.commit()
-    
+    else:
+        print('Failed to create user Bob. Please check the user creation process.')
