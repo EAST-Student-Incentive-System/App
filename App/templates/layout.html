@@ -1,70 +1,87 @@
-<!doctype html>
-<html>
-  <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Merit{% endblock %}</title>
+  <!-- Tailwind + DaisyUI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+</head>
+<body data-theme="light" class="bg-base-200 text-neutral">
+
+  <!-- Staff Navbar -->
+ {% if user is defined and user.role == "staff" %}
+<div class="navbar px-6" style="background-color:#A020F0; color:white;">
+  <div class="flex-1">
+    <a href="{{ url_for('event_views.get_staff_events_route')}}" 
+       class="btn btn-ghost normal-case text-white"> ← </a>
+    <span class="text-xl font-bold">Merit</span>
+  </div>
+  <div class="flex-none">
+    <ul class="menu menu-horizontal px-1">
+      <li><a href="{{ url_for('event_views.get_staff_events_route') }}">Events</a></li>
+      <li><a href="{{ url_for('reward_views.list_rewards_page') }}">Rewards</a></li>
+      <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
+    </ul>
+  </div>
+</div>
+  {% elif user is defined and user.role == "student" %}
+  <!-- Student Navbar (top) -->
+  <div class="navbar px-6" style="background-color:#A020F0; color:white;">
+    <div class="flex-1">
+      <span class="text-xl font-bold">Merit</span>
+    </div>
+    <div class="flex-none">
+      <ul class="menu menu-horizontal px-1">
+      {#<a href="{{ url_for('student_views.profile_page') }}" class="btn btn-ghost normal-case text-white"><i class="fas fa-user"></i></a>#}
+        <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
+      </ul>
+    </div>
+  </div>
+
   
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-     <!--Import Google Icon Font-->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <!-- Compiled and minified CSS -->
-   <!--link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"-->
-    <!--Let browser know website is optimized for mobile-->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>{% block title %}{% endblock %}</title>
 
-  </head>
-  <body>
-    
-      <nav class="purple">
-          <div class="nav-wrapper">
-              <a href="#!" class="brand-logo center">{% block page %}{% endblock %}</a>
-              <ul id="nav-mobile" class="left">
-                  <li><a href="/">Home</a></li>
-                  <li><a href="/users">Users Jinja</a></li>
-                  {% if is_authenticated %}
-                    <li><a href="/identify">Identify</a></li>
-                  {% endif %}
-                  <li><a href="/static/users">Users JS</a></li>
-              </ul>
-              {% if is_authenticated %}
-              <ul id="nav-mobile" class="right">
-                <li><a href="/logout">Logout</a></li>
-              </ul>
-              {% else %}
-              <form class="right navbar-form" method="POST" action="/login" style="display: flex; flex-wrap: nowrap; align-items: center; margin-right: 10px;">
-                  <div class="input-field" style="margin-right: 10px;">
-                      <input placeholder="username" value="bob" name="username" type="text" class="validate" required>
-                      <label for="username">username</label>
-                  </div>
-                  <div class="input-field" style="margin-right: 10px;">
-                      <input placeholder="password"value="bobpass" name="password" type="password" class="validate" required>
-                      <label for="password">Password</label>
-                  </div>
-                  <button type="submit" class="btn waves-effect waves-light">Login</button>
-              </form>
-              {% endif %}
-              
-          </div>
-      </nav>
-      <style>
-          .navbar-form label {
-              color: white !important;
-          }
-      </style>
+  {% else %}
+  <!-- Guest Navbar (no user yet) -->
+  <div class="navbar px-6" style="background-color:#A020F0; color:white;">
+    <div class="flex-1">
+      <span class="text-xl font-bold">Merit</span>
+    </div>
+  </div>
+  {% endif %}
 
-    <div class="container" id="content">{% block content %}{% endblock %}</div>
+  <!-- Page content -->
+  <div class="max-w-5xl mx-auto p-6">
+    {% block content %}{% endblock %}
+  </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <script>
-       M.AutoInit();
+  <!-- Student Bottom Nav -->
+  {% if user is defined and user.role == "student" %}
+  <div class="btm-nav" style="background-color:#A020F0; color:white;">
+   <a href="{{ url_for('event_views.get_student_events_route') }}" class="btn">
+  Events
+</a>
 
-        {% with messages = get_flashed_messages() %}
-          {% if messages %}
-              {% for message in messages %}
-              M.toast({html: '{{message}}'})
-              {% endfor %}
-          {% endif %}
-        {% endwith %}
-       
-    </script>
-  </body>
+   {#<button onclick="location.href='{{ url_for('student_views.leaderboard_page') }}'">
+      <i class="fas fa-trophy"></i>
+      <span class="btm-nav-label">Leaderboard</span>
+    </button>
+    <button onclick="location.href='{{ url_for('student_views.scan_qr_page') }}'">
+      <i class="fas fa-qrcode"></i>
+      <span class="btm-nav-label">Scan</span>
+    </button>
+    <button onclick="location.href='{{ url_for('student_views.rewards_page') }}'">
+      <i class="fas fa-gift"></i>
+      <span class="btm-nav-label">Rewards</span>
+    </button>
+    <button onclick="location.href='{{ url_for('student_views.history_page') }}'">
+      <i class="fas fa-history"></i>
+      <span class="btm-nav-label">History</span>
+    </button>
+  </div>#}
+  {% endif %}
+
+  <!-- FontAwesome for icons -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</body>
 </html>
