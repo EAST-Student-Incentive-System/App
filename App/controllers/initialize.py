@@ -48,11 +48,10 @@ def initialize():
         # Join Bob to events and log attendance
         print("Now attempting to join events and log attendance for Bob...")
         for event in [event1, event2, event3]:
-            event_id = event['id'] if event and isinstance(event, dict) and 'id' in event else None
-            if event_id:
-                join_event(bob_obj.id, event_id)
-                log_attendance(bob_obj.id, event_id)
-                print(f'Bob attended event: {event["id"]} - {event["name"]}')
+            if event and hasattr(event, 'id') and hasattr(event, 'name'):
+                join_event(bob_obj.id, event.id)
+                log_attendance(bob_obj.id, event.id)
+                print(f'Bob attended event: {event.id} - {event.name}')
             else:
                 print(f'Failed to create event: {event}')
 
