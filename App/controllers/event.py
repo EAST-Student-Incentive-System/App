@@ -101,6 +101,9 @@ def log_attendance(student_id, event_id):
         return False
     if not event.isWithintTimeFrame():
         return False
+    existing = Attendance.query.filter_by(student_id=student_id, event_id=event_id).first()
+    if existing:
+        return False
     student.add_points(event.calculate_point_value())
     attendance = Attendance(student_id=student_id, event_id=event_id)
     db.session.add(attendance)

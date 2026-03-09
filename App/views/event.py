@@ -5,7 +5,8 @@ from App.models.event import Event
 from App.models.student import Student
 from App.models.staff import Staff
 from App.models.attendance import Attendance
-from App.controllers import event  # import your controller functions
+from App.controllers import event
+from App.controllers.event import log_attendance  # import your controller functions
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app, abort, Flask
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime, timedelta
@@ -261,6 +262,28 @@ def log_attendance_route(event_id, student_id):
     if attendance is False:
         return jsonify({"message": "Attendance not valid"}), 400
     return jsonify(attendance), 201
+
+@event_views.route("/attendance/log")
+@jwt_required()
+def log_attendance_qr():
+    event_id = request.args.get("event_id", type=int)
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    if not user or user.role != 'student':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('auth_views.login_page'))
+    student_id = user.id
+    attendance = log_attendance(student_id, event_id)
+
+    if attendance is None:
+        flash("Invalid student or event", "error")
+    elif attendance is False:
+        flash("Attendance not valid", "warning")
+    else:
+        flash("Attendance logged successfully!", "success")
+
+    return redirect(url_for("event_views.get_student_events_route"))
+
 
 @event_views.route("/scan", methods=["GET"])
 @jwt_required()
