@@ -1,12 +1,15 @@
 from App.models import Reward, Student, RedeemedReward
 from App.database import db
 
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
+reward = Blueprint("reward", __name__)
 # Reward CRUD
 
 
-def create_reward(name, description, point_cost, active=True):
-    reward = Reward(name=name, description=description, pointCost=point_cost, active=active)
+def create_reward(name, description, point_cost, active=True, image=None):
+    reward = Reward(name=name, description=description, pointCost=point_cost, active=active, image=image)
     db.session.add(reward)
     db.session.commit()
     return reward
@@ -46,6 +49,7 @@ def update_reward(reward_id, **kwargs):
         'active': 'active',
         'name': 'name',
         'description': 'description',
+        'image': 'image'
     }
 
     for key, value in kwargs.items():
@@ -110,10 +114,8 @@ def viewReward(student_id):
     return result
 
 
+
 def viewRewardHistory(staff_id):
     #Return all rewards created by a staff member (active or not).
     rewards = db.session.scalars(db.select(Reward).filter_by(created_by=staff_id)).all()
     return [r.get_json() for r in rewards] if rewards else []
-
-#test
-

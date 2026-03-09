@@ -8,6 +8,7 @@ import io
 import base64
 
 
+
 def get_event(event_id):
     return db.session.get(Event, event_id)
 
@@ -23,18 +24,18 @@ def view_event_history(student_id=None, staff_id=None):
         student = db.session.get(Student, student_id)
         return student.attendances
     if staff_id:
-        staff = db.session.get(Staff, staff_id)
-        return staff.events
+        return Event.query.filter_by(staffId=staff_id).all()
     return []
 
 # ---------------- Event CRUD ----------------
 
-def create_event(staff_id, name, type, description, start, end):
-    new_event = Event(name=name, type=type, description=description, start=start, end=end)
-    new_event.staffId = staff_id
+def create_event(staff_id, name, type, description, start, end, location, image, active):
+    new_event = Event(staffId=staff_id, name=name, type=type, description=description, start=start, end=end, location=location, image=image, active=active)
     db.session.add(new_event)
+    db.session.flush()
+    new_event.qr = generate_qr_code(new_event.id)  # Generate QR code data for the event
     db.session.commit()
-    return new_event.get_json()
+    return new_event
 
 def update_event(event_id, **kwargs):
     event = db.session.get(Event, event_id)
@@ -46,7 +47,10 @@ def update_event(event_id, **kwargs):
         'type': 'type',
         'description': 'description',
         'start': 'start',
-        'end': 'end'
+        'end': 'end',
+        'location': 'location',
+        'image': 'image',
+        'active': 'active'
     }
 
     for key, value in kwargs.items():
@@ -56,12 +60,23 @@ def update_event(event_id, **kwargs):
     db.session.commit()
     return event.get_json()
 
-def delete_event(event_id):
+def delete_event(event_id, staff_id):
     event = db.session.get(Event, event_id)
+
+    print("EVENT:", event)
+    print("EVENT STAFF ID:", event.staffId if event else None)
+    print("JWT STAFF ID:", staff_id)
+
     if not event:
         return False
+
+    if int(event.staffId) != int(staff_id):
+        print("STAFF ID MISMATCH")
+        return False
+
     db.session.delete(event)
     db.session.commit()
+    print("EVENT DELETED FROM DB")
     return True
 
 # ---------------- Student Event Actions ----------------
@@ -74,7 +89,7 @@ def join_event(student_id, event_id):
         return False
     event.students.append(student)
     db.session.commit()
-    return True
+    return True  # needs to also update the student_event association table with the join timestampSS
 
 def log_attendance(student_id, event_id):
     student = db.session.get(Student, student_id)
@@ -90,6 +105,23 @@ def log_attendance(student_id, event_id):
     db.session.add(attendance)
     db.session.commit()
     return attendance.get_json()
+
+import pytz
+
+def get_participant_count(event_id, cutoff=None):
+    query = db.session.query(student_event).filter(
+        student_event.c.event_id == event_id
+    )
+    if cutoff:
+        # assume staff input is local AST (UTC-4)
+        local = pytz.timezone("America/Port_of_Spain")
+        cutoff_local = local.localize(cutoff)
+        cutoff_utc = cutoff_local.astimezone(pytz.utc).replace(tzinfo=None)
+        query = query.filter(student_event.c.joined_at <= cutoff_utc)
+    return query.count()
+
+
+
 
 # ---------------- QR Code & Attendance Management ----------------
 
