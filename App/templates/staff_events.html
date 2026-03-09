@@ -26,22 +26,120 @@
                     </svg>
                 </div>
 
-                <div class="dropdown dropdown-end">
-                    <button tabindex="0" class="filter-toggle btn btn-sm flex items-center gap-1 px-3">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M7 10h10M11 16h2"/>
-                        </svg>
-                        <span id="filter-label" class="text-sm font-medium">All</span>
-                    </button>
-                    <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-white rounded-xl w-40 border border-purple-100 z-50 mt-1">
-                        <li><a class="filter-option selected rounded-lg" data-filter="all" onclick="setFilter('all','All')">All</a></li>
-                        <li><a class="filter-option rounded-lg" data-filter="ongoing" onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
-                        <li><a class="filter-option rounded-lg" data-filter="upcoming" onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
-                        <li><a class="filter-option rounded-lg" data-filter="previous" onclick="setFilter('previous','Previous')">Previous</a></li>
-                    </ul>
-                </div>
+        <!-- Search -->
+        <div class="form-control">
+          <div class="input-group">
+            <input id="event-search"
+                   type="text"
+                   placeholder="Search..."
+                   class="input input-bordered"
+                   oninput="filterEvents()" />
+            <button class="btn btn-square btn-accent">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="h-5 w-5"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Dropdown -->
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
+            <span id="filter-label">All</span>
+          </label>
+          <ul tabindex="0"
+              class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
+            <li><a class="filter-option selected" data-filter="all"
+                   onclick="setFilter('all','All')">All</a></li>
+            <li><a class="filter-option" data-filter="ongoing"
+                   onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
+            <li><a class="filter-option" data-filter="upcoming"
+                   onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
+            <li><a class="filter-option" data-filter="previous"
+                   onclick="setFilter('previous','Previous')">Previous</a></li>
+            <li><a class="filter-option" data-filter="active"
+                onclick="setFilter('active','Active')">Active</a></li>
+            <li><a class="filter-option" data-filter="inactive"
+                 onclick="setFilter('inactive','Inactive')">Inactive</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTS GRID -->
+    <div id="events-container"
+         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      {% for event in events %}
+      <div class="card bg-base-100 shadow-md p-4 event-card"
+           data-name="{{ event.name|lower }}"
+           data-description="{{ event.description|lower }}"
+           data-type="{{ event.type|lower }}"
+           data-start="{{ event.start }}"
+           data-end="{{ event.end }}"
+           data-location="{{ event.location|lower }}"
+           data-active="{{ 'true' if event.active else 'false' }}">
+
+        {% if event.image %}
+          <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
+               alt="{{ event.name }}"
+               class="object-cover rounded-lg max-h-[110px] w-full"
+               onerror="this.replaceWith(document.createTextNode('🖼️'))">
+        {% else %}
+          <div class="flex items-center justify-center h-[110px] bg-base-200 rounded-lg text-3xl">🖼️</div>
+        {% endif %}
+
+        <div class="flex-1 text-sm text-gray-600 space-y-1 mb-3 mt-2">
+          <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
+          <p><span class="font-semibold text-gray-800">Type:</span> {{ event.type }}</p>
+          <p><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
+          <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
+          <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
+            <p><span class="font-semibold text-gray-800">Location:</span> {{ event.location }}</p>
+            <p><span class="font-semibold text-gray-800">Status:</span>
+                {% if event.active %} Active {% else %} Inactive {% endif %}
+        </div>
+
+        <div class="pt-2 border-t">
+
+          <a href="{{ url_for('event_views.update_event_route', event_id=event.id) }}"
+             class="btn btn-sm btn-outline btn-accent w-full">
+            Edit
+          </a>
+        </div>
+
+       {# {% if event.qr_code %}
+        <label for="qr-modal-{{ event.id }}" class="mt-2 cursor-pointer flex justify-center">
+          <img src="data:image/png;base64,{{ event.qr_code }}"
+               class="w-16 h-16 hover:scale-105 transition-transform duration-200">
+        </label>
+        <input type="checkbox" id="qr-modal-{{ event.id }}" class="modal-toggle" />
+        <div class="modal">
+          <div class="modal-box text-center">
+            <h3 class="font-bold text-lg mb-4">Event QR Code</h3>
+            <img src="data:image/png;base64,{{ event.qr_code }}" class="w-72 h-72 mx-auto">
+            <div class="modal-action">
+              <label for="qr-modal-{{ event.id }}" class="btn">Close</label>
             </div>
         </div>
+        {% endif %}#}
+
+        <div class="pt-2 border-t">
+  <!-- Staff sees Start Attendance button -->
+  <a href="{{ url_for('event_views.event_qr_page', event_id=event.id) }}"
+     class="btn btn-sm btn-warning w-full">
+    Start Attendance
+  </a>
+</div>
+
+      </div>
+      {% endfor %}
+    </div>
 
         <!-- Events Grid -->
         <div id="events-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -39,8 +39,6 @@
     </div>
   </div>
 
-  
-
   {% else %}
   <!-- Guest Navbar (no user yet) -->
   <div class="navbar px-6" style="background-color:#A020F0; color:white;">
@@ -57,31 +55,21 @@
 
   <!-- Student Bottom Nav -->
   {% if user is defined and user.role == "student" %}
-  <div class="btm-nav" style="background-color:#A020F0; color:white;">
-   <a href="{{ url_for('event_views.get_student_events_route') }}" class="btn">
-  Events
-</a>
+<div class="btm-nav" style="background-color:#db9d20; color:white;">
+  <a href="{{ url_for('event_views.get_student_events_route') }}" class="btm-nav-item">
+    Events
+  </a>
+  <a href="{{ url_for('event_views.scan_qr_page') }}" class="btm-nav-item">
+    Scan QR
+  </a>
+</div>
+{% endif %}
 
-   {#<button onclick="location.href='{{ url_for('student_views.leaderboard_page') }}'">
-      <i class="fas fa-trophy"></i>
-      <span class="btm-nav-label">Leaderboard</span>
-    </button>
-    <button onclick="location.href='{{ url_for('student_views.scan_qr_page') }}'">
-      <i class="fas fa-qrcode"></i>
-      <span class="btm-nav-label">Scan</span>
-    </button>
-    <button onclick="location.href='{{ url_for('student_views.rewards_page') }}'">
-      <i class="fas fa-gift"></i>
-      <span class="btm-nav-label">Rewards</span>
-    </button>
-    <button onclick="location.href='{{ url_for('student_views.history_page') }}'">
-      <i class="fas fa-history"></i>
-      <span class="btm-nav-label">History</span>
-    </button>
-  </div>#}
-  {% endif %}
 
   <!-- FontAwesome for icons -->
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  {% block scripts %}{% endblock %}
+  
 </body>
 </html>
