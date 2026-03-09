@@ -4,13 +4,13 @@ from flask_jwt_extended import jwt_required, current_user, unset_jwt_cookies, se
 from App.database import db
 from App.models import Student, Staff
 from.index import index_views
-from App.controllers.auth import (
-    signUp, login, logout, change_password, setup_jwt       )
 
 from App.controllers import (
     login, create_user, get_all_users_json, get_user,
-    get_user_by_username, update_user
+    get_user_by_username, update_user, signUp
 )
+from flask_jwt_extended import JWTManager, get_jwt_identity, verify_jwt_in_request
+from App.models import User
 
 auth_views = Blueprint('auth_views', __name__, template_folder='../templates')
 
@@ -35,28 +35,67 @@ def signup_page():
             flash(result['error'])
         else:
             flash(f"Account created for {result['user']['username']} as {result['user']['role']}")
-            return redirect(url_for('index_views.index_page'))
+            return redirect(url_for('auth_views.login_page'))
     return render_template('signup.html', title="Sign Up")
 
+@auth_views.route('/login', methods=['GET'])
+def login_page():
+    try:
+        user_id = get_jwt_identity()   # will raise if no/expired token
+        if user_id:
+            user = User.query.get(user_id)
+            if user.role == 'staff':
+                return redirect(url_for('event_views.get_staff_events_route'))
+            if user.role == 'student':
+                return redirect(url_for('event_views.get_student_events_route'))
+    except Exception:
+        # no valid token, fall through to login page
+        pass
+
+    #  Always render login form if not authenticated
+    return render_template('login.html')
+
+
+@auth_views.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password_page():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        flash(f"Password reset link would be sent to {email}", 'info')
+        return redirect(url_for('auth_views.login_page'))
+    return render_template('forgot_password.html', title="Forgot Password")
+
+
+
+from flask_jwt_extended import set_access_cookies
 
 @auth_views.route('/login', methods=['POST'])
 def login_action():
     data = request.form
-    token = login(data['username'], data['password'])
-    response = redirect(request.referrer)
-    if not token:
-        flash('Bad username or password given'), 401
+    result = login(data['username'], data['password'])
+
+    if 'error' in result:
+        flash(result['error'], 'danger')
+        return redirect(url_for('auth_views.login_page'))
+
+    token = result.get('access_token')
+    role = result.get('role')
+
+    if role == 'staff':
+        response = redirect(url_for('event_views.get_staff_events_route')) 
+    elif role == 'student':
+        response = redirect(url_for('event_views.get_student_events_route'))
     else:
-        flash('Login Successful')
-        set_access_cookies(response, token) 
+        response = redirect(url_for('index_views.index_page')) 
+    set_access_cookies(response, token)   # <-- attach JWT to cookie
     return response
+
 
 @auth_views.route('/logout', methods=['GET'])
 def logout_action():
-    response = redirect(request.referrer) 
+    response = redirect(url_for('auth_views.login_page'))
     flash("Logged Out!")
     unset_jwt_cookies(response)
-    return response
+    return response #redirect to login page
 
 '''
 API Routes
