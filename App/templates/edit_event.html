@@ -101,12 +101,30 @@
         {% endif %}
       </div>
     </div>
-
-    <!-- Participants count -->
-    <div class="absolute bottom-4 right-6 text-sm text-gray-600">
-      Number of participants registered: {{ event.participant_count if event else 0 }}
-    </div>
   </form>
+
+  {% if event %}
+  <div class="mt-6 border-t pt-4">
+    <form method="POST" action="{{ url_for('event_views.filter_participants', event_id=event.id) }}">
+      <label class="form-control">
+        <span class="label-text">Check participants up to:</span>
+        <input type="datetime-local" name="cutoff" class="input input-bordered">
+      </label>
+      <button type="submit" class="btn btn-sm btn-primary mt-2">Filter</button>
+    </form>
+
+    {% if participant_count is not none %}
+      <p class="text-sm text-gray-600 mt-2">
+        Number of participants registered{% if cutoff %} up to {{ cutoff.strftime('%Y-%m-%d %H:%M') }}{% endif %}: 
+        {{ participant_count }}
+      </p>
+    {% endif %}
+  </div>
+{% endif %}
+
+
+
+
 
   <script>
   const fileInput = document.getElementById('eventImage');

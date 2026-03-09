@@ -110,6 +110,23 @@ def log_attendance(student_id, event_id):
     db.session.commit()
     return attendance.get_json()
 
+import pytz
+
+def get_participant_count(event_id, cutoff=None):
+    query = db.session.query(student_event).filter(
+        student_event.c.event_id == event_id
+    )
+    if cutoff:
+        # assume staff input is local AST (UTC-4)
+        local = pytz.timezone("America/Port_of_Spain")
+        cutoff_local = local.localize(cutoff)
+        cutoff_utc = cutoff_local.astimezone(pytz.utc).replace(tzinfo=None)
+        query = query.filter(student_event.c.joined_at <= cutoff_utc)
+    return query.count()
+
+
+
+
 # ---------------- QR Code & Attendance Management ----------------
 
 def generate_qr(event_id):
