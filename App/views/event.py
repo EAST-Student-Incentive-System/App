@@ -7,6 +7,9 @@ from App.models.student import Student
 from App.models.staff import Staff
 from App.models.student_event import student_event
 from App.models.attendance import Attendance
+from App.controllers import event
+from App.controllers.event import log_attendance  # import your controller functions
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app, abort, Flask
 from App.controllers.event import join_event,get_participant_count # import your controller functions
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -14,12 +17,10 @@ from datetime import datetime, timedelta
 from App.models import User
 from App.database import db
 from werkzeug.utils import secure_filename
-from App.controllers.event import generate_qr_code
+from App.controllers.event import generate_qr
 from os import path, makedirs
 import os
-import qrcode
-import io
-import base64
+import secrets
 
 event_views = Blueprint("event_views", __name__)
 
@@ -97,7 +98,6 @@ def create_event_route():
             return redirect(url_for('event_views.get_staff_events_route'))
         
 
-
     return render_template("edit_event.html", event=None)
 
 # ---------- UPDATE EVENT ----------
@@ -167,7 +167,7 @@ def update_event_route(event_id):
             return redirect(url_for('event_views.update_event_route', event_id=event_id))
     
 
-    return render_template("edit_event.html", event=event_obj)
+    return render_template("edit_event.html", event=event_obj, user=user)
 
 @event_views.route("/events/<int:event_id>/delete", methods=["POST"])
 @jwt_required()
@@ -196,7 +196,7 @@ def get_staff_events_route():
     staff_id = user.id
     events = event.view_event_history(staff_id=staff_id)
     print("DEBUG: Events for staff_id", staff_id, "=", [e.name for e in events])
-    return render_template("staff_events.html", events=events, user=user)
+    return render_template("staff_events.html", events=events, staff=user, user=user)
 
 @event_views.route("/events/<int:event_id>/filter_participants", methods=["POST"])
 def filter_participants(event_id):
@@ -226,6 +226,28 @@ def filter_participants(event_id):
     )
 
 
+
+@event_views.route("/events/<int:event_id>/attendance")
+@jwt_required()
+def event_qr_page(event_id):
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or user.role != 'staff':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('event_views.get_staff_events_route'))
+    event = Event.query.get(event_id)
+
+    if not event:
+        return "Event not found", 404
+
+    qr = generate_qr(event_id)
+
+    return render_template(
+        "attendance_qr.html",
+        event=event,
+        qr=qr,
+        user=user
+    )
 
 # ---------------- Student Event Actions ----------------
 @event_views.route("/events/student", methods=["GET"])
@@ -298,4 +320,45 @@ def log_attendance_route(event_id, student_id):
     if attendance is False:
         return jsonify({"message": "Attendance not valid"}), 400
     return jsonify(attendance), 201
+
+@event_views.route("/attendance/log")
+@jwt_required()
+def log_attendance_qr():
+    event_id = request.args.get("event_id", type=int)
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    if not user or user.role != 'student':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('auth_views.login_page'))
+    student_id = user.id
+    attendance = log_attendance(student_id, event_id)
+
+    if attendance is None:
+        flash("Invalid student or event", "error")
+    elif attendance is False:
+        flash("Attendance not valid", "warning")
+    else:
+        flash("Attendance logged successfully!", "success")
+
+    return redirect(url_for("event_views.get_student_events_route"))
+
+
+@event_views.route("/scan", methods=["GET"])
+@jwt_required()
+def scan_qr_page():
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    if not user or user.role != 'student':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('auth_views.login_page'))
+    return render_template("scan_qr.html", user=user)
+
+
+
+
+
+
+
+
+
 
