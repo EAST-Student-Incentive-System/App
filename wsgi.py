@@ -445,6 +445,15 @@ def generate_qr_command(event_id):
     else:
         print(f'Failed to generate QR code for event {event_id}. Check if event exists.')
 
+from App.models import Attendance
+
+@app.cli.command("list-attendance")
+@with_appcontext
+def list_attendance():
+    """List all attendance rows."""
+    rows = Attendance.query.all()
+    for a in rows:
+        click.echo(f"ID={a.id}, Student={a.student_id}, Event={a.event_id}, Time={a.timestamp}")
 
 """@app.cli.command("scan_qr", help="Scans a QR code for an event and logs attendance")
 @click.argument("student_id", type=int)
