@@ -1,129 +1,122 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Student History</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="bg-white min-h-screen">
-  <nav class="bg-gray-800 text-white p-4" style="background-color: #333333;">
-    <div class="container mx-auto flex justify-between items-center">
-      <a href="/" class="text-lg font-bold">Merit</a>
-    </div>
-  </nav>
+{% extends "layout.html" %}
 
-  <div class="container mx-auto p-6">
-    <h2 class="page-heading">History for {{ history.student.username }}</h2>
+{% block title %}Student History{% endblock %}
 
-    <div class="space-y-8">
-      <section>
-        <h3 class="section-heading">Badges</h3>
-        {% if history.badges %}
-          <div class="overflow-x-auto">
-            <table class="table w-full table- data-table">
-              <thead><tr><th>Name</th><th>Description</th><th>Earned At</th></tr></thead>
-              <tbody>
-                {% for entry in history.badges %}
-                  <tr>
-                    <td>{{ entry.badge.name }}</td>
-                    <td>{{ entry.badge.description }}</td>
-                    <td>{{ entry.earnedAt[2:4] }}/{{ entry.earnedAt[5:7] }}/{{ entry.earnedAt[8:10] }} | {{ entry.earnedAt[11:16] }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p class="text-gray-500">No badges earned yet.</p>
-        {% endif %}
-      </section>
-
-      <section>
-        <h3 class="section-heading">Events (attendance)</h3>
-        {% if history.events %}
-          <div class="overflow-x-auto">
-            <table class="table w-full table- data-table">
-              <thead><tr><th>Event Name</th><th>Type</th><th>Time</th><th>Location</th><th>Description</th><th>Attended At</th></tr></thead>
-              <tbody>
-                {% for entry in history.events %}
-                  <tr>
-                    <td>{{ entry.event.name }}</td>
-                    <td>{{ entry.event.type }}</td>
-                    <td>
-                      {% set start_time = entry.event.start %}
-                      {% set end_time = entry.event.end %}
-                      {{ start_time[2:4] }}/{{ start_time[5:7] }}/{{ start_time[8:10] }} | {{ start_time[11:16] }} - {{ end_time[11:16] }}
-                    </td>
-                    <td>{{ entry.event.location or 'N/A' }}</td>
-                    <td>
-                      {% if entry.event.description and entry.event.description|length > 50 %}
-                        <button class="btn btn-xs btn-ghost" data-description="{{ entry.event.description }}" onclick="showDescription(this)">
-                          {{ entry.event.description[:50] }}...
-                        </button>
-                      {% else %}
-                        {{ entry.event.description or 'No description' }}
-                      {% endif %}
-                    </td>
-                    <td>{{ entry.timestamp[11:16] }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p class="text-gray-500">No attendance records.</p>
-        {% endif %}
-      </section>
-
-      <dialog id="descriptionModal" class="modal">
-        <div class="modal-box">
-          <h3 class="font-bold text-lg">Full Description</h3>
-          <p id="descriptionContent" class="py-4"></p>
-          <div class="modal-action">
-            <form method="dialog">
-              <button class="btn">Close</button>
-            </form>
-          </div>
-        </div>
-      </dialog>
-
-      <script>
-        function showDescription(button) {
-          const description = button.getAttribute('data-description');
-          document.getElementById('descriptionContent').textContent = description;
-          document.getElementById('descriptionModal').showModal();
-        }
-      </script>
-
-      <section>
-        <h3 class="section-heading">Redeemed Rewards</h3>
-        {% if history.rewards|length > 0 %}
-          <div class="overflow-x-auto">
-            <table class="table w-full table- data-table">
-              <thead><tr><th>Reward</th><th>Cost</th><th>Redeemed At</th></tr></thead>
-              <tbody>
-                {% for entry in history.rewards %}
-                  <tr>
-                    <td>{{ entry.rewardName }}</td>
-                    <td>{{ entry.pointCost }}</td>
-                    <td>{{ entry.redeemedAt[2:4] }}/{{ entry.redeemedAt[5:7] }}/{{ entry.redeemedAt[8:10] }} | {{ entry.redeemedAt[11:16] }}</td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <p class="text-gray-500">No rewards redeemed.</p>
-        {% endif %}
-      </section>
-    </div>
-
-    <div class="mt-6">
-      <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
-    </div>
+{% block content %}
+<nav class="bg-gray-800 text-white p-4" style="background-color: #333333;">
+  <div class="container mx-auto flex justify-between items-center">
+    <a href="/" class="text-lg font-bold">Merit</a>
   </div>
-</body>
-</html>
+</nav>
+
+<div class="container mx-auto p-6">
+  <h2 class="page-heading">History for {{ history.student.username }}</h2>
+
+  <div class="space-y-8">
+    <section>
+      <h3 class="section-heading">Badges</h3>
+      {% if history.badges %}
+        <div class="overflow-x-auto">
+          <table class="table w-full table- data-table">
+            <thead><tr><th>Name</th><th>Description</th><th>Earned At</th></tr></thead>
+            <tbody>
+              {% for entry in history.badges %}
+                <tr>
+                  <td>{{ entry.badge.name }}</td>
+                  <td>{{ entry.badge.description }}</td>
+                  <td>{{ entry.earnedAt[2:4] }}/{{ entry.earnedAt[5:7] }}/{{ entry.earnedAt[8:10] }} | {{ entry.earnedAt[11:16] }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-gray-500">No badges earned yet.</p>
+      {% endif %}
+    </section>
+
+    <section>
+      <h3 class="section-heading">Events (attendance)</h3>
+      {% if history.events %}
+        <div class="overflow-x-auto">
+          <table class="table w-full table- data-table">
+            <thead><tr><th>Event Name</th><th>Type</th><th>Time</th><th>Location</th><th>Description</th><th>Attended At</th></tr></thead>
+            <tbody>
+              {% for entry in history.events %}
+                <tr>
+                  <td>{{ entry.event.name }}</td>
+                  <td>{{ entry.event.type }}</td>
+                  <td>
+                    {% set start_time = entry.event.start %}
+                    {% set end_time = entry.event.end %}
+                    {{ start_time[2:4] }}/{{ start_time[5:7] }}/{{ start_time[8:10] }} | {{ start_time[11:16] }} - {{ end_time[11:16] }}
+                  </td>
+                  <td>{{ entry.event.location or 'N/A' }}</td>
+                  <td>
+                    {% if entry.event.description and entry.event.description|length > 50 %}
+                      <button class="btn btn-xs btn-ghost" data-description="{{ entry.event.description }}" onclick="showDescription(this)">
+                        {{ entry.event.description[:50] }}...
+                      </button>
+                    {% else %}
+                      {{ entry.event.description or 'No description' }}
+                    {% endif %}
+                  </td>
+                  <td>{{ entry.timestamp[11:16] }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-gray-500">No attendance records.</p>
+      {% endif %}
+    </section>
+
+    <dialog id="descriptionModal" class="modal">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg">Full Description</h3>
+        <p id="descriptionContent" class="py-4"></p>
+        <div class="modal-action">
+          <form method="dialog">
+            <button class="btn">Close</button>
+          </form>
+        </div>
+      </div>
+    </dialog>
+
+    <script>
+      function showDescription(button) {
+        const description = button.getAttribute('data-description');
+        document.getElementById('descriptionContent').textContent = description;
+        document.getElementById('descriptionModal').showModal();
+      }
+    </script>
+
+    <section>
+      <h3 class="section-heading">Redeemed Rewards</h3>
+      {% if history.rewards|length > 0 %}
+        <div class="overflow-x-auto">
+          <table class="table w-full table- data-table">
+            <thead><tr><th>Reward</th><th>Cost</th><th>Redeemed At</th></tr></thead>
+            <tbody>
+              {% for entry in history.rewards %}
+                <tr>
+                  <td>{{ entry.rewardName }}</td>
+                  <td>{{ entry.pointCost }}</td>
+                  <td>{{ entry.redeemedAt[2:4] }}/{{ entry.redeemedAt[5:7] }}/{{ entry.redeemedAt[8:10] }} | {{ entry.redeemedAt[11:16] }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-gray-500">No rewards redeemed.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <div class="mt-6">
+    <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
+  </div>
+</div>
+{% endblock %}
