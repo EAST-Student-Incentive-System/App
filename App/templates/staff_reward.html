@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+
+{% block title %}Rewards{% endblock %}
+
+{% block content %}
+  <div class="max-w-6xl mx-auto px-6 py-8">
+
+    <!-- HEADER ROW -->
+    <div class="flex items-center mb-8 gap-4">
+
+      <!-- Add Button -->
+      <a href="{{ url_for('reward_views.create_reward_page') }}"
+         class="btn btn-circle btn-accent shadow-md shrink-0">
+        +
+      </a>
+
+      <h1 class="text-3xl font-bold text-gray-800 flex-1 text-center">
+        Rewards
+      </h1>
+
+      <!-- Search + Filter -->
+      <div class="flex items-center gap-3 shrink-0">
+
+        <!-- Search -->
+        <div class="form-control">
+          <div class="input-group">
+            <input id="reward-search"
+                   type="text"
+                   placeholder="Search..."
+                   class="input input-bordered"
+                   oninput="filterRewards()" />
+            <button class="btn btn-square btn-accent">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="h-5 w-5"
+                   fill="none"
+                   viewBox="0 0 24 24"
+                   stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Dropdown -->
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
+            <span id="filter-label">All</span>
+          </label>
+          <ul tabindex="0"
+              class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
+            <li><a class="filter-option selected" data-filter="all"
+                   onclick="setFilter('all','All')">All</a></li>
+            <li><a class="filter-option" data-filter="active"
+                   onclick="setFilter('active','Active')">Active</a></li>
+            <li><a class="filter-option" data-filter="inactive"
+                   onclick="setFilter('inactive','Inactive')">Inactive</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- REWARD GRID -->
+    <div id="rewards-container"
+         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      {% for reward in rewards %}
+      <div class="card bg-base-100 shadow-md p-4"
+           data-name="{{ reward.name|lower }}"
+           data-status="{{ 'active' if reward.active else 'inactive' }}">
+
+        {% if reward.image %}
+          <img src="{{ url_for('static', filename='uploads/' ~ reward.image) }}"
+               class="object-cover rounded-lg max-h-[110px] w-full">
+        {% else %}
+          <div class="flex items-center justify-center h-[110px] bg-base-200 rounded-lg">
+            🎁
+          </div>
+        {% endif %}
+
+        <div class="flex-1 text-sm text-gray-600 space-y-1 mb-3 mt-2">
+          <p><span class="font-semibold text-gray-800">Name:</span> {{ reward.name }}</p>
+          <p><span class="font-semibold text-gray-800">Description:</span> {{ reward.description }}</p>
+          <p><span class="font-semibold text-gray-800">Points:</span> {{ reward.pointCost }}</p>
+          <p><span class="font-semibold text-gray-800">Status:</span>
+            {% if reward.active %} Active {% else %} Inactive {% endif %}
+          </p>
+        </div>
+
+        <div class="pt-2 border-t">
+          <a href="{{ url_for('reward_views.update_reward_page', reward_id=reward.id) }}"
+             class="btn btn-sm btn-outline btn-accent w-full">
+            Edit
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+
+  <script>
+    let activeFilter = 'all';
+
+    function setFilter(filter, label) {
+      activeFilter = filter;
+      document.getElementById('filter-label').textContent = label;
+
+      document.querySelectorAll('.filter-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.filter === filter);
+      });
+
+      filterRewards();
+    }
+
+    function filterRewards() {
+      const query = document.getElementById('reward-search').value.toLowerCase();
+      const cards = document.querySelectorAll('.card[data-name]');
+
+      cards.forEach(card => {
+        const matchesSearch = card.dataset.name.includes(query);
+        const matchesFilter = activeFilter === 'all' || card.dataset.status === activeFilter;
+        card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+      });
+    }
+  </script>
+{% endblock %}
