@@ -1,7 +1,8 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, render_template, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from App.database import db
 from App.controllers import progress
+from App.models.student import Student
 
 progress_views = Blueprint("progress_views", __name__)
 
@@ -19,6 +20,8 @@ def view_progress_route(student_id):
 @jwt_required()
 def view_leaderboard_route():
     leaderboard = progress.viewLeaderBoard()
-    return jsonify(leaderboard), 200
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    return render_template("leaderboard.html", leaderboard=leaderboard, user=user)
 
 
