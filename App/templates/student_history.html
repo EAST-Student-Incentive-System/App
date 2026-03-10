@@ -14,13 +14,13 @@
         <div class="overflow-x-auto">
           <div class="table-controls">
             <input type="text" id="badgeSearch" placeholder="Search badges..." class="input input-bordered input-sm w-full max-w-xs" onkeyup="filterTable('badgeSearch', 'data-table')">
-            <input type="radio" id="badgeSortAsc" name="badgeSort" class="radio" onchange="sortTable('data-table', 0, 'asc')">
+            <input type="radio" id="badgeSortAsc" name="badgeSort" class="radio" onchange="sortBadgeTable('data-table', 0, 'asc')">
             <label for="badgeSortAsc" class="ml-1">Sort A-Z</label>
-            <input type="radio" id="badgeSortDesc" name="badgeSort" class="radio" onchange="sortTable('data-table', 0, 'desc')">
+            <input type="radio" id="badgeSortDesc" name="badgeSort" class="radio" onchange="sortBadgeTable('data-table', 0, 'desc')">
             <label for="badgeSortDesc" class="ml-1">Sort Z-A</label>
-            <input type="radio" id="badgeSortDateAsc" name="badgeSort" class="radio" onchange="sortTable('data-table', 2, 'asc')">
+            <input type="radio" id="badgeSortDateAsc" name="badgeSort" class="radio" onchange="sortBadgeTable('data-table', 2, 'asc')">
             <label for="badgeSortDateAsc" class="ml-1">Sort Oldest</label>
-            <input type="radio" id="badgeSortDateDesc" name="badgeSort" class="radio" onchange="sortTable('data-table', 2, 'desc')">
+            <input type="radio" id="badgeSortDateDesc" name="badgeSort" class="radio" onchange="sortBadgeTable('data-table', 2, 'desc')">
             <label for="badgeSortDateDesc" class="ml-1">Sort Newest</label>
           </div>
           <script>
@@ -42,7 +42,8 @@
               }
             }
 
-            function sortTable(tableClass, columnIndex, order) {
+            function sortBadgeTable(tableClass, columnIndex, order) {
+              console.log(`Sorting table "${tableClass}" by column ${columnIndex} in ${order} order`);
               const table = document.querySelector(`.${tableClass}`);
               const rowsArray = Array.from(table.rows).slice(1);
               switch (columnIndex) {
@@ -174,6 +175,7 @@
             }
           }
           function sortTable(tableClass, columnIndex, order) {
+            console.log(`Sorting table "${tableClass}" by column ${columnIndex} in ${order} order`);
             const table = document.getElementById('rewardTable');
             const rowsArray = Array.from(table.rows).slice(1);
             switch (columnIndex) {
@@ -218,7 +220,6 @@
         <p class="text-gray-500">No rewards redeemed.</p>
       {% endif %}
     </section>
-  </div>
 
   <div class="mt-6">
     <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
