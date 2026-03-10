@@ -144,8 +144,16 @@
     <section>
       <h3 class="section-heading">Redeemed Rewards</h3>
       <section class="mb-4">
-        <div class="form-control w-full max-w-xs">
+        <div class="table-controls">
           <input type="text" id="rewardSearch" placeholder="Search rewards..." class="input input-bordered input-sm w-full max-w-xs" onkeyup="filterTable('rewardSearch', 'data-table')">
+          <input type="radio" id="rewardSortAsc" name="rewardSort" class="radio" onchange="sortTable('data-table', 0, 'asc')">
+          <label for="rewardSortAsc" class="ml-1">Sort A-Z</label>
+          <input type="radio" id="rewardSortDesc" name="rewardSort" class="radio" onchange="sortTable('data-table', 0, 'desc')">
+          <label for="rewardSortDesc" class="ml-1">Sort Z-A</label>
+          <input type="radio" id="rewardSortDateAsc" name="rewardSort" class="radio" onchange="sortTable('data-table', 2, 'asc')">
+          <label for="rewardSortDateAsc" class="ml-1">Sort Oldest</label>
+          <input type="radio" id="rewardSortDateDesc" name="rewardSort" class="radio" onchange="sortTable('data-table', 2, 'desc')">
+          <label for="rewardSortDateDesc" class="ml-1">Sort Newest</label>
         </div>
         <script>
           function filterTable(inputId, tableClass) {
@@ -165,11 +173,35 @@
               rows[i].style.display = match ? "" : "none";
             }
           }
+          function sortTable(tableClass, columnIndex, order) {
+            const table = document.getElementById('rewardTable');
+            const rowsArray = Array.from(table.rows).slice(1);
+            switch (columnIndex) {
+              case 0: // Name column
+                rowsArray.sort((a, b) => {
+                  const cellA = a.cells[columnIndex].textContent.trim().toLowerCase();
+                  const cellB = b.cells[columnIndex].textContent.trim().toLowerCase();
+                  console.log(`Comparing "${cellA}" to "${cellB}"`);
+                  if (cellA < cellB) return order === 'asc' ? -1 : 1;
+                  if (cellA > cellB) return order === 'asc' ? 1 : -1;
+                  return 0;
+                });
+                break;
+              case 2: // Redeemed At column
+                rowsArray.sort((a, b) => {
+                  const dateA = new Date(a.cells[columnIndex].getAttribute('data-date'));
+                  const dateB = new Date(b.cells[columnIndex].getAttribute('data-date'));
+                  return order === 'asc' ? dateA - dateB : dateB - dateA;
+                });
+                break;
+            }
+            rowsArray.forEach(row => table.appendChild(row));
+          }
         </script>
       </section>
+      <div class="overflow-x-auto">
       {% if history.rewards|length > 0 %}
-        <div class="overflow-x-auto">
-          <table class="table w-full table- data-table">
+          <table class="table w-full table- data-table" id="rewardTable">
             <thead><tr><th>Reward</th><th>Cost</th><th>Redeemed At</th></tr></thead>
             <tbody>
               {% for entry in history.rewards %}
