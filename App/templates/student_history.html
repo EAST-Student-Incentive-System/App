@@ -12,6 +12,60 @@
       <h3 class="section-heading">Badges</h3>
       {% if history.badges %}
         <div class="overflow-x-auto">
+          <div class="table-controls">
+            <input type="text" id="badgeSearch" placeholder="Search badges..." class="input input-bordered input-sm w-full max-w-xs" onkeyup="filterTable('badgeSearch', 'data-table')">
+            <input type="radio" id="badgeSortAsc" name="badgeSort" class="radio" onchange="sortTable('data-table', 0, 'asc')">
+            <label for="badgeSortAsc" class="ml-1">Sort A-Z</label>
+            <input type="radio" id="badgeSortDesc" name="badgeSort" class="radio" onchange="sortTable('data-table', 0, 'desc')">
+            <label for="badgeSortDesc" class="ml-1">Sort Z-A</label>
+            <input type="radio" id="badgeSortDateAsc" name="badgeSort" class="radio" onchange="sortTable('data-table', 2, 'asc')">
+            <label for="badgeSortDateAsc" class="ml-1">Sort Oldest</label>
+            <input type="radio" id="badgeSortDateDesc" name="badgeSort" class="radio" onchange="sortTable('data-table', 2, 'desc')">
+            <label for="badgeSortDateDesc" class="ml-1">Sort Newest</label>
+          </div>
+          <script>
+            function filterTable(inputId, tableClass) {
+              const input = document.getElementById(inputId);
+              const filter = input.value.toLowerCase();
+              const table = document.querySelector(`.${tableClass}`);
+              const rows = table.getElementsByTagName("tr");
+              for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName("td");
+                let match = false;
+                for (let j = 0; j < cells.length; j++) {
+                  if (cells[j].textContent.toLowerCase().includes(filter)) {
+                    match = true;
+                    break;
+                  }
+                }
+                rows[i].style.display = match ? "" : "none";
+              }
+            }
+
+            function sortTable(tableClass, columnIndex, order) {
+              const table = document.querySelector(`.${tableClass}`);
+              const rowsArray = Array.from(table.rows).slice(1);
+              switch (columnIndex) {
+                case 0: // Name column
+                  rowsArray.sort((a, b) => {
+                    const cellA = a.cells[columnIndex].textContent.trim().toLowerCase();
+                    const cellB = b.cells[columnIndex].textContent.trim().toLowerCase();
+                    if (cellA < cellB) return order === 'asc' ? -1 : 1;
+                    if (cellA > cellB) return order === 'asc' ? 1 : -1;
+                    return 0;
+                  });
+                  break;
+                case 2: // Earned At column
+                  rowsArray.sort((a, b) => {
+                    const dateA = new Date(a.cells[columnIndex].getAttribute('data-date'));
+                    const dateB = new Date(b.cells[columnIndex].getAttribute('data-date'));
+                    return order === 'asc' ? dateA - dateB : dateB - dateA;
+                  });
+                  break;
+              }
+              rowsArray.forEach(row => table.appendChild(row));
+            }
+          </script>
           <table class="table w-full table- data-table">
             <thead><tr><th>Name</th><th>Description</th><th>Earned At</th></tr></thead>
             <tbody>
@@ -19,7 +73,7 @@
                 <tr>
                   <td>{{ entry.badge.name }}</td>
                   <td>{{ entry.badge.description }}</td>
-                  <td>{{ entry.earnedAt[2:4] }}/{{ entry.earnedAt[5:7] }}/{{ entry.earnedAt[8:10] }} | {{ entry.earnedAt[11:16] }}</td>
+                  <td data-date="{{ entry.earnedAt }}">{{ entry.earnedAt[2:4] }}/{{ entry.earnedAt[5:7] }}/{{ entry.earnedAt[8:10] }} | {{ entry.earnedAt[11:16] }}</td>
                 </tr>
               {% endfor %}
             </tbody>
@@ -39,8 +93,8 @@
             <tbody>
               {% for entry in history.events %}
                 <tr>
-                  <td>{{ entry.event.name }}</td>
-                  <td>{{ entry.event.type }}</td>
+                  <td data-name="{{ entry.event.name }}">{{ entry.event.name }}</td>
+                  <td data-type="{{ entry.event.type }}">{{ entry.event.type }}</td>
                   <td>
                     {% set start_time = entry.event.start %}
                     {% set end_time = entry.event.end %}
@@ -89,6 +143,30 @@
 
     <section>
       <h3 class="section-heading">Redeemed Rewards</h3>
+      <section class="mb-4">
+        <div class="form-control w-full max-w-xs">
+          <input type="text" id="rewardSearch" placeholder="Search rewards..." class="input input-bordered input-sm w-full max-w-xs" onkeyup="filterTable('rewardSearch', 'data-table')">
+        </div>
+        <script>
+          function filterTable(inputId, tableClass) {
+            const input = document.getElementById(inputId);
+            const filter = input.value.toLowerCase();
+            const table = document.querySelector(`.${tableClass}`);
+            const rows = table.getElementsByTagName("tr");
+            for (let i = 1; i < rows.length; i++) {
+              const cells = rows[i].getElementsByTagName("td");
+              let match = false;
+              for (let j = 0; j < cells.length; j++) {
+                if (cells[j].textContent.toLowerCase().includes(filter)) {
+                  match = true;
+                  break;
+                }
+              }
+              rows[i].style.display = match ? "" : "none";
+            }
+          }
+        </script>
+      </section>
       {% if history.rewards|length > 0 %}
         <div class="overflow-x-auto">
           <table class="table w-full table- data-table">
