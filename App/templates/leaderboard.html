@@ -1,0 +1,243 @@
+{% extends "layout.html" %}
+
+{% block title %}Leaderboard – Merit{% endblock %}
+
+{% block content %}
+
+<style>
+  html, body { background: #e5e7eb !important; }
+
+  /* Escape layout's p-6, fill full remaining viewport */
+  .lb-outer {
+    margin: -1.5rem -1.5rem 0;
+    padding-bottom: 4.5rem; /* clear fixed btm-nav */
+    min-height: calc(100dvh - 64px);
+    background: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Title + podium shrink-wraps to content */
+  .lb-header {
+    flex-shrink: 0;
+    padding: 1rem 1rem 0.6rem;
+    text-align: center;
+  }
+
+  /* Card + pagination grouped together — this block grows to fill space */
+  .lb-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Card itself grows to fill lb-body, pushing pagination to bottom of content */
+  .lb-card {
+    flex: 1;
+    background: #fff;
+    border-top: 2px solid #e5e7eb;
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Header row — fixed height, never grows */
+  .lb-header-row {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.85rem 1.1rem;
+    background: #f5f0ff;
+    border-bottom: 2px solid #e9d5ff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #6b21a8;
+  }
+
+  /* Rows wrapper grows to fill card */
+  .lb-rows-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Each row takes equal share — no max-height cap so they truly fill the space */
+  .lb-row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0 1.1rem;
+    border-bottom: 1.5px solid #f0f0f5;
+    transition: background 0.12s;
+    min-height: 52px;
+  }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-row:hover      { background: #faf5ff; }
+
+  /* Pagination sits directly below the card, not at page bottom */
+  .lb-pagination {
+    flex-shrink: 0;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .lb-avatar {
+    width: 42px; height: 42px; min-width: 42px;
+    border-radius: 50%;
+    background: #ede9fe;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    border: 2px solid #d8b4fe; color: #7c3aed;
+  }
+  .lb-avatar.gold   { background: #fef9c3; border-color: #fbbf24; color: #b45309; }
+  .lb-avatar.silver { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+  .lb-avatar.bronze { background: #fef3c7; border-color: #d97706; color: #92400e; }
+
+  .lb-rank {
+    width: 28px; min-width: 28px;
+    text-align: center; font-weight: 800; font-size: 1rem;
+    color: #9333ea; flex-shrink: 0;
+  }
+
+  .lb-name {
+    flex: 1; font-size: 1rem; font-weight: 600; color: #1e1b4b;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+
+  .lb-points-val {
+    font-size: 1.4rem; font-weight: 800; color: #1e1b4b;
+    line-height: 1; white-space: nowrap;
+  }
+
+  .medal-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    font-size: 0.75rem; font-weight: 800;
+  }
+  .medal-badge.gold   { background: #fbbf24; color: #78350f; }
+  .medal-badge.silver { background: #94a3b8; color: #1e293b; }
+  .medal-badge.bronze { background: #d97706; color: #fff;    }
+
+  .podium-step {
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.1rem; color: #fff;
+    border-radius: 6px 6px 0 0; width: 58px;
+  }
+  .podium-step.first  { background: #a855f7; height: 62px; }
+  .podium-step.second { background: #7c3aed; height: 46px; }
+  .podium-step.third  { background: #c4b5fd; height: 34px; color: #4c1d95; }
+</style>
+
+<div class="lb-outer">
+
+  <!-- Title + Podium -->
+  <div class="lb-header">
+    <h1 class="text-4xl font-extrabold text-neutral tracking-tight">Leaderboard</h1>
+    <div class="flex justify-center items-end gap-0 mt-3 mb-0">
+      <div class="flex flex-col items-center mr-1">
+        <div class="podium-step second">2</div>
+      </div>
+      <div class="flex flex-col items-center">
+        <div class="text-3xl mb-1">🏆</div>
+        <div class="podium-step first">1</div>
+      </div>
+      <div class="flex flex-col items-center ml-1">
+        <div class="podium-step third">3</div>
+      </div>
+    </div>
+  </div>
+
+  {% set page     = request.args.get('page', 1) | int %}
+  {% set per_page = 10 %}
+  {% set total    = leaderboard | length %}
+  {% set pages    = (total / per_page) | round(0, 'ceil') | int %}
+  {% set start    = (page - 1) * per_page %}
+  {% set end      = start + per_page %}
+
+  <!-- Card + pagination as one growing block -->
+  <div class="lb-body">
+
+    <div class="lb-card">
+      <div class="lb-header-row">
+        <div style="width:42px; min-width:42px; flex-shrink:0;"></div>
+        <div style="width:28px; min-width:28px; flex-shrink:0;">#</div>
+        <div class="flex-1">Rank and Username</div>
+        <div style="font-weight:700;">Points</div>
+      </div>
+
+      <div class="lb-rows-wrap">
+        {% if leaderboard %}
+          {% for entry in leaderboard[start:end] %}
+            {% set rank = entry.rank %}
+            {% if   rank == 1 %}{% set ac = "gold"   %}{% set bc = "gold"   %}
+            {% elif rank == 2 %}{% set ac = "silver" %}{% set bc = "silver" %}
+            {% elif rank == 3 %}{% set ac = "bronze" %}{% set bc = "bronze" %}
+            {% else            %}{% set ac = ""       %}{% set bc = ""       %}
+            {% endif %}
+            <div class="lb-row">
+              <div class="lb-avatar {{ ac }}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                  <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div class="lb-rank">
+                {% if rank <= 3 %}<span class="medal-badge {{ bc }}">{{ rank }}</span>
+                {% else %}{{ rank }}{% endif %}
+              </div>
+              <div class="lb-name">{{ entry.username }}</div>
+              <div class="text-right">
+                <span class="lb-points-val">{{ entry.total_points }}</span>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="lb-row justify-center text-gray-400 py-10 text-sm">
+            No students on the leaderboard yet.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Pagination sits directly below the last row -->
+    {% if pages > 1 %}
+    <div class="lb-pagination">
+      <div class="join">
+        {% if page > 1 %}
+          <a href="?page={{ page - 1 }}" class="join-item btn btn-sm" style="border-color:#A020F0; color:#A020F0;">«</a>
+        {% else %}
+          <button class="join-item btn btn-sm btn-disabled">«</button>
+        {% endif %}
+
+        {% for p in range(1, pages + 1) %}
+          {% if p == page %}
+            <button class="join-item btn btn-sm text-white" style="background-color:#A020F0; border-color:#A020F0;">{{ p }}</button>
+          {% elif p == 1 or p == pages or (p >= page - 2 and p <= page + 2) %}
+            <a href="?page={{ p }}" class="join-item btn btn-sm btn-ghost" style="color:#A020F0;">{{ p }}</a>
+          {% elif p == page - 3 or p == page + 3 %}
+            <button class="join-item btn btn-sm btn-disabled pointer-events-none">…</button>
+          {% endif %}
+        {% endfor %}
+
+        {% if page < pages %}
+          <a href="?page={{ page + 1 }}" class="join-item btn btn-sm" style="border-color:#A020F0; color:#A020F0;">»</a>
+        {% else %}
+          <button class="join-item btn btn-sm btn-disabled">»</button>
+        {% endif %}
+      </div>
+      <p class="text-xs text-gray-400">
+        Page {{ page }} of {{ pages }} &nbsp;·&nbsp; {{ total }} student{{ 's' if total != 1 }}
+      </p>
+    </div>
+    {% endif %}
+
+  </div>{# end lb-body #}
+
+</div>{# end lb-outer #}
+
+{% endblock %}
