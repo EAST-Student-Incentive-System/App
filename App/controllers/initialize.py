@@ -1,4 +1,4 @@
-from time import time
+from time import sleep, time
 
 from .user import create_user
 from .badge import awardTestBadge, createBadge
@@ -100,7 +100,7 @@ def initialize():
                 # We want the times to be different for demonstration purposes, so we can show the student history page with events attended at different times. This will help demonstrate the sorting and display of events on the student history page. In production, you would typically log attendance with the actual time of attendance rather than setting it to a random time.
                 sleep_time = random.randint(1, 20)  # Random sleep time between 1 and 20 seconds
                 print(f'Sleeping for {sleep_time} seconds to create different timestamps for attendance...')
-                time.sleep(sleep_time)
+                sleep(sleep_time)
             else:
                 print(f'Failed to create event: {event}')
 
