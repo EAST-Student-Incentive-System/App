@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request, send_from_directory, flash, redirect, url_for
-from flask_jwt_extended import jwt_required, current_user as jwt_current_user
+from flask_jwt_extended import jwt_required, current_user as jwt_current_user, get_jwt_identity
+from App.models import Student
 
 from.index import index_views
 
@@ -7,7 +8,8 @@ from App.controllers import (
     create_user,
     get_all_users,
     get_all_users_json,
-    jwt_required
+    jwt_required,
+    get_student_history
 )
 
 user_views = Blueprint('user_views', __name__, template_folder='../templates')
@@ -38,3 +40,26 @@ def create_user_endpoint():
 @user_views.route('/static/users', methods=['GET'])
 def static_user_page():
   return send_from_directory('static', 'static-user.html')
+
+
+# --------------------------------------------------
+# Student history endpoints
+# --------------------------------------------------
+
+@user_views.route('/api/students/<int:student_id>/history', methods=['GET'])
+def student_history_api(student_id):
+    history = get_student_history(student_id)
+    if history is None:
+        return jsonify({'error': 'Student not found'}), 404
+    return jsonify(history)
+
+
+@user_views.route('/students/<int:student_id>/history', methods=['GET'])
+@jwt_required()
+def student_history_page(student_id):
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    history = get_student_history(student_id)
+    if history is None:
+        return "Student not found", 404
+    return render_template('student_history.html', history=history, user=user)

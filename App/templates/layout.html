@@ -65,6 +65,9 @@
   <a href="{{ url_for('event_views.scan_qr_page') }}" class="btm-nav-item">
     Scan QR
   </a>
+  <a href="{{ url_for('user_views.student_history_page', student_id=user.id) }}" class="btm-nav-item">
+    History
+  </a>
 </div>
 {% endif %}
 
