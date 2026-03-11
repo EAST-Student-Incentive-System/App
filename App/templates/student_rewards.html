@@ -200,11 +200,10 @@
           <tbody>
             {% for item in redeemed %}
               <tr>
-                <td class="font-medium">{{ item.reward.name }}</td>
-                <td>{{ item.reward.pointCost }}</td>
-                <td class="text-sm text-gray-500">
-                  {{ item.redeemedAt }}
-                </td>
+                <td class="font-medium">{{ item['rewardName'] }}</td>
+                <td>{{ item['pointCost'] }}</td>
+                <td class="text-sm text-gray-500">{{ item['redeemedAt'] }}</td>
+
               </tr>
             {% endfor %}
           </tbody>
