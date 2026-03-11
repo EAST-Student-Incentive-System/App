@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-screen">
+  <h1 class="text-2xl font-bold mb-4">Scan Event QR</h1>
+
+  <!-- Responsive camera feed -->
+  <div id="reader"
+class="w-full max-w-sm h-[70vh] border rounded-lg shadow-md mx-auto"></div>
+
+  <p class="text-gray-500 mt-3">Point your camera at the QR code</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- html5-qrcode library -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+  function onScanSuccess(decodedText, decodedResult) {
+    console.log(`QR matched = ${decodedText}`);
+    // Example QR format: event:123|t:456
+    const parts = decodedText.split("|");
+    const eventPart = parts[0].split(":")[1];
+    const tokenPart = parts[1].split(":")[1];
+
+    // Redirect to log attendance route
+    window.location.href = `/attendance/log?event_id=${eventPart}&token=${tokenPart}`;
+  }
+
+  function onScanFailure(error) {
+    // Ignore scan errors, keep scanning
+    console.warn(`QR error = ${error}`);
+  }
+
+  // Large camera feed, but keep detection box smaller
+  let html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader",
+    { fps: 10, qrbox: { width: 250, height: 250 } }
+  );
+  html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+</script>
+{% endblock %}

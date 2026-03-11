@@ -9,6 +9,7 @@ class Reward(db.Model):
     pointCost = db.Column(db.Integer, nullable=False)
     active = db.Column(db.Boolean, default=True)
     students = db.relationship('Student', secondary=RedeemedReward.__table__, back_populates='redeemed_rewards')
+    redeemed_rewards = db.relationship('RedeemedReward', back_populates='reward')
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     creator = db.relationship('User', backref=db.backref('created_rewards', lazy=True))
     image = db.Column(db.String(200), nullable=True)

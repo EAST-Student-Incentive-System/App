@@ -418,6 +418,17 @@ def event_history_command(student_id=None, staff_id=None):
     for record in history:
         print(record)
 
+
+@app.cli.command("student_history", help="Prints badge/event/reward history for a student as json")
+@click.argument("student_id", type=int)
+def student_history_command(student_id):
+    from App.controllers.student_history import get_student_history
+    history = get_student_history(student_id)
+    if history is None:
+        print(f"Student {student_id} not found")
+        return
+    print(history)
+
 @app.cli.command("join_event", help="Student joins an event")
 @click.argument("student_id", type=int)
 @click.argument("event_id", type=int)
@@ -445,6 +456,15 @@ def generate_qr_command(event_id):
     else:
         print(f'Failed to generate QR code for event {event_id}. Check if event exists.')
 
+from App.models import Attendance
+
+@app.cli.command("list-attendance")
+@with_appcontext
+def list_attendance():
+    """List all attendance rows."""
+    rows = Attendance.query.all()
+    for a in rows:
+        click.echo(f"ID={a.id}, Student={a.student_id}, Event={a.event_id}, Time={a.timestamp}")
 
 """@app.cli.command("scan_qr", help="Scans a QR code for an event and logs attendance")
 @click.argument("student_id", type=int)

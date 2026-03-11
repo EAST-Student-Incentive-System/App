@@ -20,7 +20,7 @@ class Event(db.Model):
     image = db.Column(db.String(200), nullable=True) #optional image for event, can be used in UI to make it more appealing
     active = db.Column(db.Boolean, default=False) #soft delete flag, set to False instead of deleting record
 
-    def __init__(self, staffId, name, type, description, start, end, location=None, qr=None, image=None, active=False):
+    def __init__(self, staffId, name, type, description, start, end, location=None, image=None, active=False):
         self.staffId = staffId
         self.name = name
         self.type = type
@@ -43,7 +43,7 @@ class Event(db.Model):
             'end': self.end.isoformat(),
             'location': self.location,
             'image' : self.image,
-           # 'qr': self.qr,
+            #'qr': self.qr,
             'active': self.active
         }
     

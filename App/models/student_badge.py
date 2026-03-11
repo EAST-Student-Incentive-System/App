@@ -20,3 +20,12 @@ class StudentBadge(db.Model):
 
     def __repr__(self):
         return f'<StudentBadge Student:{self.student.id} Badge:{self.badge.id}>'
+    
+    def init(self, user_id, badge_id, earned_at=None):
+        self.user_id = user_id
+        self.badge_id = badge_id
+        if earned_at:
+            self.earned_at = earned_at
+        else:
+            self.earned_at = datetime.now()
+        return self
