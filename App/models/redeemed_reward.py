@@ -8,11 +8,16 @@ class RedeemedReward(db.Model):
     reward_id = db.Column(db.Integer, db.ForeignKey('reward.id'), nullable=False)
     redeemed_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
+    reward = db.relationship('Reward', back_populates='redeemed_rewards')
+
     def get_json(self):
         return {
             'id': self.id,
             'studentId': self.student_id,
-            'reward': self.reward.get_json(),
+            'rewardId': self.reward_id,
+            'rewardName': self.reward.name if self.reward else None,
+            'rewardDescription': self.reward.description if self.reward else None,
+            'pointCost': self.reward.pointCost if self.reward else None,
             'redeemedAt': self.redeemed_at.isoformat()
         }
 

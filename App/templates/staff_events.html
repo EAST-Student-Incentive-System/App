@@ -18,8 +18,7 @@
         Events
       </h1>
 
-      <!-- Search + Filter -->
-      <div class="flex items-center gap-3 shrink-0">
+            <div class="flex items-center gap-3 shrink-0">
 
         <!-- Search -->
         <div class="form-control">
@@ -108,7 +107,7 @@
           </a>
         </div>
 
-        {% if event.qr_code %}
+       {# {% if event.qr_code %}
         <label for="qr-modal-{{ event.id }}" class="mt-2 cursor-pointer flex justify-center">
           <img src="data:image/png;base64,{{ event.qr_code }}"
                class="w-16 h-16 hover:scale-105 transition-transform duration-200">
@@ -121,22 +120,31 @@
             <div class="modal-action">
               <label for="qr-modal-{{ event.id }}" class="btn">Close</label>
             </div>
-          </div>
         </div>
-        {% endif %}
+        {% endif %}#}
+
+        <div class="pt-2 border-t">
+  <!-- Staff sees Start Attendance button -->
+  <a href="{{ url_for('event_views.event_qr_page', event_id=event.id) }}"
+     class="btn btn-sm btn-warning w-full">
+    Start Attendance
+  </a>
+</div>
+
       </div>
       {% endfor %}
     </div>
 
-    <!-- EMPTY STATE -->
-    <div id="no-results" class="hidden text-center py-20">
-      <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
-      </svg>
-      <p class="text-gray-500 font-medium">No events found</p>
-      <p class="text-gray-400 text-sm mt-1">Try a different search or filter.</p>
+
+        <!-- Empty State -->
+        <div id="no-results" class="hidden text-center py-20">
+            <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="#9b30ff" stroke-width="1.5" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+            </svg>
+            <p class="text-gray-500 font-medium">No events found</p>
+            <p class="text-gray-400 text-sm mt-1">Try a different search or filter.</p>
+        </div>
     </div>
-  </div>
 
   <script>
     let activeFilter = 'all';

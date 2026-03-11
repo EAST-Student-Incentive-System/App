@@ -39,8 +39,6 @@
     </div>
   </div>
 
-  
-
   {% else %}
   <!-- Guest Navbar (no user yet) -->
   <div class="navbar px-6" style="background-color:#A020F0; color:white;">
@@ -57,50 +55,26 @@
 
   <!-- Student Bottom Nav -->
   {% if user is defined and user.role == "student" %}
-  <div class="btm-nav" style="background-color:#A020F0; color:white;">
-   <a href="{{ url_for('event_views.get_student_events_route') }}" class="btn">
-  Events
-</a>
-
-<!-- student rewards link -->
-  <a href="{{ url_for('reward_views.student_rewards_page') }}" class="btm-nav-item">
-    Rewards
+<div class="btm-nav" style="background-color:#db9d20; color:white;">
+  <a href="{{ url_for('event_views.get_student_events_route') }}" class="btm-nav-item">
+    Events
   </a>
-  <!-- student reward test -->
-
+  <a href="{{ url_for('progress_views.view_leaderboard_route') }}" class="btm-nav-item">
+    Leaderboard
+  </a>
   <a href="{{ url_for('event_views.scan_qr_page') }}" class="btm-nav-item">
     Scan QR
+  </a>
+  <a href="{{ url_for('user_views.student_history_page', student_id=user.id) }}" class="btm-nav-item">
+    History
   </a>
 </div>
 {% endif %}
 
-   {#
-<a class="btm-nav-item" href="{{ url_for('event_views.get_student_events_route') }}">
-  <i class="fas fa-trophy"></i>
-  <span class="btm-nav-label">Leaderboard</span>
-</a>
-
-<a class="btm-nav-item" href="{{ url_for('event_views.scan_qr_page') }}">
-  <i class="fas fa-qrcode"></i>
-  <span class="btm-nav-label">Scan</span>
-</a>
-
-<a class="btm-nav-item" href="{{ url_for('reward_views.student_rewards_page') }}">
-  <i class="fas fa-gift"></i>
-  <span class="btm-nav-label">Rewards</span>
-</a>
-
-<!-- TODO: you need to create a real route for History, then replace endpoint below -->
-<!--
-<a class="btm-nav-item" href="{{ url_for('student_views.history_page') }}">
-  <i class="fas fa-history"></i>
-  <span class="btm-nav-label">History</span>
-</a>
--->
-#}
-  {% endif %}
-
   <!-- FontAwesome for icons -->
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+  {% block scripts %}{% endblock %}
+  
 </body>
 </html>

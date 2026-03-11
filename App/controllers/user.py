@@ -10,8 +10,10 @@ serializer= URLSafeTimedSerializer('your_secret_key')
 def create_user(email, username, password):
     if email.endswith('@my.uwi.edu'):
         newuser = Student(email=email, username=username, password=password)
+        newuser.role = 'student'
     elif  email.endswith('@sta.uwi.edu'):
         newuser = Staff(email=email, username=username, password=password)
+        newuser.role = 'staff'
     else:
         raise ValueError("Invalid email domain. Only UWI staff or student emails are allowed.")
     db.session.add(newuser)

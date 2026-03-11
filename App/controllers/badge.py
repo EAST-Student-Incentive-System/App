@@ -17,6 +17,19 @@ def awardBadge(student_id, badge_id):
                 return True
     return False
 
+def awardTestBadge(student_id, badge_id, earned_at):
+    student = Student.query.get(student_id)
+    badge = Badge.query.get(badge_id)
+
+    if badge and student:
+        if badge.points_required <= student.total_points:
+            if badge not in student.student_badges:
+                link = StudentBadge(user_id=student_id, badge_id=badge_id, earned_at=earned_at)
+                db.session.add(link)
+                db.session.commit()
+                return True
+    return False
+
 # Controller function to view all badges in the system
 def viewBadges():
     badges = Badge.query.all()
