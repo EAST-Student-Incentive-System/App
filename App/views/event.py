@@ -202,7 +202,10 @@ def get_staff_events_route():
 def filter_participants(event_id):
     print("FILTER PARTICIPANTS ROUTE HIT")
     participant_count = get_participant_count(event_id)
+    cutoff_str = request.form.get("cutoff")
     print("Participant count for event_id", event_id, "=", participant_count)
+
+    event = Event.query.get_or_404(event_id)
 
     rows = db.session.query(student_event).filter(
     student_event.c.event_id == event_id).all()
@@ -222,7 +225,8 @@ def filter_participants(event_id):
         "edit_event.html",
         event=event,
         participant_count=participant_count,
-        cutoff=cutoff
+        cutoff=cutoff,
+        user = Staff.query.get(get_jwt_identity())
     )
 
 
