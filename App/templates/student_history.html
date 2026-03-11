@@ -5,10 +5,35 @@
 {% block content %}
 
 <div class="container mx-auto p-6">
+  <div>
   <h2 class="page-heading">History for {{ history.student.username }}</h2>
 
+  <div class="flex space-x-4">
+    <label><input type="radio" name="historyFilter" value="all" checked onchange="filterHistory(this.value)"> All</label>
+    <label><input type="radio" name="historyFilter" value="badges" onchange="filterHistory(this.value)"> Badges</label>
+    <label><input type="radio" name="historyFilter" value="events" onchange="filterHistory(this.value)"> Events</label>
+    <label><input type="radio" name="historyFilter" value="rewards" onchange="filterHistory(this.value)"> Rewards</label>
+  </div>
+
+  <br>
+  <br>
+</div>
+
+<script>
+  function filterHistory(value) {
+    const badges = document.getElementById('badgesSection');
+    const events = document.getElementById('eventsSection');
+    const rewards = document.getElementById('rewardsSection');
+
+    // Show/hide based on filter
+    badges.style.display = (value === 'all' || value === 'badges') ? '' : 'none';
+    events.style.display = (value === 'all' || value === 'events') ? '' : 'none';
+    rewards.style.display = (value === 'all' || value === 'rewards') ? '' : 'none';
+  }
+</script>
+
   <div class="space-y-8">
-    <section>
+    <section id="badgesSection">
       <h3 class="section-heading">Badges</h3>
       {% if history.badges %}
         <div class="overflow-x-auto">
@@ -67,6 +92,7 @@
               rowsArray.forEach(row => table.appendChild(row));
             }
           </script>
+          
           <table class="table w-full table- data-table">
             <thead><tr><th>Name</th><th>Description</th><th>Earned At</th></tr></thead>
             <tbody>
@@ -85,11 +111,28 @@
       {% endif %}
     </section>
 
-    <section>
+    <section id="eventsSection">
       <h3 class="section-heading">Events (attendance)</h3>
       {% if history.events %}
         <div class="overflow-x-auto">
-          <table class="table w-full table- data-table">
+          <div class="table-controls mb-2">
+            <input type="text" id="eventSearch" placeholder="Search events..." 
+              class="input input-bordered input-sm w-full max-w-xs" 
+              onkeyup="filterEventTable('eventSearch', 'event-table')">
+              <input type="radio" id="eventSortAsc" name="eventSort" class="radio" onchange="sortEventTable('event-table', 0, 'asc')">
+              <label for="eventSortAsc" class="ml-1">Sort A-Z</label>
+
+              <input type="radio" id="eventSortDesc" name="eventSort" class="radio" onchange="sortEventTable('event-table', 0, 'desc')">
+              <label for="eventSortDesc" class="ml-1">Sort Z-A</label>
+
+              <input type="radio" id="eventSortDateAsc" name="eventSort" class="radio" onchange="sortEventTable('event-table', 2, 'asc')">
+              <label for="eventSortDateAsc" class="ml-1">Sort Oldest</label>
+
+              <input type="radio" id="eventSortDateDesc" name="eventSort" class="radio" onchange="sortEventTable('event-table', 2, 'desc')">
+              <label for="eventSortDateDesc" class="ml-1">Sort Newest</label>
+          </div>
+
+          <table class="table w-full event-table">
             <thead><tr><th>Event Name</th><th>Type</th><th>Time</th><th>Location</th><th>Description</th><th>Attended At</th></tr></thead>
             <tbody>
               {% for entry in history.events %}
@@ -140,9 +183,55 @@
         document.getElementById('descriptionContent').textContent = description;
         document.getElementById('descriptionModal').showModal();
       }
-    </script>
 
-    <section>
+      function filterEventTable(inputId, tableClass) {
+      const input = document.getElementById(inputId);
+      const filter = input.value.toLowerCase();
+      const table = document.querySelector(`.${tableClass}`);
+      const rows = table.getElementsByTagName("tr");
+      for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i].getElementsByTagName("td");
+        let match = false;
+        for (let j = 0; j < cells.length; j++) {
+          if (cells[j].textContent.toLowerCase().includes(filter)) {
+            match = true;
+            break;
+          }
+        }
+        rows[i].style.display = match ? "" : "none";
+    }
+  }
+
+    function sortEventTable(tableClass, columnIndex, order) {
+    console.log(`Sorting table "${tableClass}" by column ${columnIndex} in ${order} order`);
+    const table = document.querySelector(`.${tableClass}`);
+    const rowsArray = Array.from(table.rows).slice(1);
+
+    switch (columnIndex) {
+      case 0: // Event Name column
+        rowsArray.sort((a, b) => {
+          const cellA = a.cells[columnIndex].textContent.trim().toLowerCase();
+          const cellB = b.cells[columnIndex].textContent.trim().toLowerCase();
+          if (cellA < cellB) return order === 'asc' ? -1 : 1;
+          if (cellA > cellB) return order === 'asc' ? 1 : -1;
+          return 0;
+        });
+        break;
+      case 2: // Time column (start date)
+        rowsArray.sort((a, b) => {
+          const dateA = new Date(a.cells[columnIndex].textContent.split('|')[0].trim());
+          const dateB = new Date(b.cells[columnIndex].textContent.split('|')[0].trim());
+          return order === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+        break;
+    }
+
+    rowsArray.forEach(row => table.appendChild(row));
+  }
+    </script>
+    
+
+    <section id="rewardsSection">
       <h3 class="section-heading">Redeemed Rewards</h3>
       <section class="mb-4">
         <div class="table-controls">
@@ -216,14 +305,12 @@
               {% endfor %}
             </tbody>
           </table>
+          <br>
+          <br>
         </div>
       {% else %}
         <p class="text-gray-500">No rewards redeemed.</p>
       {% endif %}
     </section>
-
-  <div class="mt-6">
-    <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
-  </div>
 </div>
 {% endblock %}

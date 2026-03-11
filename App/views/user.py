@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request, send_from_directory, flash, redirect, url_for
-from flask_jwt_extended import jwt_required, current_user as jwt_current_user
+from flask_jwt_extended import jwt_required, current_user as jwt_current_user, get_jwt_identity
+from App.models import Student
 
 from.index import index_views
 
@@ -54,8 +55,11 @@ def student_history_api(student_id):
 
 
 @user_views.route('/students/<int:student_id>/history', methods=['GET'])
+@jwt_required()
 def student_history_page(student_id):
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
     history = get_student_history(student_id)
     if history is None:
         return "Student not found", 404
-    return render_template('student_history.html', history=history)
+    return render_template('student_history.html', history=history, user=user)
