@@ -62,23 +62,42 @@
   Events
 </a>
 
-   {#<button onclick="location.href='{{ url_for('student_views.leaderboard_page') }}'">
-      <i class="fas fa-trophy"></i>
-      <span class="btm-nav-label">Leaderboard</span>
-    </button>
-    <button onclick="location.href='{{ url_for('student_views.scan_qr_page') }}'">
-      <i class="fas fa-qrcode"></i>
-      <span class="btm-nav-label">Scan</span>
-    </button>
-    <button onclick="location.href='{{ url_for('student_views.rewards_page') }}'">
-      <i class="fas fa-gift"></i>
-      <span class="btm-nav-label">Rewards</span>
-    </button>
-    <button onclick="location.href='{{ url_for('student_views.history_page') }}'">
-      <i class="fas fa-history"></i>
-      <span class="btm-nav-label">History</span>
-    </button>
-  </div>#}
+<!-- student rewards link -->
+  <a href="{{ url_for('reward_views.student_rewards_page') }}" class="btm-nav-item">
+    Rewards
+  </a>
+  <!-- student reward test -->
+
+  <a href="{{ url_for('event_views.scan_qr_page') }}" class="btm-nav-item">
+    Scan QR
+  </a>
+</div>
+{% endif %}
+
+   {#
+<a class="btm-nav-item" href="{{ url_for('event_views.get_student_events_route') }}">
+  <i class="fas fa-trophy"></i>
+  <span class="btm-nav-label">Leaderboard</span>
+</a>
+
+<a class="btm-nav-item" href="{{ url_for('event_views.scan_qr_page') }}">
+  <i class="fas fa-qrcode"></i>
+  <span class="btm-nav-label">Scan</span>
+</a>
+
+<a class="btm-nav-item" href="{{ url_for('reward_views.student_rewards_page') }}">
+  <i class="fas fa-gift"></i>
+  <span class="btm-nav-label">Rewards</span>
+</a>
+
+<!-- TODO: you need to create a real route for History, then replace endpoint below -->
+<!--
+<a class="btm-nav-item" href="{{ url_for('student_views.history_page') }}">
+  <i class="fas fa-history"></i>
+  <span class="btm-nav-label">History</span>
+</a>
+-->
+#}
   {% endif %}
 
   <!-- FontAwesome for icons -->
