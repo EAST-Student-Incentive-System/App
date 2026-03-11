@@ -14,6 +14,9 @@ from App.models import Staff, Reward
 import os
 from flask import current_app
 
+from App.models import Student
+from App.controllers.redeemedReward import view_redeemed_rewards
+
 reward_views = Blueprint('reward_views', __name__, template_folder='../templates')
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -281,3 +284,69 @@ def update_reward_route(reward_id):
     return redirect(url_for("reward.view_rewards"))
 
 '''
+
+# ----------------- Student Rewards Page ----------------
+
+@reward_views.route('/student/rewards', methods=['GET'])
+@jwt_required()
+def student_rewards_page():
+    """
+    Student-facing rewards page.
+    Shows current balance and active rewards (with redeemable flag).
+    """
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    if not user or user.role != 'student':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('auth_views.login_page'))
+
+    rewards = viewReward(user.id) or []
+
+    # Optional: redeemed history
+    redeemed = view_redeemed_rewards(user.id) or []
+    redeemed_json = [x.get_json() for x in redeemed]
+
+    # Progress target (simple milestone logic to match your sketch)
+    # You can swap this later for "next badge" logic if you want.
+    milestones = [50, 100, 150, 200, 300, 500]
+    next_target = next((m for m in milestones if m > user.current_balance), None)
+    pct = 0
+    if next_target:
+        pct = int(min(100, (user.current_balance / next_target) * 100))
+
+    return render_template(
+        'student_rewards.html',
+        user=user,
+        balance=user.current_balance,
+        rewards=rewards,
+        redeemed=redeemed_json,
+        next_target=next_target,
+        pct=pct
+    )
+
+
+@reward_views.route('/student/rewards/<int:reward_id>/redeem', methods=['POST'])
+@jwt_required()
+def student_redeem_reward_action(reward_id):
+    """
+    Immediate redemption:
+    - deduct points
+    - create RedeemedReward
+    - redirect back with a flash message
+    """
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    if not user or user.role != 'student':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('auth_views.login_page'))
+
+    res = redeem_reward(user.id, reward_id)
+    if res is None:
+        flash('Reward not found', 'error')
+        return redirect(url_for('reward_views.student_rewards_page'))
+    if res is False:
+        flash('Not enough points to redeem this reward.', 'error')
+        return redirect(url_for('reward_views.student_rewards_page'))
+
+    flash('Reward redeemed successfully!', 'success')
+    return redirect(url_for('reward_views.student_rewards_page'))

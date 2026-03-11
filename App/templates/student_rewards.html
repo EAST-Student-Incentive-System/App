@@ -1,0 +1,275 @@
+{% extends "layout.html" %}
+
+{% block title %}Rewards{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 pb-24">
+
+  <!-- Header: Rewards + Points -->
+  <div class="text-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Rewards</h1>
+    <div class="mt-2">
+      <div class="text-6xl font-extrabold leading-none text-gray-900">{{ balance }}</div>
+      <div class="text-sm text-gray-500 -mt-1">points</div>
+    </div>
+  </div>
+
+  <!-- Progress to next badge/target -->
+  <div class="card bg-base-100 shadow-md p-5 mb-6">
+    <div class="flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-gray-800">Progress</p>
+        <p class="text-xs text-gray-500">
+          {% if next_target %}
+            Next milestone: <span class="font-medium">{{ next_target }} points</span>
+          {% else %}
+            Keep earning points!
+          {% endif %}
+        </p>
+      </div>
+
+      {% if next_target %}
+      <div class="text-right shrink-0">
+        <div class="badge badge-outline">{{ balance }} / {{ next_target }}</div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if next_target %}
+      <div class="mt-4">
+        <progress class="progress progress-accent w-full" value="{{ pct }}" max="100"></progress>
+        <div class="mt-1 text-xs text-gray-500 text-right">{{ pct }}%</div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Search + Filter -->
+  <div class="flex flex-wrap items-center gap-3 mb-5">
+    <div class="form-control flex-1 min-w-[220px]">
+      <div class="input-group w-full">
+        <input id="reward-search"
+               type="text"
+               placeholder="Search..."
+               class="input input-bordered w-full"
+               oninput="filterRewards()" />
+        <button class="btn btn-square btn-accent" type="button" title="Search">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               class="h-5 w-5"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="dropdown dropdown-end">
+      <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
+        <span id="filter-label">All</span>
+      </label>
+      <ul tabindex="0"
+          class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 z-50">
+        <li><a class="filter-option selected" data-filter="all"
+               onclick="setFilter('all','All')">All</a></li>
+        <li><a class="filter-option" data-filter="eligible"
+               onclick="setFilter('eligible','Eligible')">Eligible</a></li>
+        <li><a class="filter-option" data-filter="lowest"
+               onclick="setFilter('lowest','Lowest points')">Lowest points</a></li>
+        <li><a class="filter-option" data-filter="highest"
+               onclick="setFilter('highest','Highest points')">Highest points</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Rewards Grid -->
+  <div id="rewards-container"
+       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+    {% for r in rewards %}
+    <div class="card bg-base-100 shadow-md p-4 reward-card"
+         data-name="{{ r.name|lower }}"
+         data-points="{{ r.pointCost }}"
+         data-eligible="{{ 'true' if r.redeemable else 'false' }}">
+
+      {% if r.image %}
+        <img src="{{ url_for('static', filename='uploads/' ~ r.image) }}"
+             alt="{{ r.name }}"
+             class="object-cover rounded-lg max-h-[140px] w-full"
+             onerror="this.replaceWith(document.createTextNode('🎁'))">
+      {% else %}
+        <div class="flex items-center justify-center h-[140px] bg-base-200 rounded-lg text-4xl">
+          🎁
+        </div>
+      {% endif %}
+
+      <div class="mt-3 space-y-1">
+        <p class="text-sm text-gray-500">Reward</p>
+        <h2 class="text-lg font-bold text-gray-800 leading-tight">{{ r.name }}</h2>
+        {% if r.description %}
+          <p class="text-sm text-gray-600">{{ r.description }}</p>
+        {% endif %}
+      </div>
+
+      <div class="mt-3 flex items-center justify-between">
+        <div class="badge badge-outline">
+          {{ r.pointCost }} points
+        </div>
+
+        {% if r.redeemable %}
+          <span class="badge badge-success">Eligible</span>
+        {% else %}
+          <span class="badge badge-ghost">Not enough points</span>
+        {% endif %}
+      </div>
+
+      <div class="pt-3 mt-3 border-t">
+        {% if r.redeemable %}
+          <!-- Redeem button opens modal -->
+          <label for="redeem-modal-{{ r.id }}" class="btn btn-sm btn-accent w-full">
+            Redeem
+          </label>
+        {% else %}
+          <button class="btn btn-sm btn-disabled w-full" disabled>
+            Redeem
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if r.redeemable %}
+      <!-- Redeem confirm modal -->
+      <input type="checkbox" id="redeem-modal-{{ r.id }}" class="modal-toggle" />
+      <div class="modal">
+        <div class="modal-box">
+          <h3 class="font-bold text-lg">Redeem "{{ r.name }}"?</h3>
+          <p class="py-3 text-sm text-gray-600">
+            This will immediately deduct <span class="font-semibold">{{ r.pointCost }}</span> points from your balance.
+          </p>
+
+          <div class="flex items-center justify-between">
+            <div class="text-sm">
+              <div class="text-gray-500">Current balance</div>
+              <div class="font-bold">{{ balance }} points</div>
+            </div>
+            <div class="text-sm text-right">
+              <div class="text-gray-500">After redeem</div>
+              <div class="font-bold">{{ balance - r.pointCost }} points</div>
+            </div>
+          </div>
+
+          <div class="modal-action">
+            <label for="redeem-modal-{{ r.id }}" class="btn btn-ghost">Cancel</label>
+
+            <form method="POST" action="{{ url_for('reward_views.student_redeem_reward_action', reward_id=r.id) }}">
+              <button type="submit" class="btn btn-accent">Confirm</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+
+  <!-- Empty state -->
+  <div id="no-results" class="hidden text-center py-16">
+    <p class="text-gray-500 font-medium">No rewards found</p>
+    <p class="text-gray-400 text-sm mt-1">Try a different search or filter.</p>
+  </div>
+
+  <!-- Redeemed history (optional but useful) -->
+  {% if redeemed is defined %}
+  <div class="mt-10">
+    <h2 class="text-xl font-bold text-gray-800 mb-3">Redeemed</h2>
+
+    {% if redeemed|length == 0 %}
+      <div class="card bg-base-100 shadow-md p-5 text-sm text-gray-600">
+        You haven’t redeemed any rewards yet.
+      </div>
+    {% else %}
+      <div class="overflow-x-auto bg-base-100 rounded-lg shadow-md">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Reward</th>
+              <th>Cost</th>
+              <th>Redeemed at</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in redeemed %}
+              <tr>
+                <td class="font-medium">{{ item['rewardName'] }}</td>
+                <td>{{ item['pointCost'] }}</td>
+                <td class="text-sm text-gray-500">{{ item['redeemedAt'] }}</td>
+
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let activeFilter = 'all';
+
+  function setFilter(filter, label) {
+    activeFilter = filter;
+    document.getElementById('filter-label').textContent = label;
+
+    document.querySelectorAll('.filter-option').forEach(opt => {
+      opt.classList.toggle('selected', opt.dataset.filter === filter);
+    });
+
+    filterRewards();
+  }
+
+  function filterRewards() {
+    const query = document.getElementById('reward-search').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.reward-card');
+    let visible = 0;
+
+    // If sorting is selected, we still apply search + eligible first, then sort by points.
+    const filtered = [];
+
+    cards.forEach(card => {
+      const name = card.dataset.name || "";
+      const points = parseInt(card.dataset.points || "0", 10);
+      const eligible = card.dataset.eligible === "true";
+
+      const matchesSearch = !query || name.includes(query);
+      const matchesEligible = (activeFilter !== "eligible") || eligible;
+
+      // For lowest/highest, we'll include all (after search/eligible), then sort.
+      const matchesFilter =
+        activeFilter === "all" ||
+        activeFilter === "eligible" ||
+        activeFilter === "lowest" ||
+        activeFilter === "highest";
+
+      const ok = matchesSearch && matchesEligible && matchesFilter;
+      card.style.display = ok ? "" : "none";
+      if (ok) {
+        filtered.push({ card, points });
+        visible++;
+      }
+    });
+
+    // Sorting
+    if (activeFilter === "lowest" || activeFilter === "highest") {
+      filtered.sort((a, b) => (activeFilter === "lowest" ? a.points - b.points : b.points - a.points));
+      const container = document.getElementById("rewards-container");
+      filtered.forEach(item => container.appendChild(item.card));
+    }
+
+    document.getElementById('no-results').classList.toggle('hidden', visible > 0);
+  }
+</script>
+{% endblock %}
