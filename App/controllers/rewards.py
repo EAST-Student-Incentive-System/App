@@ -106,11 +106,13 @@ def viewReward(student_id):
     rewards = get_active_rewards()
     result = []
     for r in rewards:
-        data = r.get_json()
-        data['redeemable'] = r.isRedeemable(student.current_balance)
-        result.append(data)
+        #data = r.get_json()
+        #data['redeemable'] = r.isRedeemable(student.current_balance)
+        r.redeemable = r.isRedeemable(student.current_balance)
+        result.append(r)
     # sort by point cost ascending
-    result.sort(key=lambda x: x.get('pointCost', 0))
+    #result.sort(key=lambda x: x.get('pointCost', 0))
+    result.sort(key=lambda r: r.pointCost or 0)
     return result
 
 

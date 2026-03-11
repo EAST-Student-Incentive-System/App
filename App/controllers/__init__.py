@@ -1,3 +1,5 @@
+from flask import app
+
 from .user import *
 from .auth import *
 from .initialize import *
