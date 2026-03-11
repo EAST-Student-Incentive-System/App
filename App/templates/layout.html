@@ -67,7 +67,10 @@
   </a>
   <a href="{{ url_for('user_views.student_history_page', student_id=user.id) }}" class="btm-nav-item">
     History
-  </a>
+  <a href="{{ url_for('reward_student_views.student_rewards_page') }}" class="btm-nav-item">
+    Rewards
+</a>
+
 </div>
 {% endif %}
 
