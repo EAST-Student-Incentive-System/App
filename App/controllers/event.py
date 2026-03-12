@@ -94,18 +94,23 @@ def join_event(student_id, event_id):
 
 def log_attendance(student_id, event_id):
     student = db.session.get(Student, student_id)
+    print("STUDENT:", student)
     event = db.session.get(Event, event_id)
+    print("EVENT:", event)
     if not student or not event:
         return None
     if student not in event.students:
         return False
     if datetime.now() < event.start:
+        print("EVENT NOT STARTED")
         return False
     existing = Attendance.query.filter_by(student_id=student_id, event_id=event_id).first()
     if existing:
+        print("ATTENDANCE ALREADY LOGGED")
         return False
     student.add_points(event.calculate_point_value())
     attendance = Attendance(student_id=student_id, event_id=event_id)
+    print("NEW ATTENDANCE:", attendance)
     db.session.add(attendance)
     db.session.commit()
     return attendance.get_json()

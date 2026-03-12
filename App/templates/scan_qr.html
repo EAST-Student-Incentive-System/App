@@ -1,42 +1,78 @@
 {% extends "layout.html" %}
 
+{% block title %}Scan QR{% endblock %}
+
 {% block content %}
-<div class="flex flex-col items-center justify-center min-h-screen">
-  <h1 class="text-2xl font-bold mb-4">Scan Event QR</h1>
+<div class="flex flex-col items-center justify-center min-h-screen px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Scan Attendance QR</h1>
 
-  <!-- Responsive camera feed -->
-  <div id="reader"
-class="w-full max-w-sm h-[70vh] border rounded-lg shadow-md mx-auto"></div>
+  <!-- Scan button -->
+  <button onclick="startScanner()" class="btn btn-accent mb-4">
+    📷 Start Scanner
+  </button>
 
-  <p class="text-gray-500 mt-3">Point your camera at the QR code</p>
+  <!-- Video preview -->
+  <video id="qr-video" class="rounded-lg shadow-md w-full max-w-md" autoplay></video>
+
+  <!-- Result -->
+  <p id="qr-result" class="mt-4 text-center text-sm text-gray-600"></p>
 </div>
-{% endblock %}
 
-{% block scripts %}
-<!-- html5-qrcode library -->
-<script src="https://unpkg.com/html5-qrcode"></script>
+<!-- Include jsQR library -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+
 <script>
-  function onScanSuccess(decodedText, decodedResult) {
-    console.log(`QR matched = ${decodedText}`);
-    // Example QR format: event:123|t:456
-    const parts = decodedText.split("|");
-    const eventPart = parts[0].split(":")[1];
-    const tokenPart = parts[1].split(":")[1];
+let scanning = false;
 
-    // Redirect to log attendance route
-    window.location.href = `/attendance/log?event_id=${eventPart}&token=${tokenPart}`;
+async function startScanner() {
+  const video = document.getElementById("qr-video");
+  const resultEl = document.getElementById("qr-result");
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }
+    });
+
+    video.srcObject = stream;
+    video.setAttribute("playsinline", true); // iOS Safari fix
+    await video.play();
+
+    scanning = true;
+    resultEl.textContent = "Camera started. Point at QR code.";
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    function tick() {
+      if (!scanning) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+        if (code) {
+          scanning = false;
+          resultEl.textContent = "QR Code detected: " + code.data;
+
+          // QR must encode event_id
+          const eventId = code.data;
+
+          // Redirect directly to your HTML route
+          const attendanceUrl = "{{ url_for('event_views.log_attendance_qr') }}?event_id=" + eventId;
+          window.location.href = attendanceUrl;
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    requestAnimationFrame(tick);
+
+  } catch (err) {
+    resultEl.textContent = "Camera access denied or not supported: " + err;
   }
-
-  function onScanFailure(error) {
-    // Ignore scan errors, keep scanning
-    console.warn(`QR error = ${error}`);
-  }
-
-  // Large camera feed, but keep detection box smaller
-  let html5QrcodeScanner = new Html5QrcodeScanner(
-    "reader",
-    { fps: 10, qrbox: { width: 250, height: 250 } }
-  );
-  html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+}
 </script>
 {% endblock %}
