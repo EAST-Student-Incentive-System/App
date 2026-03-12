@@ -199,6 +199,7 @@ def get_staff_events_route():
     return render_template("staff_events.html", events=events, staff=user, user=user)
 
 @event_views.route("/events/<int:event_id>/filter_participants", methods=["POST"])
+@jwt_required()
 def filter_participants(event_id):
     print("FILTER PARTICIPANTS ROUTE HIT")
     participant_count = get_participant_count(event_id)
@@ -318,6 +319,7 @@ def join_event_action(event_id):
 @event_views.route("/events/<int:event_id>/attendance/<int:student_id>", methods=["POST"])
 @jwt_required()
 def log_attendance_route(event_id, student_id):
+    print("LOG ATTENDANCE ROUTE HIT for event_id:", event_id, "student_id:", student_id)
     attendance = event.log_attendance(student_id, event_id)
     if attendance is None:
         return jsonify({"error": "Invalid student or event"}), 404
@@ -328,12 +330,28 @@ def log_attendance_route(event_id, student_id):
 @event_views.route("/attendance/log")
 @jwt_required()
 def log_attendance_qr():
-    event_id = request.args.get("event_id", type=int)
+    raw_event_id = request.args.get("event_id")
+
+    # Handle QR codes like "event:12|t:59108539"
+    event_id = None
+    if raw_event_id:
+        if raw_event_id.startswith("event:"):
+            try:
+                event_id = int(raw_event_id.split("|")[0].split(":")[1])
+            except ValueError:
+                event_id = None
+        else:
+            try:
+                event_id = int(raw_event_id)
+            except ValueError:
+                event_id = None
+
     user_id = get_jwt_identity()
     user = Student.query.get(user_id)
     if not user or user.role != 'student':
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))
+
     student_id = user.id
     attendance = log_attendance(student_id, event_id)
 

@@ -8,7 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
   <style>
     body {
-  background-image: url("/static/bg2.jpg");
+  background-image: url("/static/bg1.webp");
   background-size: 100% 100%;   /* stretch image to fill both width and height */
   background-position: top left; /* anchor top-left corner */
   background-repeat: no-repeat;  /* don’t tile */
@@ -17,27 +17,24 @@
             /* ensures body is at least full viewport height */
   </style>
 </head>
-<body data-theme="light" class="bg-base-200 text-neutral" >
+<body data-theme="light" class="bg-base-200 text-neutral flex flex-col min-h-screen" >
 
   <!-- Staff Navbar -->
  {% if user is defined and user.role == "staff" %}
-<div class="navbar px-6" style="background-color:#A020F0; color:white;">
+<div class="navbar px-6" style="background-color:#660c9e; color:white;">
   <div class="flex-1">
-    <a href="{{ url_for('event_views.get_staff_events_route')}}" 
-       class="btn btn-ghost normal-case text-white"> ← </a>
+    <a href="{{ url_for('event_views.get_staff_events_route')}}" ></a>
     <span class="text-xl font-bold">Merit</span>
   </div>
   <div class="flex-none">
     <ul class="menu menu-horizontal px-1">
-      <li><a href="{{ url_for('event_views.get_staff_events_route') }}">Events</a></li>
-      <li><a href="{{ url_for('reward_views.list_rewards_page') }}">Rewards</a></li>
       <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
     </ul>
   </div>
 </div>
   {% elif user is defined and user.role == "student" %}
   <!-- Student Navbar (top) -->
-  <div class="navbar px-6" style="background-color:#A020F0; color:white;">
+  <div class="navbar px-6" style="background-color:#660c9e; color:white;">
     <div class="flex-1">
       <span class="text-xl font-bold">Merit</span>
     </div>
@@ -62,26 +59,77 @@
   <div class="max-w-5xl mx-auto p-6">
     {% block content %}{% endblock %}
   </div>
+{% if user is defined and user.role == "staff" %}
+<div class="drawer">
+  <!-- Toggle -->
+  <input id="staff-drawer" type="checkbox" class="drawer-toggle" />
+
+  <!-- Page content -->
+  <div class="drawer-content">
+    <!-- Drawer toggle button -->
+    <label for="staff-drawer" class="btn btn-accent fixed bottom-4 left-4">
+      ☰
+    </label>
+    <!-- Your main page content goes here -->
+  </div>
+
+  <!-- Drawer side -->
+  <div class="drawer-side mt-[64px]">
+    <label for="staff-drawer" class="drawer-overlay"></label>
+
+    <!-- Full-height flex column -->
+    <div class="flex flex-col h-screen" style="background-color:#ca8bf1; color:white;">
+      
+      <!-- Top: Back button -->
+      <div class="p-4 border-b border-white/30">
+        <label for="staff-drawer" class="btn btn-sm btn-ghost text-white">← Back</label>
+      </div>
+
+      <!-- Middle: Menu items -->
+      <ul class="menu flex-1 p-4">
+        <li><a href="{{ url_for('event_views.get_staff_events_route') }}">Events</a></li>
+        <li><a href="{{ url_for('reward_views.list_rewards_page') }}">Rewards</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endif %}
 
   <!-- Student Bottom Nav -->
   {% if user is defined and user.role == "student" %}
-<div class="btm-nav" style="background-color:#db9d20; color:white;">
-  <a href="{{ url_for('event_views.get_student_events_route') }}" class="btm-nav-item">
-    Events
-  </a>
-  <a href="{{ url_for('progress_views.view_leaderboard_route') }}" class="btm-nav-item">
-    Leaderboard
-  </a>
-  <a href="{{ url_for('event_views.scan_qr_page') }}" class="btm-nav-item">
-    Scan QR
-  </a>
-  <a href="{{ url_for('user_views.student_history_page', student_id=user.id) }}" class="btm-nav-item">
-    History
-  <a href="{{ url_for('reward_student_views.student_rewards_page') }}" class="btm-nav-item">
-    Rewards
-</a>
+<div class="drawer">
+  <input id="student-drawer" type="checkbox" class="drawer-toggle" />
+  <div class="drawer-content">
+    <label for="student-drawer" class="btn btn-accent fixed bottom-4 left-4">
+      ☰
+    </label>
+  </div>
+<div class="drawer-side mt-[64px]">
+  <label for="student-drawer" class="drawer-overlay"></label>
 
+  <!-- Full-height flex column -->
+  <div class="flex flex-col h-screen" style="background-color:#ca8bf1; color:white;">
+    
+    <!-- Top: Back button -->
+    <div class="p-4 border-b border-white/30">
+      <label for="student-drawer" class="btn btn-sm btn-ghost text-white">← Back</label>
+    </div>
+
+    <!-- Middle: Menu items -->
+    <ul class="menu flex-1 p-4">
+      <li><a href="{{ url_for('event_views.get_student_events_route') }}">Events</a></li>
+      <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}">Leaderboard</a></li>
+      <li><a href="{{ url_for('event_views.scan_qr_page') }}">Scan QR</a></li>
+      <li><a href="{{ url_for('user_views.student_history_page', student_id=user.id) }}">History</a></li>
+      <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}">Rewards</a></li>
+    </ul>
+  </div>
 </div>
+
+ 
+  </div>
+</div>
+
 {% endif %}
 
   <!-- FontAwesome for icons -->
