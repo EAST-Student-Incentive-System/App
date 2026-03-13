@@ -7,6 +7,7 @@ import qrcode
 import io
 import base64
 import time
+from geopy.distance import geodesic
 
 
 
@@ -92,7 +93,7 @@ def join_event(student_id, event_id):
     db.session.commit()
     return True  # needs to also update the student_event association table with the join timestampSS
 
-def log_attendance(student_id, event_id):
+def log_attendance(student_id, event_id, student_lat=None, student_lon=None):
     student = db.session.get(Student, student_id)
     print("STUDENT:", student)
     event = db.session.get(Event, event_id)
@@ -108,6 +109,16 @@ def log_attendance(student_id, event_id):
     if existing:
         print("ATTENDANCE ALREADY LOGGED")
         return False
+    if student_lat and student_lon:
+        print("STUDENT LOCATION:", student_lat, student_lon)
+        student.temporary_gps_holder = f"{student_lat},{student_lon}"
+    if student_lat and student_lon and event.latitude and event.longitude:
+        student_coords = (student_lat, student_lon)
+        event_coords = (event.latitude, event.longitude)
+        distance = geodesic(student_coords, event_coords).meters
+        if distance > event.radius:
+            db.session.commit()
+            return False
     student.add_points(event.calculate_point_value())
     attendance = Attendance(student_id=student_id, event_id=event_id)
     print("NEW ATTENDANCE:", attendance)
@@ -151,8 +162,4 @@ def generate_qr(event_id):
     qr_data = base64.b64encode(buffer.getvalue()).decode()
 
     return qr_data
-
-
-
-#needs a scan attendance function that takes the QR data, extracts the event ID, and logs attendance for the student if valid
 
