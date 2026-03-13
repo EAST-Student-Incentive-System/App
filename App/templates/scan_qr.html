@@ -58,11 +58,13 @@ async function startScanner() {
           resultEl.textContent = "QR Code detected: " + code.data;
 
           // QR must encode event_id
-          const eventId = code.data;
+          const raw = code.data;
+          const parts = raw.split("|");
+          const eventPart = parts[0]; // "event:11"
+          const tokenPart = parts[1]; // "t:59112531"
 
-          // Redirect directly to your HTML route
-          const attendanceUrl = "{{ url_for('event_views.log_attendance_qr') }}?event_id=" + eventId;
-          window.location.href = attendanceUrl;
+  // Call GPS-aware redirect
+  submitAttendance(eventPart, tokenPart);
         }
       }
       requestAnimationFrame(tick);
@@ -73,6 +75,19 @@ async function startScanner() {
   } catch (err) {
     resultEl.textContent = "Camera access denied or not supported: " + err;
   }
+}
+
+function submitAttendance(eventId, token) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+
+        // Build the QR URL with GPS included
+        const url = `/attendance/log?event_id=${eventId}&lat=${lat}&lon=${lon}&t=${token}`;
+        window.location.href = url;
+    }, function(error) {
+        alert("Unable to get location: " + error.message);
+    });
 }
 </script>
 {% endblock %}

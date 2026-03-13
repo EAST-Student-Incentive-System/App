@@ -17,6 +17,12 @@ class Student(User):
     redeemed_rewards = db.relationship('Reward', secondary=RedeemedReward.__table__, back_populates='students')
     student_badges = db.relationship('StudentBadge', back_populates='student', cascade="all, delete-orphan")
     events = db.relationship("Event", secondary=student_event, back_populates="students")
+    appeal_desc = db.Column(db.Text, nullable=True)
+    appeal_image = db.Column(db.String(256), nullable=True)
+    timeout_count = db.Column(db.Integer, default=0)
+    temporary_gps_holder = db.Column(db.String(64), nullable = True)   # store last GPS attempt
+    temporary_device_holder = db.Column(db.String(256), nullable = True)  # store last device attempt
+    isFlagged = db.Column(db.Boolean, default=False)
 
     __mapper_args__ = {
         'polymorphic_identity': 'student',
