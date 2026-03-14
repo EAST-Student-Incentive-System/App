@@ -137,6 +137,17 @@ def get_staff_command(staff_id):
     else:
         print(f"Staff with ID {staff_id} not found")
 
+@staff_cli.command("unflag", help="Unflag a student")
+@click.argument("student_id", type=int)
+def unflag_student_command(student_id):
+    student = db.session.get(Student, student_id)
+    if student:
+        student.isFlagged = False
+        db.session.commit()
+        print(f'Student {student_id} unflagged.')
+    else:
+        print(f'Student with ID {student_id} not found')
+
 app.cli.add_command(staff_cli)
 
 '''
@@ -173,7 +184,7 @@ def list_student_command():
     students = db.session.scalars(db.select(Student)).all()
     if students:
         for student in students:
-            print(student)
+            print(f"<Student id={student.id}, email={student.email}, username={student.username}, role={student.role}, total_points={student.total_points}, current_balance={student.current_balance}, isFlagged={student.isFlagged}, temporary_device_holder={student.temporary_device_holder}>")
     else:
         print("No students found")
 
