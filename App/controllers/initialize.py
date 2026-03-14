@@ -47,17 +47,17 @@ def initialize():
 
     # Create rewards
     from App.controllers.rewards import create_reward, redeem_reward
-    reward_1 = create_reward('Free Coffee', 'Get a free coffee at the cafe', 10)
-    reward_2 = create_reward('Book Voucher', 'Voucher for the bookstore', 30)
-    reward_3 = create_reward('Event Swag', 'Exclusive swag from campus events', 50)
-    reward_4 = create_reward('Priority Registration', 'Get priority registration for classes', 100)
-    reward_5 = create_reward('VIP Event Access', 'Get VIP access to select campus events', 150)
-    KFC_Bucket = create_reward('KFC Bucket', 'A bucket of KFC chicken', 20)
-    Starbucks_Gift_Card = create_reward('Starbucks Gift Card', 'A $10 gift card for Starbucks', 25)
-    Movie_Tickets = create_reward('Movie Tickets', 'Two tickets to the movies', 30)
-    Massage_Coupon = create_reward('Massage Coupon', 'A coupon for a free massage at the campus wellness center', 40)
-    Dorm_Snack_Box = create_reward('Dorm Snack Box', 'A box of snacks delivered to your dorm room', 15)
-    Fake_Reward = create_reward('Fake Reward', 'This reward is for testing purposes and has no point cost', 0)
+    reward_1 = create_reward('Free Coffee', 'Get a free coffee at the cafe', 10 ,2)
+    reward_2 = create_reward('Book Voucher', 'Voucher for the bookstore', 30 ,2)
+    reward_3 = create_reward('Event Swag', 'Exclusive swag from campus events', 50 ,2)
+    reward_4 = create_reward('Priority Registration', 'Get priority registration for classes', 100 ,2)
+    reward_5 = create_reward('VIP Event Access', 'Get VIP access to select campus events', 150 ,2)
+    KFC_Bucket = create_reward('KFC Bucket', 'A bucket of KFC chicken', 20 ,2)
+    Starbucks_Gift_Card = create_reward('Starbucks Gift Card', 'A $10 gift card for Starbucks', 25 ,2)
+    Movie_Tickets = create_reward('Movie Tickets', 'Two tickets to the movies', 30 ,2)
+    Massage_Coupon = create_reward('Massage Coupon', 'A coupon for a free massage at the campus wellness center', 40 ,2)
+    Dorm_Snack_Box = create_reward('Dorm Snack Box', 'A box of snacks delivered to your dorm room', 15 ,2)
+    Fake_Reward = create_reward('Fake Reward', 'This reward is for testing purposes and has no point cost', 0 ,2)
 
     # Create events
     from App.controllers.event import create_event, join_event, log_attendance

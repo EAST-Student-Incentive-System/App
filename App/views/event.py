@@ -147,6 +147,7 @@ def update_event_route(event_id):
             
 
             image_file = request.files.get("image")
+            remove_flag = request.form.get("remove_image")
 
             if image_file and image_file.filename:
                 filename = secure_filename(image_file.filename)
@@ -156,6 +157,9 @@ def update_event_route(event_id):
                 image_file.save(filepath)
 
                 event_obj.image = filename  # replace only if new image uploaded
+            elif remove_flag:
+    # Only clear if no new file was uploaded
+                event_obj.image = None
 # else → do nothing, keep existing image
 
             print("Saved image name in DB:", event_obj.image)
@@ -167,7 +171,6 @@ def update_event_route(event_id):
             flash(f"Error updating event: {e}", 'error')
             return redirect(url_for('event_views.update_event_route', event_id=event_id))
     
-
     return render_template("edit_event.html", event=event_obj, user=user)
 
 @event_views.route("/events/<int:event_id>/delete", methods=["POST"])
@@ -228,7 +231,9 @@ def filter_participants(event_id):
         event=event,
         participant_count=participant_count,
         cutoff=cutoff,
-        user = Staff.query.get(get_jwt_identity())
+        user = Staff.query.get(get_jwt_identity()),
+        attended_count = Attendance.query.filter_by(event_id=event.id).count()
+
     )
 
 

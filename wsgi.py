@@ -124,7 +124,7 @@ def list_staff_command():
     staff_members = db.session.scalars(db.select(Staff)).all()
     if staff_members:
         for staff in staff_members:
-            print(staff)
+            print(f"<Staff id={staff.id}, email={staff.email}, role={staff.role}>")
     else:
         print("No staff members found")
 
