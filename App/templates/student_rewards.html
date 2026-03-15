@@ -52,7 +52,7 @@
                placeholder="Search..."
                class="input input-bordered w-full"
                oninput="filterRewards()" />
-        <button class="btn btn-square btn-accent" type="button" title="Search">
+     <!--   <button class="btn btn-square btn-accent" type="button" title="Search">
           <svg xmlns="http://www.w3.org/2000/svg"
                class="h-5 w-5"
                fill="none"
@@ -61,13 +61,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
           </svg>
-        </button>
+        </button> needs fixing-->
       </div>
     </div>
 
     <div class="dropdown dropdown-end">
       <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
-        <span id="filter-label">All</span>
+        <span id="filter-label" class="font-bold">All</span>
       </label>
       <ul tabindex="0"
           class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 z-50">
@@ -182,6 +182,33 @@
   {% if redeemed is defined %}
   <div class="mt-10">
     <h2 class="text-xl font-bold text-gray-800 mb-3">Redeemed</h2>
+    <!-- Filter + Sort bar -->
+<div class="flex flex-wrap items-center gap-6 mb-4">
+  <!-- Dropdown filter -->
+  <div class="dropdown dropdown-end relative z-50">
+    <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
+      <span id="filter-label">All</span>
+    </label>
+    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48">
+      <li><a class="filter-option selected" data-filter="all" onclick="setRedeemedFilter('all','All')">All</a></li>
+      <li><a class="filter-option" data-filter="collected" onclick="setRedeemedFilter('collected','Collected')">Collected</a></li>
+      <li><a class="filter-option" data-filter="uncollected" onclick="setRedeemedFilter('uncollected','Uncollected')">Uncollected</a></li>
+    </ul>
+  </div>
+
+  <!-- Radio buttons for sort -->
+  <div class="flex items-center gap-4">
+    <label class="flex items-center gap-1 cursor-pointer">
+      <input type="radio" name="redeemed-sort" value="newest" class="radio radio-sm" checked onclick="setRedeemedSort('newest')">
+      <span class="text-sm">Newest</span>
+    </label>
+    <label class="flex items-center gap-1 cursor-pointer">
+      <input type="radio" name="redeemed-sort" value="oldest" class="radio radio-sm" onclick="setRedeemedSort('oldest')">
+      <span class="text-sm">Oldest</span>
+    </label>
+  </div>
+</div>
+
 
     {% if redeemed|length == 0 %}
       <div class="card bg-base-100 shadow-md p-5 text-sm text-gray-600">
@@ -199,7 +226,10 @@
           </thead>
           <tbody>
             {% for item in redeemed %}
-              <tr>
+              <tr class="redeemed-row"
+            data-valid="{{ 'true' if item.isValid else 'false' }}"
+            data-date="{{ item.redeemedAt }}">
+          <td class="font-medium">
                 <td class="font-medium">{{ item['rewardName'] }}</td>
                 <td>{{ item['pointCost'] }}</td>
                 <td class="text-sm text-gray-500">{{ item['redeemedAt'] }}</td>
@@ -282,6 +312,44 @@
     }
 
     document.getElementById('no-results').classList.toggle('hidden', visible > 0);
+  }
+  
+let redeemedFilter = 'all';
+  let redeemedSort = 'newest';
+
+  function setRedeemedFilter(filter, label) {
+    redeemedFilter = filter;
+    document.getElementById('filter-label').textContent = label;
+    filterRedeemedRewards();
+  }
+
+  function setRedeemedSort(order) {
+    redeemedSort = order;
+    filterRedeemedRewards();
+  }
+
+  function filterRedeemedRewards() {
+    const rows = Array.from(document.querySelectorAll('.redeemed-row'));
+    const tbody = document.querySelector('table tbody');
+
+    let filtered = rows.filter(row => {
+      const valid = row.dataset.valid === 'true';
+      return redeemedFilter === 'all' ||
+             (redeemedFilter === 'collected' && !valid) ||
+             (redeemedFilter === 'uncollected' && valid);
+    });
+
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.dataset.date);
+      const dateB = new Date(b.dataset.date);
+      return redeemedSort === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    rows.forEach(row => row.style.display = 'none');
+    filtered.forEach(row => {
+      row.style.display = '';
+      tbody.appendChild(row);
+    });
   }
 </script>
 {% endblock %}
