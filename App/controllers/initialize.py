@@ -105,7 +105,7 @@ def initialize():
                 print(f'Failed to create event: {event}')
 
         # Redeem ALL rewards for Bob
-        for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box, Fake_Reward]:
+        for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box]:
             if reward:
                 redeem_reward(bob_obj.id, reward.id)
                 print(f'Bob redeemed reward: {reward.name}')
