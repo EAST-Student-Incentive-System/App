@@ -57,7 +57,7 @@ def initialize():
     Movie_Tickets = create_reward('Movie Tickets', 'Two tickets to the movies', 30 ,2)
     Massage_Coupon = create_reward('Massage Coupon', 'A coupon for a free massage at the campus wellness center', 40 ,2)
     Dorm_Snack_Box = create_reward('Dorm Snack Box', 'A box of snacks delivered to your dorm room', 15 ,2)
-    Fake_Reward = create_reward('Fake Reward', 'This reward is for testing purposes and has no point cost', 0 ,2)
+    #Fake_Reward = create_reward('Fake Reward', 'This reward is for testing purposes and has no point cost', 0 ,2)
 
     # Create events
     from App.controllers.event import create_event, join_event, log_attendance
