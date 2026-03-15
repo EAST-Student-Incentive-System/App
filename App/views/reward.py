@@ -1,4 +1,6 @@
 from flask import Blueprint, jsonify, request
+from datetime import datetime, timedelta
+from App.models import RedeemedReward
 
 from App.controllers.rewards import (
     create_reward, get_reward, get_all_rewards_json, get_all_rewards,
@@ -121,7 +123,7 @@ def create_reward_page():
         image_file.save(filepath)
 
     # Call your controller function with image
-    create_reward(name, description, point_cost, active, image=filename)
+    create_reward(name, description, point_cost, user_id, active, image=filename,)
     flash('Reward created successfully!', 'success')
     return redirect(url_for('reward_views.list_rewards_page'))
 
@@ -164,6 +166,9 @@ def update_reward_page(reward_id):
             reward_obj.pointCost = int(point_cost)
             reward_obj.active = active
 
+
+            remove_flag = request.form.get("remove_image")
+
             # Only update image if a new file is uploaded
             if image_file and image_file.filename:
                 filename = secure_filename(image_file.filename)
@@ -172,6 +177,9 @@ def update_reward_page(reward_id):
                 filepath = os.path.join(upload_folder, filename)
                 image_file.save(filepath)
                 reward_obj.image = filename
+            elif remove_flag:
+    # Only clear if no new file was uploaded
+                reward_obj.image = None
 
             db.session.commit()
             flash("Reward updated successfully!", "success")
@@ -183,7 +191,23 @@ def update_reward_page(reward_id):
 
     # GET request → render edit form
     print("Reached GET for update_reward_page with reward:")
-    return render_template("edit_reward.html", reward=reward_obj, user=user)
+    # All-time count
+    all_time_count = RedeemedReward.query.filter_by(reward_id=reward_obj.id).count()
+
+# Past week count
+    one_week_ago = datetime.utcnow() - timedelta(days=7)
+    weekly_count = RedeemedReward.query.filter(
+        RedeemedReward.reward_id == reward_obj.id,
+        RedeemedReward.redeemed_at >= one_week_ago
+    ).count()
+
+    # Past month count
+    one_month_ago = datetime.utcnow() - timedelta(days=30)
+    monthly_count = RedeemedReward.query.filter(
+        RedeemedReward.reward_id == reward_obj.id,
+        RedeemedReward.redeemed_at >= one_month_ago
+    ).count()
+    return render_template("edit_reward.html", reward=reward_obj, user=user, all_time_count=all_time_count, weekly_count=weekly_count, monthly_count=monthly_count)
 
  
 
@@ -226,7 +250,7 @@ def list_rewards_page():
     if not user or user.role != 'staff':
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))
-    rewards = get_all_rewards()
+    rewards=Reward.query.filter_by(created_by=user.id).all()
     return render_template('staff_reward.html', rewards=rewards or [], user=user)
 
 
@@ -321,7 +345,7 @@ def student_rewards_page():
         rewards=rewards,
         redeemed=redeemed_json,
         next_target=next_target,
-        pct=pct
+        pct=pct  
     )
 
 

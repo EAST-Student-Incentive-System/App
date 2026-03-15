@@ -8,8 +8,8 @@ reward = Blueprint("reward", __name__)
 # Reward CRUD
 
 
-def create_reward(name, description, point_cost, active=True, image=None):
-    reward = Reward(name=name, description=description, pointCost=point_cost, active=active, image=image)
+def create_reward(name, description, point_cost, created_by, active=True, image=None):
+    reward = Reward(name=name, description=description, pointCost=point_cost, active=active, image=image, created_by=created_by)
     db.session.add(reward)
     db.session.commit()
     return reward

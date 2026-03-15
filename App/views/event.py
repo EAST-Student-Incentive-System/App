@@ -21,6 +21,7 @@ from App.controllers.event import generate_qr
 from os import path, makedirs
 import os
 import secrets
+from geopy.distance import geodesic
 
 event_views = Blueprint("event_views", __name__)
 
@@ -146,6 +147,7 @@ def update_event_route(event_id):
             
 
             image_file = request.files.get("image")
+            remove_flag = request.form.get("remove_image")
 
             if image_file and image_file.filename:
                 filename = secure_filename(image_file.filename)
@@ -155,6 +157,9 @@ def update_event_route(event_id):
                 image_file.save(filepath)
 
                 event_obj.image = filename  # replace only if new image uploaded
+            elif remove_flag:
+    # Only clear if no new file was uploaded
+                event_obj.image = None
 # else → do nothing, keep existing image
 
             print("Saved image name in DB:", event_obj.image)
@@ -166,7 +171,6 @@ def update_event_route(event_id):
             flash(f"Error updating event: {e}", 'error')
             return redirect(url_for('event_views.update_event_route', event_id=event_id))
     
-
     return render_template("edit_event.html", event=event_obj, user=user)
 
 @event_views.route("/events/<int:event_id>/delete", methods=["POST"])
@@ -227,7 +231,9 @@ def filter_participants(event_id):
         event=event,
         participant_count=participant_count,
         cutoff=cutoff,
-        user = Staff.query.get(get_jwt_identity())
+        user = Staff.query.get(get_jwt_identity()),
+        attended_count = Attendance.query.filter_by(event_id=event.id).count()
+
     )
 
 
@@ -244,6 +250,16 @@ def event_qr_page(event_id):
 
     if not event:
         return "Event not found", 404
+    
+    lat = request.args.get("lat", type=float)
+    lon = request.args.get("lon", type=float)
+    radius = request.args.get("radius", type=int, default=200)
+
+    event.latitude = lat
+    event.longitude = lon
+    event.radius = radius
+    db.session.commit()
+    print("Updated event with GPS:", event.latitude, event.longitude, "radius:", event.radius)
 
     qr = generate_qr(event_id)
 
@@ -319,7 +335,6 @@ def join_event_action(event_id):
 @event_views.route("/events/<int:event_id>/attendance/<int:student_id>", methods=["POST"])
 @jwt_required()
 def log_attendance_route(event_id, student_id):
-    print("LOG ATTENDANCE ROUTE HIT for event_id:", event_id, "student_id:", student_id)
     attendance = event.log_attendance(student_id, event_id)
     if attendance is None:
         return jsonify({"error": "Invalid student or event"}), 404
@@ -351,6 +366,35 @@ def log_attendance_qr():
     if not user or user.role != 'student':
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))
+    
+
+    # Get GPS values from query string
+    student_lat = request.args.get("lat", type=float)
+    student_lon = request.args.get("lon", type=float)
+
+    event = Event.query.get(event_id)
+    if not event:
+        flash("Event not found", "error")
+        return redirect(url_for("event_views.get_student_events_route"))
+
+    # Save attempted GPS in student record
+    if student_lat and student_lon:
+        user.temporary_gps_holder = f"{student_lat},{student_lon}"
+
+    # GPS check
+    if not student_lat or not student_lon:
+        print("No GPS data provided")
+    
+    if student_lat and student_lon and event.latitude and event.longitude:
+        print("Checking GPS for attendance...")
+        student_coords = (student_lat, student_lon)
+        event_coords = (event.latitude, event.longitude)
+        distance = geodesic(student_coords, event_coords).meters
+        print(">>> Distance from event:", distance)
+
+        if distance > event.radius:
+            flash("Wrong location — outside attendance radius", "warning")
+            return redirect(url_for("event_views.get_student_events_route"))
 
     student_id = user.id
     attendance = log_attendance(student_id, event_id)
