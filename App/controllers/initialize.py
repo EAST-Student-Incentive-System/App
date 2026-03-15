@@ -98,9 +98,9 @@ def initialize():
                 log_attendance(bob_obj.id, event.id)
                 print(f'Bob attended event: {event.id} - {event.name}')
                 # We want the times to be different for demonstration purposes, so we can show the student history page with events attended at different times. This will help demonstrate the sorting and display of events on the student history page. In production, you would typically log attendance with the actual time of attendance rather than setting it to a random time.
-                sleep_time = random.randint(1, 13)  # Random sleep time between 1 and 20 seconds
-                print(f'Sleeping for {sleep_time} seconds to create different timestamps for attendance...')
-                sleep(sleep_time)
+                #sleep_time = random.randint(1, 13)  # Random sleep time between 1 and 20 seconds
+                #print(f'Sleeping for {sleep_time} seconds to create different timestamps for attendance...')
+                #sleep(sleep_time)
             else:
                 print(f'Failed to create event: {event}')
 
@@ -109,9 +109,9 @@ def initialize():
             if reward:
                 redeem_reward(bob_obj.id, reward.id)
                 print(f'Bob redeemed reward: {reward.name}')
-                sleep_time = random.randint(1, 13)  # Random sleep time between 1 and 20 seconds
-                print(f'Sleeping for {sleep_time} seconds to create different timestamps for reward redemption...')
-                sleep(sleep_time)
+                #sleep_time = random.randint(1, 13)  # Random sleep time between 1 and 20 seconds
+                #print(f'Sleeping for {sleep_time} seconds to create different timestamps for reward redemption...')
+                #sleep(sleep_time)
             else:
                 print(f'Failed to create reward: {reward}')
         db.session.commit()

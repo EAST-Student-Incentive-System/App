@@ -9,6 +9,7 @@ class RedeemedReward(db.Model):
     redeemed_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
     reward = db.relationship('Reward', back_populates='redeemed_rewards')
+    isValid = db.Column(db.Boolean, default=True)
 
     def get_json(self):
         return {
@@ -18,7 +19,8 @@ class RedeemedReward(db.Model):
             'rewardName': self.reward.name if self.reward else None,
             'rewardDescription': self.reward.description if self.reward else None,
             'pointCost': self.reward.pointCost if self.reward else None,
-            'redeemedAt': self.redeemed_at.isoformat()
+            'redeemedAt': self.redeemed_at.isoformat(),
+            'isValid': self.isValid
         }
 
     def __repr__(self):
