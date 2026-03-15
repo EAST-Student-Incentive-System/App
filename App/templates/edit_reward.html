@@ -63,12 +63,25 @@
                class="input input-bordered" required>
       </label>
 
-      <label class="form-control flex items-start gap-3 cursor-pointer">
-        <span class="label-text font-semibold mt-1">Active</span>
-        <input type="checkbox" name="active"
-               class="toggle toggle-primary"
-               {% if reward and reward.active %}checked{% endif %}>
-      </label>
+<div class="flex items-center justify-between gap-6">
+  <!-- Active toggle on the left -->
+  <label class="form-control flex items-center gap-2 cursor-pointer">
+    <span class="label-text font-semibold">Active</span>
+    <input type="checkbox" name="active"
+           class="toggle toggle-primary"
+           {% if reward and reward.active %}checked{% endif %}>
+  </label>
+
+  <!-- Limit input on the right -->
+  <div class="form-control w-1/4 text-right">
+    <label class="label justify-end">
+      <span class="label-text">Limit (optional)</span>
+    </label>
+    <input type="number" name="limit"
+           value="{{ reward.limit or '' }}"
+           class="input input-bordered w-full">
+  </div>
+</div>
 
       <div class="flex gap-4 mt-4">
         <button type="submit" class="btn btn-primary">
@@ -79,9 +92,9 @@
   </form>
 
   <div class="mt-4 text-gray-700 space-y-1">
-  <p class="font-semibold">Redeemed (all time): {{ all_time_count }}</p>
-  <p class="font-semibold">Redeemed (past week): {{ weekly_count }}</p>
-  <p class="font-semibold">Redeemed (past month): {{ monthly_count }}</p>
+  <p class="text-sm text-gray-600 mt-2">Redeemed (all time): {{ all_time_count }}</p>
+  <p class="text-sm text-gray-600 mt-2">Redeemed (past week): {{ weekly_count }}</p>
+  <p class="text-sm text-gray-600 mt-2">Redeemed (past month): {{ monthly_count }}</p>
 </div>
 
 

@@ -103,6 +103,8 @@ def create_reward_page():
         point_cost_str = request.form.get('point_cost')
         active = True if request.form.get('active') == 'on' else False
         image_file = request.files.get('image')
+        limit_str = request.form.get('limit') if request.form.get('limit') else None
+        limit = int(limit_str) if limit_str else None
 
     if not point_cost_str:
         flash('Point cost is required', 'error')
@@ -123,7 +125,7 @@ def create_reward_page():
         image_file.save(filepath)
 
     # Call your controller function with image
-    create_reward(name, description, point_cost, user_id, active, image=filename,)
+    create_reward(name, description, point_cost, user_id, active, image=filename,limit=limit)
     flash('Reward created successfully!', 'success')
     return redirect(url_for('reward_views.list_rewards_page'))
 
@@ -153,6 +155,7 @@ def update_reward_page(reward_id):
         point_cost = request.form.get("point_cost")  # match template field name
         active = True if request.form.get("active") == "on" else False
         image_file = request.files.get("image")
+        limit_str = request.form.get("limit") if request.form.get("limit") else None
 
         if not all([name, description, point_cost]):
             print("Validation failed: Missing fields")
@@ -165,6 +168,7 @@ def update_reward_page(reward_id):
             reward_obj.description = description
             reward_obj.pointCost = int(point_cost)
             reward_obj.active = active
+            reward_obj.limit = int(limit_str) if limit_str else None
 
 
             remove_flag = request.form.get("remove_image")
