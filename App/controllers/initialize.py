@@ -81,14 +81,32 @@ def initialize():
         bob_obj.add_points(999)  # Give enough points for all badges and rewards
         db.session.commit()
 
-        # Award ALL badges to Bob
-        from App.controllers.badge import awardBadge
-        for badge in [badge_25, badge_50, badge_75, badge_100, badge_Clean_Campus, badge_Community_Service, badge_Volunteer, badge_Event_Participant, badge_Helping_Hand, badge_Leadership, badge_Savior_of_the_Planet, badge_Health_and_Wellness, badge_Knight_of_Knowledge, badge_Cultural_Explorer, badge_Mage_of_Mentorship, badge_Social_Butterfly, badge_Technology_Enthusiast, badge_Art_Aficionado, badge_Sports_Fanatic, badge_Thief_of_Time, badge_Night_Owl, badge_Enemy_of_Boredom, badge_Early_Bird, badge_Distinguished_Services, badge_Community_Champion, badge_Heroism, badge_Innovator, badge_Faker, badge_Jack_of_All_Trades]:
+
+        # Award SOME badges to Bob (so the badges page shows both unlocked + locked)
+        # NOTE: We intentionally do NOT award every badge.
+        earned_badges = [
+            badge_25,
+            badge_50,
+            badge_Knight_of_Knowledge,
+            badge_Cultural_Explorer,
+            badge_Health_and_Wellness,
+            badge_Event_Participant,
+            badge_Innovator,
+            badge_Jack_of_All_Trades,
+        ]
+
+        for badge in earned_badges:
             if badge:
-                awardTestBadge(bob_obj.id, badge.id, datetime.now()+timedelta(days=random.randint(1, 30)))  # Use the test badge awarding function to set earned_at at a random time. This will help demonstrate the student history page with badges earned at different times. Should be removed or modified for production use.
+                # Use past timestamps so "history" looks normal (not future-dated)
+                awardTestBadge(
+                    bob_obj.id,
+                    badge.id,
+                    datetime.now() - timedelta(days=random.randint(1, 30))
+                )
             else:
-                print(f'Failed to create badge: {badge}')
-        print(f'Bob has been awarded badges: {[badge.name for badge in [badge_25, badge_50, badge_75] if badge]}')
+                print(f"Failed to create badge: {badge}")
+
+        print(f"Bob has been awarded badges: {[b.name for b in earned_badges if b]}")
         
         # Join Bob to ALL events and log attendance
         print("Now attempting to join events and log attendance for Bob...")
