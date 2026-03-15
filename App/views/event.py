@@ -52,6 +52,7 @@ def create_event_route():
         location = request.form.get("location")
         image = request.files.get("image")
         active = bool(request.form.get("active"))
+        limit = request.form.get("limit", type=int) or None
 
         if not all([name, description, start_str, end_str, location, type_]):
             flash('All fields are required', 'error')
@@ -69,7 +70,8 @@ def create_event_route():
                 start=start_dt,
                 end=end_dt,
                 location=location,
-                active = active
+                active = active,
+                limit = limit 
             )
 
             # Handle image upload safely
@@ -127,6 +129,7 @@ def update_event_route(event_id):
         location = request.form.get("location")
         image_file = request.files.get("image")
         active = bool(request.form.get("active"))
+        limit = request.form.get("limit", type=int) or None
 
         if not all([name, description, start_str, end_str, location, type_]):
             flash('All fields are required', 'error')
@@ -144,6 +147,7 @@ def update_event_route(event_id):
             event_obj.location = location
             #event_obj.qr = generate_qr_code(event_obj.id)
             event_obj.active = active
+            event_obj.limit = limit
             
 
             image_file = request.files.get("image")
@@ -330,6 +334,26 @@ def join_event_action(event_id):
     else:
         flash("Already joined or invalid event.")
     return redirect(url_for("event_views.get_student_events_route"))
+
+@event_views.route("/events/<int:event_id>/leave", methods=["POST"])
+@jwt_required()
+def leave_event_action(event_id):
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+    if not user or user.role != 'student':
+        flash('Unauthorized', 'error')
+        return redirect(url_for('auth_views.login_page'))
+
+    db.session.execute(
+        student_event.delete().where(
+            (student_event.c.student_id == user.id) &
+            (student_event.c.event_id == event_id)
+        )
+    )
+    db.session.commit()
+    flash("You’ve left this event.", "success")
+    return redirect(url_for("event_views.get_student_events_route"))
+
 
 
 @event_views.route("/events/<int:event_id>/attendance/<int:student_id>", methods=["POST"])
