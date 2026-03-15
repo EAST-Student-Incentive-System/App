@@ -345,7 +345,7 @@ def student_rewards_page():
         rewards=rewards,
         redeemed=redeemed_json,
         next_target=next_target,
-        pct=pct
+        pct=pct  
     )
 
 
