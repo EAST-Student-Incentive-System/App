@@ -203,6 +203,18 @@
                 <td class="font-medium">{{ item['rewardName'] }}</td>
                 <td>{{ item['pointCost'] }}</td>
                 <td class="text-sm text-gray-500">{{ item['redeemedAt'] }}</td>
+                <td>
+                  {% if item['isValid'] %}
+                    <form method="POST" action="{{ url_for('reward_views.collect_reward_action', reward_id=item['id']) }}">
+                      <button type="submit" class="btn btn-sm btn-accent"
+                              onclick="return confirm('Are you sure you are ready to collect this reward?')">
+                        Collect
+                      </button>
+                    </form>
+                  {% else %}
+                    <span class="badge badge-ghost">Collected</span>
+                  {% endif %}
+                </td>
 
               </tr>
             {% endfor %}

@@ -374,3 +374,18 @@ def student_redeem_reward_action(reward_id):
 
     flash('Reward redeemed successfully!', 'success')
     return redirect(url_for('reward_views.student_rewards_page'))
+
+
+@reward_views.route('/student/rewards/<int:reward_id>/collect', methods=['POST'])
+@jwt_required()
+def collect_reward_action(reward_id):
+    user_id = get_jwt_identity()
+    reward = RedeemedReward.query.filter_by(id=reward_id, student_id=user_id).first()
+    if not reward or not reward.isValid:
+        flash("Reward already collected or invalid", "warning")
+        return redirect(url_for("reward_views.student_rewards_page"))
+
+    reward.isValid = False
+    db.session.commit()
+    flash("Reward collected successfully!", "success")
+    return redirect(url_for("reward_views.student_rewards_page"))
