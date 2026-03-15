@@ -14,7 +14,10 @@
         </a>
       </p>
 
-      <form method="POST" action="{{ url_for('auth_views.login_action') }}" class="space-y-4">
+      
+
+      <form id="loginForm" method="POST" action="{{ url_for('auth_views.login_action') }}" class="space-y-4">
+        <input type="hidden" id="device_id" name="device_id">
         <div>
           <label for="username" class="block font-semibold mb-1">Username</label>
           <input type="text" id="username" name="username" required class="input input-bordered w-full">
@@ -41,15 +44,26 @@
 
   <script>
     function togglePassword() {
-      const passwordInput = document.getElementById("password");
-      const toggleText = document.querySelector("span[onclick]");
-      if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        toggleText.textContent = "Hide";
+      const passwordInput = document.getElementById('password');
+      const toggleText = event.target;
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleText.textContent = 'Hide';
       } else {
-        passwordInput.type = "password";
-        toggleText.textContent = "Show";
+        passwordInput.type = 'password';
+        toggleText.textContent = 'Show';
       }
     }
+  </script>
+
+  <script type="module">
+
+import { v4 as uuidv4 } from 'https://cdn.skypack.dev/uuid';
+  let deviceId = localStorage.getItem("device_id");
+  if (!deviceId) {
+    deviceId = uuidv4();
+    localStorage.setItem("device_id", deviceId);
+  }
+  document.getElementById("device_id").value = deviceId;
   </script>
 {% endblock %}

@@ -125,10 +125,10 @@
 
         <div class="pt-2 border-t">
   <!-- Staff sees Start Attendance button -->
-  <a href="{{ url_for('event_views.event_qr_page', event_id=event.id) }}"
-     class="btn btn-sm btn-warning w-full">
-    Start Attendance
-  </a>
+    <button onclick="startAttendance({{ event.id }})" class="btn btn-sm btn-accent w-full">
+      Start Attendance
+    </button>
+
 </div>
 
       </div>
@@ -185,5 +185,20 @@
       });
       document.getElementById('no-results').classList.toggle('hidden', visible > 0);
     }
+
+  function startAttendance(eventId) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        const radius = 200; // default radius
+
+        // Redirect to the existing attendance route
+        const url = `/events/${eventId}/attendance?lat=${lat}&lon=${lon}&radius=${radius}`;
+        window.location.href = url;
+    }, function(error) {
+        alert("Unable to get location: " + error.message);
+    });
+}
+
   </script>
 {% endblock %}
