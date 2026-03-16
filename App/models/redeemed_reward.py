@@ -26,6 +26,10 @@ class RedeemedReward(db.Model):
     def __repr__(self):
         return f'<RedeemedReward Student:{self.student_id} Reward:{self.reward_id}>'
     
-    def init (self, student_id, reward_id):
+    def __init__ (self, student_id, reward_id, redeemed_at=None):
         self.student_id = student_id
         self.reward_id = reward_id
+        if redeemed_at:
+            self.redeemed_at = redeemed_at
+        else:
+            self.redeemed_at = datetime.now()
