@@ -13,14 +13,16 @@ class Reward(db.Model):
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     creator = db.relationship('User', backref=db.backref('created_rewards', lazy=True))
     image = db.Column(db.String(200), nullable=True)
+    limit = db.Column(db.Integer, nullable=True)
 
-    def __init__(self, name, description, pointCost, active=True, created_by=None, image=None):
+    def __init__(self, name, description, pointCost, active=True, created_by=None, image=None, limit=None):
         self.name = name
         self.description = description
         self.pointCost = pointCost
         self.active = active
         self.created_by = created_by
         self.image = image
+        self.limit = limit
 
     def toggle(self):
         self.active = not self.active
@@ -35,7 +37,8 @@ class Reward(db.Model):
             'pointCost': self.pointCost,
             'active': self.active,
             'createdBy': self.created_by,
-            'image': self.image
+            'image': self.image,
+            'limit': self.limit
         }
 
     def __repr__(self):

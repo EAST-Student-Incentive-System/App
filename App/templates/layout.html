@@ -24,7 +24,7 @@
 <div class="navbar px-6" style="background-color:#660c9e; color:white;">
   <div class="flex-1">
     <a href="{{ url_for('event_views.get_staff_events_route')}}" ></a>
-    <span class="text-xl font-bold">Merit</span>
+    <span class="text-xl font-bold">🏆 Merit</span>
   </div>
   <div class="flex-none">
     <ul class="menu menu-horizontal px-1">
@@ -36,7 +36,7 @@
   <!-- Student Navbar (top) -->
   <div class="navbar px-6" style="background-color:#660c9e; color:white;">
     <div class="flex-1">
-      <span class="text-xl font-bold">Merit</span>
+      <span class="text-xl font-bold">🏆 Merit</span>
     </div>
     <div class="flex-none">
       <ul class="menu menu-horizontal px-1">
@@ -48,9 +48,9 @@
 
   {% else %}
   <!-- Guest Navbar (no user yet) -->
-  <div class="navbar px-6" style="background-color:#A020F0; color:white;">
+  <div class="navbar px-6" style="background-color:#660c9e; color:white;">
     <div class="flex-1">
-      <span class="text-xl font-bold">Merit</span>
+      <span class="text-xl font-bold">🏆 Merit</span>
     </div>
   </div>
   {% endif %}
@@ -129,11 +129,36 @@
  
   </div>
 </div>
-
 {% endif %}
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-container" class="fixed top-4 right-4 space-y-2 z-50">
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} shadow-lg flex justify-between items-center">
+          <span>{{ message }}</span>
+          <button class="ml-4 text-xl font-bold focus:outline-none" onclick="this.parentElement.remove()">×</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+
   <!-- FontAwesome for icons -->
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous">
+  document.addEventListener("DOMContentLoaded", () => {
+    const alerts = document.querySelectorAll("#flash-container .alert");
+    alerts.forEach(alert => {
+      // Wait 3 seconds, then fade out
+      setTimeout(() => {
+        alert.style.opacity = "0";   // fade out
+        // After fade animation, remove element
+        setTimeout(() => alert.remove(), 500);
+      }, 3000);
+    });
+  });
+  </script>
 
   {% block scripts %}{% endblock %}
   

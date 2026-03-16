@@ -28,6 +28,12 @@
       <img id="eventImagePreview" alt="Event image"
            src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
            class="max-h-[300px] object-cover rounded-lg">
+
+       <button type="button"
+          onclick="removeEventImage()"
+          class="absolute top-2 right-2 bg-purple-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
+    ×
+  </button>
     {% else %}
       <span id="eventImagePlaceholder" class="text-gray-500">Click to upload image</span>
     {% endif %}
@@ -81,11 +87,28 @@
         </select>
       </label>
 
-      <label class="form-control flex items-start gap-3 cursor-pointer">
-          <span class="label-text font-semibold mt-1">Active</span>
-          <input type="checkbox" name="active" class="toggle toggle-primary"
-         {% if event and event.active %}checked{% endif %}>
+      
 </label>
+
+<div class="flex items-center justify-between gap-6">
+  <!-- Active toggle on the left -->
+  <label class="form-control flex items-start gap-3 cursor-pointer">
+    <span class="label-text font-semibold mt-1">Active</span>
+    <input type="checkbox" name="active" class="toggle toggle-primary"
+           {% if event and event.active %}checked{% endif %}>
+  </label>
+
+  <!-- Limit input on the right -->
+  <div class="form-control w-1/4 text-right">
+    <label class="label justify-end">
+      <span class="label-text">Limit (optional)</span>
+    </label>
+    <input type="number" name="limit"
+           value="{{ event.limit or '' }}"
+           class="input input-bordered w-full">
+  </div>
+</div>
+
 
 
       <div class="flex gap-4 mt-4">
@@ -112,13 +135,19 @@
       </label>
       <button type="submit" class="btn btn-sm btn-primary mt-2">Filter</button>
     </form>
-
     {% if participant_count is not none %}
       <p class="text-sm text-gray-600 mt-2">
         Number of participants registered{% if cutoff %} up to {{ cutoff.strftime('%Y-%m-%d %H:%M') }}{% endif %}: 
         {{ participant_count }}
       </p>
+      <br>
+      {%if attended_count==1 %}
+      <p class="text-sm text-gray-600 mt-2">Number of students attended: {{ attended_count }}</p>
+      {% else %}
+      <p class="text-sm text-gray-600 mt-2">Number of students attended: {{ attended_count }}</p>
+      {% endif %}
     {% endif %}
+    
   </div>
 {% endif %}
 
@@ -127,31 +156,53 @@
 
 
   <script>
-  const fileInput = document.getElementById('eventImage');
-  const previewBox = document.getElementById('eventImagePreview');
-  const placeholder = document.getElementById('eventImagePlaceholder');
+const fileInput = document.getElementById('eventImage');
+const placeholder = document.getElementById('eventImagePlaceholder');
 
-  if (fileInput) {
-    fileInput.addEventListener('change', () => {
-      const file = fileInput.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = e => {
-          if (previewBox) {
-            previewBox.src = e.target.result;
-          } else {
-            const img = document.createElement('img');
-            img.id = "eventImagePreview";
-            img.src = e.target.result;
-            img.className = "max-h-[300px] object-cover rounded-lg";
-            fileInput.parentNode.insertBefore(img, fileInput);
-            if (placeholder) placeholder.style.display = "none";
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+if (fileInput) {
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        let previewBox = document.getElementById('eventImagePreview');
+        if (!previewBox) {
+          // If preview was removed, create a new one
+          previewBox = document.createElement('img');
+          previewBox.id = "eventImagePreview";
+          previewBox.className = "max-h-[300px] object-cover rounded-lg";
+          fileInput.parentNode.insertBefore(previewBox, fileInput);
+        }
+        previewBox.src = e.target.result;
+        if (placeholder) placeholder.style.display = "none";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+function removeEventImage() {
+  const preview = document.getElementById("eventImagePreview");
+  const fileInput = document.getElementById("eventImage");
+  const placeholder = document.getElementById("eventImagePlaceholder");
+
+  if (preview) preview.remove();
+  if (fileInput) fileInput.value = ""; // clears the file input
+  if (placeholder) placeholder.style.display = "block";
+
+  // Add hidden flag so backend knows to remove
+  let removeFlag = document.getElementById("removeImageFlag");
+  if (!removeFlag) {
+    removeFlag = document.createElement("input");
+    removeFlag.type = "hidden";
+    removeFlag.name = "remove_image";
+    removeFlag.id = "removeImageFlag";
+    removeFlag.value = "true";
+    fileInput.form.appendChild(removeFlag);
   }
+}
+
+
 </script>
 
 {% endblock %}

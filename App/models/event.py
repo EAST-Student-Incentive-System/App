@@ -19,8 +19,12 @@ class Event(db.Model):
     #qr = db.Column(db.Text, nullable=True) #store QR code data or path here, can be generated on demand or stored after creation
     image = db.Column(db.String(200), nullable=True) #optional image for event, can be used in UI to make it more appealing
     active = db.Column(db.Boolean, default=False) #soft delete flag, set to False instead of deleting record
+    latitude = db.Column(db.Float, nullable=True) #optional latitude for event location
+    longitude = db.Column(db.Float, nullable=True) #optional longitude for event location
+    radius = db.Column(db.Float, nullable=True) #optional radius in meters for geofencing attendance   
+    limit = db.Column(db.Integer, nullable=True) #optional limit on number of attendees, can be used for capacity management or motivation to use app for exclusive events  
 
-    def __init__(self, staffId, name, type, description, start, end, location=None, image=None, active=False):
+    def __init__(self, staffId, name, type, description, start, end, location=None, image=None, active=False, limit=None):
         self.staffId = staffId
         self.name = name
         self.type = type
@@ -31,6 +35,7 @@ class Event(db.Model):
        # self.qr = qr
         self.image = image
         self.active = active
+        self.limit = limit
 
     def get_json(self):
         return {
