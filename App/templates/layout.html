@@ -6,18 +6,8 @@
   <!-- Tailwind + DaisyUI -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
-  <style>
-    body {
-  background-image: url("/static/bg1.webp");
-  background-size: 100% 100%;   /* stretch image to fill both width and height */
-  background-position: top left; /* anchor top-left corner */
-  background-repeat: no-repeat;  /* don’t tile */
-  min-height: 100vh;             /* ensure body fills viewport */
-}
-            /* ensures body is at least full viewport height */
-  </style>
 </head>
-<body data-theme="light" class="bg-base-200 text-neutral flex flex-col min-h-screen" >
+<body data-theme="light" class="bg-base-200 text-neutral flex flex-col min-h-screen">
 
   <!-- Staff Navbar -->
  {% if user is defined and user.role == "staff" %}
