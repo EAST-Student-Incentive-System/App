@@ -3,25 +3,18 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from App.models.student import Student
 from App.controllers import badge
 
-# ✅ Blueprint name matches url_for("badge_views....")
 badge_views = Blueprint("badge_views", __name__, template_folder="../templates")
 
 
 @badge_views.route("/badges/create", methods=["POST"])
 @jwt_required()
 def create_badge_route():
-    data = request.json or {}
-    points_required = data.get("points_required", data.get("pointsRequired"))
-
-    if points_required is None:
-        return jsonify({"error": "points_required is required"}), 400
-
+    data = request.json
     new_badge = badge.createBadge(
-        data.get("name"),
-        data.get("description"),
-        int(points_required),
+        name=data["name"],
+        description=data["description"],
+        points_required=data["points_required"]
     )
-
     if new_badge is not None:
         return jsonify(new_badge.get_json()), 201
     return jsonify({"error": "Badge with this name already exists"}), 400
@@ -30,14 +23,10 @@ def create_badge_route():
 @badge_views.route("/badges/award", methods=["POST"])
 @jwt_required()
 def award_badge_route():
-    data = request.json or {}
+    data = request.json
     student_id = get_jwt_identity()
-    badge_id = data.get("badge_id")
-
-    if badge_id is None:
-        return jsonify({"error": "badge_id is required"}), 400
-
-    success = badge.awardBadge(student_id=student_id, badge_id=int(badge_id))
+    badge_id = int(data["badge_id"])
+    success = badge.awardBadge(student_id=student_id, badge_id=badge_id)
     if success:
         return jsonify({"message": "Badge awarded successfully"}), 200
     return jsonify({"error": "Failed to award badge"}), 400
@@ -46,17 +35,18 @@ def award_badge_route():
 @badge_views.route("/badges", methods=["GET"])
 @jwt_required()
 def view_badges_route():
-    badges = badge.viewBadges() or []
+    badges = badge.viewBadges()
     return jsonify([b.get_json() for b in badges]), 200
 
 
 @badge_views.route("/badges/student/<int:student_id>", methods=["GET"])
 @jwt_required()
 def view_student_badges_route(student_id):
-    badges = badge.viewStudentBadges(student_id) or []
+    badges = badge.viewStudentBadges(student_id)
     return jsonify([b.get_json() for b in badges]), 200
 
 
+# ✅ ADD THIS: Student badges page (Jinja template)
 @badge_views.route("/student/badges", methods=["GET"])
 @jwt_required()
 def student_badges_sections_page():
@@ -95,8 +85,8 @@ def student_badges_sections_page():
     featured_badges, weekly_badges, rest_badges = [], [], []
 
     for b in all_badges:
-        data = b.get_json()  # expects id,name,description,pointsRequired
-        data["earned"] = data.get("id") in earned_badge_ids
+        data = b.get_json()
+        data["earned"] = data["id"] in earned_badge_ids
         data["icon"] = icon_for(data.get("name"))
         pr = data.get("pointsRequired") or 0
         data["pct"] = int(min(100, (student.current_balance / pr) * 100)) if pr else 0
@@ -115,11 +105,14 @@ def student_badges_sections_page():
     weekly_badges.sort(key=key_fn)
     rest_badges.sort(key=key_fn)
 
+    earned_badges = [x for x in (featured_badges + weekly_badges + rest_badges) if x.get("earned")]
+
     return render_template(
-        "student_badges_sections.html",
-        user=student,
-        balance=student.current_balance,
-        featured_badges=featured_badges[:8],
-        weekly_badges=weekly_badges[:8],
-        all_badges=rest_badges,
-    )
+    "student_badges_sections.html",
+    user=student,
+    balance=student.current_balance,
+    earned_badges=earned_badges,
+    featured_badges=featured_badges[:8],
+    weekly_badges=weekly_badges[:8],
+    all_badges=rest_badges
+)
