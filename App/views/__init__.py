@@ -13,3 +13,4 @@ from .progress import progress_views
 
 # Add new reward_views blueprint to the views list
 views = [user_views, index_views, auth_views, reward_views, badge_views, event_views, reward_student_views, progress_views] 
+
