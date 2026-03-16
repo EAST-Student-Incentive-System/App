@@ -101,7 +101,7 @@ def create_event_route():
             return redirect(url_for('event_views.get_staff_events_route'))
         
 
-    return render_template("edit_event.html", event=None)
+    return render_template("edit_event.html", event=None, user=user)
 
 # ---------- UPDATE EVENT ----------
 @event_views.route("/events/<int:event_id>", methods=["GET","POST"])
