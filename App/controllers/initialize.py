@@ -74,6 +74,12 @@ def initialize():
     event8 = create_event(jane.id, 'Art Exhibition', 'Art', 'Showcase of student artwork', now + timedelta(days=28), now + timedelta(days=28, hours=3), 'Art Gallery', None, True)
     event9 = create_event(jane.id, 'Sports Tournament', 'Sports', 'Intramural sports tournament', now + timedelta(days=35), now + timedelta(days=35, hours=6), 'Sports Complex', None, True)
     event10 = create_event(jane.id, 'Environmental Summit', 'Environment', 'Panel discussion on sustainability initiatives', now + timedelta(days=42), now + timedelta(days=42, hours=4), 'Conference Center', None, True)
+    event11 = create_event(jane.id, 'Late Night Study Session', 'Academic', 'Study session for finals week', now + timedelta(days=45, hours=20), now + timedelta(days=46, hours=2), 'Library', None, True)
+    event12 = create_event(jane.id, 'Early Morning Yoga', 'Health', 'Start your day with a yoga session', now + timedelta(days=50, hours=6), now + timedelta(days=50, hours=7), 'Outdoor Pavilion', None, True)
+    event13 = create_event(jane.id, 'Weekend Movie Night', 'Social', 'Relax with a movie night on the weekend', now + timedelta(days=55, hours=19), now + timedelta(days=55, hours=22), 'Student Center Lounge', None, True)
+    
+    suspiciousevent = create_event(jane.id, 'Suspicious Event', 'Unknown', 'This event is for testing the student flagging system. It has no location and is happening right now.', now - timedelta(minutes=30), now + timedelta(minutes=30), None, None, True)
+    suspiciousevent2 = create_event(jane.id, 'Another Suspicious Event', 'Unknown', 'This event is also for testing the student flagging system. It has no location and is happening right now.', now - timedelta(minutes=30), now + timedelta(minutes=30), None, None, True)
 
     # Give Bob some points for demo
     from App.models import Student
@@ -93,13 +99,20 @@ def initialize():
         
         # Join Bob to ALL events and log attendance
         print("Now attempting to join events and log attendance for Bob...")
-        for event in [event1, event2, event3, event4, event5, event6, event7, event8, event9, event10]:
+        for event in [event1, event2, event3, event4, event5, event6, event7, event8, event9, event10, event11, event12, event13]:
             if event and hasattr(event, 'id') and hasattr(event, 'name'):
                 join_event(bob_obj.id, event.id)
                 log_attendance(bob_obj.id, event.id, datetime.now() + timedelta(days=random.randint(1, 300)))  # Log attendance with a random timestamp to demonstrate the student history page. Should be removed or modified for production use.
                 print(f'Bob attended event: {event.id} - {event.name}')
             else:
                 print(f'Failed to create event: {event}')
+        # Now make Bob attend the suspicious events to demonstrate the flagging system
+        join_event(bob_obj.id, suspiciousevent.id)
+        log_attendance(bob_obj.id, suspiciousevent.id, datetime.now())
+        join_event(bob_obj.id, suspiciousevent2.id)
+        log_attendance(bob_obj.id, suspiciousevent2.id, datetime.now())
+        print("Bob attended suspicious events to demonstrate the flagging system. Bob is flagged:", bob_obj.isFlagged)
+        
         # Redeem ALL rewards for Bob
         for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box]:
             if reward:

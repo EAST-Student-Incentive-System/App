@@ -4,6 +4,8 @@ from .redeemed_reward import RedeemedReward
 from .student_badge import StudentBadge
 from App.models.reward import Reward
 from App.models.student_event import student_event
+from sqlalchemy.orm import relationship, Mapped, mapped_column
+from App.models.attendance import Attendance
 
 class Student(User):
     __tablename__ = 'student'
@@ -12,8 +14,7 @@ class Student(User):
     total_points = db.Column(db.Integer, default=0, nullable=False)
     redeemed_points = db.Column(db.Integer, default=0, nullable=False)
     current_balance = db.Column(db.Integer, default=0, nullable=False)
-
-    attendances = db.relationship('Attendance', back_populates='student', cascade="all, delete-orphan")
+    attendances: Mapped[list["Attendance"]] = relationship(back_populates="student", cascade="all, delete-orphan")
     redeemed_rewards = db.relationship('Reward', secondary=RedeemedReward.__table__, back_populates='students')
     student_badges = db.relationship('StudentBadge', back_populates='student', cascade="all, delete-orphan")
     events = db.relationship("Event", secondary=student_event, back_populates="students")
