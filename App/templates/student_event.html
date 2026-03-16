@@ -64,26 +64,26 @@
           <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
           <p><span class="font-semibold text-gray-800">Type:</span> {{ event.type }}</p>
           <p class="description hidden"><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
+          <p><span class="font-semibold text-gray-800">Location:</span> {{ event.location }}</p>
           <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
           <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
         </div>
 
         <div class="pt-2 border-t">
 
-{% if event in student.events %}
+{% set count = event.students|length %}
+<p>Joined: {{ count }}{% if event.limit %}/{{ event.limit }}{% endif %}</p>
 
-<button class="btn btn-sm btn-success w-full">
-Joined
-</button>
-
+{% if student in event.students %}
+  <form action="{{ url_for('event_views.leave_event_action', event_id=event.id) }}" method="post">
+    <button class="btn btn-sm btn-error w-full">Leave</button>
+  </form>
+{% elif event.limit and count >= event.limit %}
+  <button class="btn btn-sm btn-warning w-full">Full</span>
 {% else %}
-
-<form method="POST" action="{{ url_for('event_views.join_event_action', event_id=event.id) }}">
-<button class="btn btn-sm btn-accent w-full">
-Join
-</button>
-</form>
-
+  <form action="{{ url_for('event_views.join_event_action', event_id=event.id) }}" method="post">
+    <button class="btn btn-sm btn-accent w-full">Join</button>
+  </form>
 {% endif %}
 
 </div>

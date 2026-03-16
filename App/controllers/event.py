@@ -7,6 +7,7 @@ import qrcode
 import io
 import base64
 import time
+from geopy.distance import geodesic
 
 
 
@@ -30,8 +31,8 @@ def view_event_history(student_id=None, staff_id=None):
 
 # ---------------- Event CRUD ----------------
 
-def create_event(staff_id, name, type, description, start, end, location, image, active):
-    new_event = Event(staffId=staff_id, name=name, type=type, description=description, start=start, end=end, location=location, image=image, active=active)
+def create_event(staff_id, name, type, description, start, end, location, image, active, limit=None):
+    new_event = Event(staffId=staff_id, name=name, type=type, description=description, start=start, end=end, location=location, image=image, active=active, limit=limit)
     db.session.add(new_event)
     db.session.flush()
     #new_event.qr = generate_qr_code(new_event.id)  # Generate QR code data for the event
@@ -51,7 +52,8 @@ def update_event(event_id, **kwargs):
         'end': 'end',
         'location': 'location',
         'image': 'image',
-        'active': 'active'
+        'active': 'active',
+        'limit': 'limit',
     }
 
     for key, value in kwargs.items():
@@ -84,15 +86,29 @@ def delete_event(event_id, staff_id):
 def join_event(student_id, event_id):
     student = db.session.get(Student, student_id)
     event = db.session.get(Event, event_id)
+    count = db.session.query(student_event).filter_by(event_id=event_id).count()
     if not student or not event:
         return None
     if student in event.students:
         return False
+    if event.limit and count >= event.limit:
+        print("Event is full", "error")
+        return False
     event.students.append(student)
     db.session.commit()
-    return True  # needs to also update the student_event association table with the join timestampSS
+    return True  
 
-def log_attendance(student_id, event_id):
+def leave_event(student_id, event_id):
+    db.session.execute(
+        student_event.delete().where(
+            (student_event.c.student_id == student_id) &
+            (student_event.c.event_id == event_id)
+        )
+    )
+    db.session.commit()
+    return True
+
+def log_attendance(student_id, event_id, datetime=None, student_lat=None, student_lon=None):
     student = db.session.get(Student, student_id)
     print("STUDENT:", student)
     event = db.session.get(Event, event_id)
@@ -108,8 +124,18 @@ def log_attendance(student_id, event_id):
     if existing:
         print("ATTENDANCE ALREADY LOGGED")
         return False
+    if student_lat and student_lon:
+        print("STUDENT LOCATION:", student_lat, student_lon)
+        student.temporary_gps_holder = f"{student_lat},{student_lon}"
+    if student_lat and student_lon and event.latitude and event.longitude:
+        student_coords = (student_lat, student_lon)
+        event_coords = (event.latitude, event.longitude)
+        distance = geodesic(student_coords, event_coords).meters
+        if distance > event.radius:
+            db.session.commit()
+            return False
     student.add_points(event.calculate_point_value())
-    attendance = Attendance(student_id=student_id, event_id=event_id)
+    attendance = Attendance(student_id=student_id, event_id=event_id, timestamp=datetime)
     print("NEW ATTENDANCE:", attendance)
     db.session.add(attendance)
     db.session.commit()
@@ -151,8 +177,4 @@ def generate_qr(event_id):
     qr_data = base64.b64encode(buffer.getvalue()).decode()
 
     return qr_data
-
-
-
-#needs a scan attendance function that takes the QR data, extracts the event ID, and logs attendance for the student if valid
 

@@ -1,6 +1,8 @@
 from flask_jwt_extended import create_access_token, jwt_required, JWTManager, get_jwt_identity, verify_jwt_in_request
 from App.controllers.user import User, create_user
 from App.database import db
+from flask import request
+
 
 from App.models import User, Staff, Student #! Student should be added in a future update
 
@@ -28,10 +30,28 @@ def signUp(email, username, password):
         db.session.rollback()
         return {'error': str(e)}
 
-def login(username, password): # Login function that returns JWT token upon successful authentication and the role
+def login(username, password, device_id = None): # Login function that returns JWT token upon successful authentication and the role
   result = db.session.execute(db.select(User).filter_by(username=username))
   user = result.scalar_one_or_none()
   if user and user.check_password(password):
+    if isinstance(user, Student):
+      user.temporary_device_holder = device_id
+      print(f"User {user.username} logged in with device_id: {device_id}")
+
+      if device_id:  # only run check if not None
+        other_students = db.session.execute(
+            db.select(Student).filter(
+                Student.temporary_device_holder == device_id,
+                Student.username != username
+            )
+        ).scalars().all()
+
+        if other_students:
+            user.isFlagged = True
+            for s in other_students:
+                s.isFlagged = True
+
+      db.session.commit()
     access_token = create_access_token(identity=user.id)
     return {'access_token': access_token, 'user': user.get_json(), 'role': user.role}
   return {'error': 'Invalid username or password.'}

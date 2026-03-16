@@ -47,17 +47,17 @@ def initialize():
 
     # Create rewards
     from App.controllers.rewards import create_reward, redeem_reward
-    reward_1 = create_reward('Free Coffee', 'Get a free coffee at the cafe', 10)
-    reward_2 = create_reward('Book Voucher', 'Voucher for the bookstore', 30)
-    reward_3 = create_reward('Event Swag', 'Exclusive swag from campus events', 50)
-    reward_4 = create_reward('Priority Registration', 'Get priority registration for classes', 100)
-    reward_5 = create_reward('VIP Event Access', 'Get VIP access to select campus events', 150)
-    KFC_Bucket = create_reward('KFC Bucket', 'A bucket of KFC chicken', 20)
-    Starbucks_Gift_Card = create_reward('Starbucks Gift Card', 'A $10 gift card for Starbucks', 25)
-    Movie_Tickets = create_reward('Movie Tickets', 'Two tickets to the movies', 30)
-    Massage_Coupon = create_reward('Massage Coupon', 'A coupon for a free massage at the campus wellness center', 40)
-    Dorm_Snack_Box = create_reward('Dorm Snack Box', 'A box of snacks delivered to your dorm room', 15)
-    Fake_Reward = create_reward('Fake Reward', 'This reward is for testing purposes and has no point cost', 0)
+    reward_1 = create_reward('Free Coffee', 'Get a free coffee at the cafe', 10 ,2)
+    reward_2 = create_reward('Book Voucher', 'Voucher for the bookstore', 30 ,2)
+    reward_3 = create_reward('Event Swag', 'Exclusive swag from campus events', 50 ,2)
+    reward_4 = create_reward('Priority Registration', 'Get priority registration for classes', 100 ,2)
+    reward_5 = create_reward('VIP Event Access', 'Get VIP access to select campus events', 150 ,2)
+    KFC_Bucket = create_reward('KFC Bucket', 'A bucket of KFC chicken', 20 ,2)
+    Starbucks_Gift_Card = create_reward('Starbucks Gift Card', 'A $10 gift card for Starbucks', 25 ,2)
+    Movie_Tickets = create_reward('Movie Tickets', 'Two tickets to the movies', 30 ,2)
+    Massage_Coupon = create_reward('Massage Coupon', 'A coupon for a free massage at the campus wellness center', 40 ,2)
+    Dorm_Snack_Box = create_reward('Dorm Snack Box', 'A box of snacks delivered to your dorm room', 15 ,2)
+    #Fake_Reward = create_reward('Fake Reward', 'This reward is for testing purposes and has no point cost', 0 ,2)
 
     # Create events
     from App.controllers.event import create_event, join_event, log_attendance
@@ -113,23 +113,15 @@ def initialize():
         for event in [event1, event2, event3, event4, event5, event6, event7, event8, event9, event10]:
             if event and hasattr(event, 'id') and hasattr(event, 'name'):
                 join_event(bob_obj.id, event.id)
-                log_attendance(bob_obj.id, event.id)
+                log_attendance(bob_obj.id, event.id, datetime.now() + timedelta(days=random.randint(1, 300)))  # Log attendance with a random timestamp to demonstrate the student history page. Should be removed or modified for production use.
                 print(f'Bob attended event: {event.id} - {event.name}')
-                # We want the times to be different for demonstration purposes, so we can show the student history page with events attended at different times. This will help demonstrate the sorting and display of events on the student history page. In production, you would typically log attendance with the actual time of attendance rather than setting it to a random time.
-                sleep_time = random.randint(1, 13)  # Random sleep time between 1 and 20 seconds
-                print(f'Sleeping for {sleep_time} seconds to create different timestamps for attendance...')
-                sleep(sleep_time)
             else:
                 print(f'Failed to create event: {event}')
-
         # Redeem ALL rewards for Bob
-        for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box, Fake_Reward]:
+        for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box]:
             if reward:
-                redeem_reward(bob_obj.id, reward.id)
-                print(f'Bob redeemed reward: {reward.name}')
-                sleep_time = random.randint(1, 13)  # Random sleep time between 1 and 20 seconds
-                print(f'Sleeping for {sleep_time} seconds to create different timestamps for reward redemption...')
-                sleep(sleep_time)
+                redeem_reward(bob_obj.id, reward.id, datetime.now() + timedelta(days=random.randint(1, 300)))  # Redeem with a random timestamp to demonstrate the student history page. Should be removed or modified for production use.
+                print(f'Bob redeemed reward: {reward.name} for {reward.pointCost} points')
             else:
                 print(f'Failed to create reward: {reward}')
         db.session.commit()
