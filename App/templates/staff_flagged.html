@@ -18,21 +18,26 @@
         <thead>
           <tr>
             <th>Name</th>
-            <th>View flagged activity</th>
+            <th>View suspicious activity</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for student in flagged_students %}
             <tr>
-              <td>{{ student.name }}</td>
+              <td>{{ student.id }}</td>
               <td>
-                <a href="{{ url_for('staff_views.view_flagged_activity', student_id=student.student_id) }}" class="btn btn-sm btn-primary">View Activity</a>
+                
+                {% for attendance in student.attendances %}
+                  {% if attendance.is_suspicious %}
+                  <p>{{ attendance.event.name }} - {{ attendance.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                  {% endif %}
+                {% endfor %}
               </td>
               <td>
                 <!-- Action buttons (e.g., View, Unflag) -->
-                <a href="{{ url_for('staff_views.unflag_student_route', student_id=student.student_id) }}" class="btn btn-sm btn-error">✅</a>
-                <a href="{{ url_for('staff_views.flag_student_route', student_id=student.student_id) }}" class="btn btn-sm btn-error">❌</a>
+                <button class="btn btn-sm btn-cancel" onclick="unflag_student_command({{ student.id }})"> UnFlag</button>
+                <button class="btn btn-sm btn-error" onclick="delete_attendance_command({{ student.id }})"> Delete</button>
               </td>
             </tr>
           {% endfor %}
