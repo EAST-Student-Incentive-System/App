@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request, send_from_directory, flash, redirect, url_for
 from flask_jwt_extended import jwt_required, current_user as jwt_current_user, get_jwt_identity
-from App.models import Student
+from App.models import Student, user
 from App.models.staff import Staff
 
 from.index import index_views
@@ -77,4 +77,4 @@ def flagged_command():
     print (user_id, user)
     if not user or not user.role == "staff":
         return jsonify({'error': 'Unauthorized'}), 403
-    return render_template('staff_flagged.html', user=user)
+    return render_template('staff_flagged.html', user=user, flagged_students=Student.query.filter_by(isFlagged=True).all())
