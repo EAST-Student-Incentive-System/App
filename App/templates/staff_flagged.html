@@ -12,6 +12,7 @@
     </div>
 
     <!-- TABLE -->
+    {%if flagged_students%}
     <div class="overflow-x-auto">
       <table id="flagged-table" class="table w-full">
         <thead>
@@ -37,6 +38,11 @@
           {% endfor %}
         </tbody>
       </table>
+        {% else %}
+            <div class="text-center py-8">
+            <p>No flagged students at the moment.</p>
+            </div>
+        {% endif %}
     </div>
   </div>
 {% endblock %}
