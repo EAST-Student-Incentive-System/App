@@ -8,8 +8,8 @@ reward = Blueprint("reward", __name__)
 # Reward CRUD
 
 
-def create_reward(name, description, point_cost, active=True, image=None):
-    reward = Reward(name=name, description=description, pointCost=point_cost, active=active, image=image)
+def create_reward(name, description, point_cost, created_by, active=True, image=None, limit=None):
+    reward = Reward(name=name, description=description, pointCost=point_cost, active=active, image=image, created_by=created_by, limit=limit)
     db.session.add(reward)
     db.session.commit()
     return reward
@@ -49,7 +49,8 @@ def update_reward(reward_id, **kwargs):
         'active': 'active',
         'name': 'name',
         'description': 'description',
-        'image': 'image'
+        'image': 'image',
+        'limit': 'limit'
     }
 
     for key, value in kwargs.items():
@@ -81,7 +82,7 @@ def toggle_reward(reward_id):
     return reward
 
 
-def redeem_reward(student_id, reward_id):
+def redeem_reward(student_id, reward_id, redeemed_at=None):
     student = db.session.get(Student, student_id)
     reward = db.session.get(Reward, reward_id)
     if not student or not reward:
@@ -92,8 +93,13 @@ def redeem_reward(student_id, reward_id):
     success = student.subtract_points(reward.pointCost)
     if not success:
         return False
-    redeemed = RedeemedReward(student_id=student.id, reward_id=reward.id)
+    redeemed = RedeemedReward(student_id=student.id, reward_id=reward.id, redeemed_at=redeemed_at)
     db.session.add(redeemed)
+
+    redeemed_count = RedeemedReward.query.filter_by(reward_id=reward.id).count()
+    if reward.limit and redeemed_count >= reward.limit:
+        reward.active = False
+
     db.session.commit()
     return redeemed
 

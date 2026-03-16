@@ -71,7 +71,7 @@ from flask_jwt_extended import set_access_cookies
 @auth_views.route('/login', methods=['POST'])
 def login_action():
     data = request.form
-    result = login(data['username'], data['password'])
+    result = login(data['username'], data['password'], data.get('device_id'))
 
     if 'error' in result:
         flash(result['error'], 'danger')
