@@ -52,6 +52,11 @@
     <div class="flex-1">
       <span class="text-xl font-bold">🏆 Merit</span>
     </div>
+    <div class="flex-none">
+      <ul class="menu menu-horizontal px-1">
+        <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
+      </ul>
+    </div>
   </div>
   {% endif %}
 
@@ -89,6 +94,7 @@
       <ul class="menu flex-1 p-4">
         <li><a href="{{ url_for('event_views.get_staff_events_route') }}">Events</a></li>
         <li><a href="{{ url_for('reward_views.list_rewards_page') }}">Rewards</a></li>
+        <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
       </ul>
     </div>
   </div>
@@ -122,6 +128,7 @@
       <li><a href="{{ url_for('event_views.scan_qr_page') }}">Scan QR</a></li>
       <li><a href="{{ url_for('user_views.student_history_page', student_id=user.id) }}">History</a></li>
       <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}">Rewards</a></li>
+      <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
     </ul>
   </div>
 </div>
