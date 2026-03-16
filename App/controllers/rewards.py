@@ -81,7 +81,7 @@ def toggle_reward(reward_id):
     return reward
 
 
-def redeem_reward(student_id, reward_id):
+def redeem_reward(student_id, reward_id, redeemed_at=None):
     student = db.session.get(Student, student_id)
     reward = db.session.get(Reward, reward_id)
     if not student or not reward:
@@ -92,7 +92,7 @@ def redeem_reward(student_id, reward_id):
     success = student.subtract_points(reward.pointCost)
     if not success:
         return False
-    redeemed = RedeemedReward(student_id=student.id, reward_id=reward.id)
+    redeemed = RedeemedReward(student_id=student.id, reward_id=reward.id, redeemed_at=redeemed_at)
     db.session.add(redeemed)
     db.session.commit()
     return redeemed

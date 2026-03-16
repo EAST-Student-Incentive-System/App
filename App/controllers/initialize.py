@@ -95,23 +95,15 @@ def initialize():
         for event in [event1, event2, event3, event4, event5, event6, event7, event8, event9, event10]:
             if event and hasattr(event, 'id') and hasattr(event, 'name'):
                 join_event(bob_obj.id, event.id)
-                log_attendance(bob_obj.id, event.id)
+                log_attendance(bob_obj.id, event.id, datetime.now() + timedelta(days=random.randint(1, 300)))  # Log attendance with a random timestamp to demonstrate the student history page. Should be removed or modified for production use.
                 print(f'Bob attended event: {event.id} - {event.name}')
-                # We want the times to be different for demonstration purposes, so we can show the student history page with events attended at different times. This will help demonstrate the sorting and display of events on the student history page. In production, you would typically log attendance with the actual time of attendance rather than setting it to a random time.
-                sleep_time = random.randint(1, 13)  # Random sleep time between 1 and 20 seconds
-                print(f'Sleeping for {sleep_time} seconds to create different timestamps for attendance...')
-                sleep(sleep_time)
             else:
                 print(f'Failed to create event: {event}')
-
         # Redeem ALL rewards for Bob
         for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box, Fake_Reward]:
             if reward:
-                redeem_reward(bob_obj.id, reward.id)
-                print(f'Bob redeemed reward: {reward.name}')
-                sleep_time = random.randint(1, 13)  # Random sleep time between 1 and 20 seconds
-                print(f'Sleeping for {sleep_time} seconds to create different timestamps for reward redemption...')
-                sleep(sleep_time)
+                redeem_reward(bob_obj.id, reward.id, datetime.now() + timedelta(days=random.randint(1, 300)))  # Redeem with a random timestamp to demonstrate the student history page. Should be removed or modified for production use.
+                print(f'Bob redeemed reward: {reward.name} for {reward.pointCost} points')
             else:
                 print(f'Failed to create reward: {reward}')
         db.session.commit()
