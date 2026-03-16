@@ -12,6 +12,7 @@ def initialize():
     # Create users
     bob = create_user('bob@my.uwi.edu', 'bob', 'bobpass')
     jane = create_user('jane@sta.uwi.edu', 'jane', 'janepass')
+    print (f'Created users: {bob}, {jane}')
 
     # Create badges
     badge_25 = createBadge('25 Points', 'Awarded for earning 25 points', 25)
