@@ -79,7 +79,7 @@
     <button class="btn btn-sm btn-error w-full">Leave</button>
   </form>
 {% elif event.limit and count >= event.limit %}
-  <span class="badge badge-warning w-full">Full</span>
+  <button class="btn btn-sm btn-warning w-full">Full</span>
 {% else %}
   <form action="{{ url_for('event_views.join_event_action', event_id=event.id) }}" method="post">
     <button class="btn btn-sm btn-accent w-full">Join</button>
