@@ -12,7 +12,8 @@ def initialize():
     # Create users
     bob = create_user('bob@my.uwi.edu', 'bob', 'bobpass')
     jane = create_user('jane@sta.uwi.edu', 'jane', 'janepass')
-    print (f'Created users: {bob}, {jane}')
+    suspicious_student = create_user('suspicious@my.uwi.edu', 'suspicious', 'suspiciouspass')
+    print (f'Created users: {bob}, {jane}, {suspicious_student}')
 
     # Create badges
     badge_25 = createBadge('25 Points', 'Awarded for earning 25 points', 25)
@@ -44,6 +45,22 @@ def initialize():
     badge_Innovator = createBadge('Innovator', 'Awarded for introducing a new idea or initiative that benefits the campus community', 70)
     badge_Faker = createBadge('Faker', 'Awarded for attending an event without checking in (for testing purposes)', 0)
     badge_Jack_of_All_Trades = createBadge('Jack of All Trades', 'Awarded for attending events in at least 5 different categories', 50)
+    badge_Master_of_All_Trades = createBadge('Master of All Trades', 'Awarded for attending events in at least 10 different categories', 100)
+    badge_Bear_Grylls = createBadge('Bear Grylls', 'Awarded for attending an outdoor survival skills event', 40)
+    badge_Whale_Whisperer = createBadge('Whale Whisperer', 'Awarded for attending a marine biology event', 30)
+    badge_Sleep_Deprived = createBadge('Sleep Deprived', 'Awarded for attending an event that lasts past midnight', 50)
+    badge_Globetrotter = createBadge('Globetrotter', 'Awarded for attending an event that celebrates international cultures', 30)
+    badge_King_of_the_Campus = createBadge('King of the Campus', 'Awarded for attending the most events in a semester', 1000)
+    badge_Queen_of_the_Campus = createBadge('Queen of the Campus', 'Awarded for attending the second most events in a semester', 500)
+    badge_Its_Been_so_Long = createBadge('It\'s Been so Long', 'Awarded for attending an event after a long absence from campus activities', 20)
+    badge_Its_High_Noon = createBadge('It\'s High Noon', 'Awarded for attending an event that starts at noon', 20)
+    badge_Rookie = createBadge('Rookie', 'Awarded for attending your first event', 10)
+    badge_Master_Baiter = createBadge('Master Baiter', 'Awarded for attending a fishing event', 20)
+    
+    badge_Enemy_Network = createBadge('Enemy Network', 'Awarded for attending an event organized by a rival university (for testing purposes)', 0)
+    badge_Infilatrator = createBadge('Infiltrator', 'Awarded for attending an event while pretending to be a student from another university (for testing purposes)', 0)
+    badge_SlyFox = createBadge('Sly Fox', 'Awarded for attending an event with a suspiciously vague description and no location (for testing purposes)', 0)
+    badge_Stupidest_Badge_Ever = createBadge('Stupidest Badge Ever', 'This badge has no criteria and is worth 0 points. It is intentionally ridiculous and should never be awarded to any student. It exists solely for testing purposes.', -9999)
     
 
     # Create rewards
@@ -131,6 +148,17 @@ def initialize():
         log_attendance(bob_obj.id, suspiciousevent2.id, datetime.now())
         print("Bob attended suspicious events to demonstrate the flagging system. Bob is flagged:", bob_obj.isFlagged)
         
+        # Also make the suspicious student attend the suspicious events to demonstrate the flagging system
+        suspicious_student_obj = Student.query.filter_by(username='suspicious').first()
+        if suspicious_student_obj:
+            join_event(suspicious_student_obj.id, suspiciousevent.id)
+            log_attendance(suspicious_student_obj.id, suspiciousevent.id, datetime.now())
+            join_event(suspicious_student_obj.id, suspiciousevent2.id)
+            log_attendance(suspicious_student_obj.id, suspiciousevent2.id, datetime.now())
+            join_event(suspicious_student_obj.id, event1.id)  # Also have the suspicious student attend a normal event to show that they can still participate in regular activities
+            log_attendance(suspicious_student_obj.id, event1.id, datetime.now() + timedelta(days=1))
+            print("The suspicious student attended suspicious events to demonstrate the flagging system. The suspicious student is flagged:", suspicious_student_obj.isFlagged)
+
         # Redeem ALL rewards for Bob
         for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box]:
             if reward:
