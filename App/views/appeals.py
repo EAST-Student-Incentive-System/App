@@ -164,6 +164,10 @@ def student_appeal_page():
     if not student or student.role != "student":
         flash("Unauthorized", "error")
         return redirect(url_for("auth_views.login_page"))
+    
+    if student.isFlagged == False:
+        flash("You do not have anything to appeal.", "error")
+        return redirect(url_for("event_views.get_student_events_route"))
 
     # Default status display
     if getattr(student, "appeal_status", None) is None and student.appeal_desc:
@@ -180,13 +184,17 @@ def submit_student_appeal_action():
     if not student or student.role != "student":
         flash("Unauthorized", "error")
         return redirect(url_for("auth_views.login_page"))
+    
+    if student.isFlagged == False:
+        flash("You do not have anything to appeal.", "error")
+        return redirect(url_for("event_views.student_events_page"))
 
     desc = (request.form.get("appeal_desc") or "").strip()
     image = request.files.get("appeal_image")
 
     if not desc:
         flash("Please enter a description for your appeal.", "error")
-        return redirect(url_for("appeal_views.student_appeal_page"))
+        return redirect(url_for("event_views.get_student_events_route"))
 
     filename = None
     if image and image.filename:
