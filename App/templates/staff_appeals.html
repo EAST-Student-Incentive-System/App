@@ -1,0 +1,202 @@
+{% extends "layout.html" %}
+{% block title %}Student Appeals{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4">
+
+  <div class="text-center py-8">
+    <h1 class="text-3xl md:text-4xl font-bold tracking-wide">Student Appeals</h1>
+  </div>
+
+  {% if appeals and appeals|length > 0 %}
+
+    {# ---------------- DESKTOP/TABLET: TABLE ---------------- #}
+    <div class="hidden md:block bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table table-lg w-full">
+          <thead>
+            <tr class="text-lg text-gray-800">
+              <th class="w-1/6 py-6">Username</th>
+              <th class="w-2/6 py-6">View Flagged Activity</th>
+              <th class="w-2/6 py-6">Appeal</th>
+              <th class="w-1/6 py-6 text-center">Approve/Delete</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for s in appeals %}
+              <tr class="align-top">
+                <td class="font-semibold text-gray-900 py-7 text-lg">
+                  {{ s.username }}
+                  {% if s.isFlagged %}
+                    <div class="mt-3">
+                      <span class="badge badge-error">Flagged</span>
+                    </div>
+                  {% endif %}
+                  <div class="text-sm text-gray-500 mt-2">ID: {{ s.id }}</div>
+                </td>
+
+                <td class="py-6">
+                  <div class="collapse collapse-arrow bg-base-200 rounded-xl">
+                    <input type="checkbox" />
+                    <div class="collapse-title font-semibold text-lg">Attendance / Flag info</div>
+                    <div class="collapse-content text-base text-gray-700 space-y-3">
+                      <div><span class="font-semibold">Timeout count:</span> {{ s.timeout_count }}</div>
+                      <div>
+                        <span class="font-semibold">Last Device ID:</span>
+                        <span class="font-mono break-all">{{ s.temporary_device_holder or "—" }}</span>
+                      </div>
+                      <div>
+                        <span class="font-semibold">Last GPS attempt:</span>
+                        <span class="font-mono break-all">{{ s.temporary_gps_holder or "—" }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="py-6">
+                  <div class="collapse collapse-arrow bg-base-200 rounded-xl">
+                    <input type="checkbox" />
+                    <div class="collapse-title font-semibold text-lg flex items-center justify-between gap-3">
+                      <span>Appeal</span>
+                      {% if s.appeal_image %}
+                        <span class="badge badge-outline text-base">📷 proof</span>
+                      {% endif %}
+                    </div>
+                    <div class="collapse-content text-base text-gray-700 space-y-4">
+                      <div class="whitespace-pre-wrap">{{ s.appeal_desc }}</div>
+                      {% if s.appeal_image %}
+                        <img
+                          src="{{ url_for('static', filename='uploads/' ~ s.appeal_image) }}"
+                          alt="Appeal proof"
+                          class="rounded-xl border border-gray-200 bg-white max-h-80 object-contain w-full"
+                        />
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+
+                <td class="py-6">
+                  <form method="POST" action="{{ url_for('appeal_views.resolve_appeal_action', student_id=s.id) }}">
+                    <div class="flex items-center justify-center gap-4">
+                      {# Approve (radio styled like checkbox) #}
+                      <label class="cursor-pointer">
+                        <input type="radio" name="action" value="approve" class="peer hidden" required>
+                        <div class="w-12 h-12 border-2 border-gray-800 rounded-md flex items-center justify-center bg-white
+                                    peer-checked:bg-green-100 peer-checked:border-green-700">
+                          <span class="text-2xl font-bold text-green-700">✓</span>
+                        </div>
+                      </label>
+
+                      {# Delete (radio styled like checkbox) #}
+                      <label class="cursor-pointer">
+                        <input type="radio" name="action" value="delete" class="peer hidden" required>
+                        <div class="w-12 h-12 border-2 border-gray-800 rounded-md flex items-center justify-center bg-white
+                                    peer-checked:bg-red-100 peer-checked:border-red-700">
+                          <span class="text-2xl font-bold text-red-700">✕</span>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div class="mt-4 flex justify-center">
+                      <button class="btn btn-primary btn-sm">Save</button>
+                    </div>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+    </div>
+
+    {# ---------------- MOBILE: CARDS ---------------- #}
+    <div class="md:hidden space-y-4">
+      {% for s in appeals %}
+        <div class="card bg-white shadow-lg border border-gray-200">
+          <div class="card-body">
+
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h2 class="text-xl font-bold text-gray-900">{{ s.username }}</h2>
+                <div class="text-sm text-gray-500">ID: {{ s.id }}</div>
+                <div class="text-sm text-gray-500">Timeout count: {{ s.timeout_count }}</div>
+              </div>
+              {% if s.isFlagged %}
+                <span class="badge badge-error">Flagged</span>
+              {% endif %}
+            </div>
+
+            <div class="collapse collapse-arrow bg-base-200 rounded-xl mt-3">
+              <input type="checkbox" />
+              <div class="collapse-title font-semibold">View flagged activity</div>
+              <div class="collapse-content text-sm text-gray-700 space-y-2">
+                <div>
+                  <span class="font-semibold">Last Device ID:</span>
+                  <span class="font-mono break-all">{{ s.temporary_device_holder or "—" }}</span>
+                </div>
+                <div>
+                  <span class="font-semibold">Last GPS attempt:</span>
+                  <span class="font-mono break-all">{{ s.temporary_gps_holder or "—" }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="collapse collapse-arrow bg-base-200 rounded-xl mt-3">
+              <input type="checkbox" />
+              <div class="collapse-title font-semibold flex items-center justify-between">
+                <span>View appeal</span>
+                {% if s.appeal_image %}
+                  <span class="badge badge-outline">📷</span>
+                {% endif %}
+              </div>
+              <div class="collapse-content text-sm text-gray-700 space-y-3">
+                <div class="whitespace-pre-wrap">{{ s.appeal_desc }}</div>
+                {% if s.appeal_image %}
+                  <img
+                    src="{{ url_for('static', filename='uploads/' ~ s.appeal_image) }}"
+                    alt="Appeal proof"
+                    class="rounded-xl border border-gray-200 bg-white max-h-64 object-contain w-full"
+                  />
+                {% endif %}
+              </div>
+            </div>
+
+            <form class="mt-4" method="POST" action="{{ url_for('appeal_views.resolve_appeal_action', student_id=s.id) }}">
+              <div class="flex items-center justify-center gap-4">
+                <label class="cursor-pointer">
+                  <input type="radio" name="action" value="approve" class="peer hidden" required>
+                  <div class="w-14 h-14 border-2 border-gray-800 rounded-md flex items-center justify-center bg-white
+                              peer-checked:bg-green-100 peer-checked:border-green-700">
+                    <span class="text-3xl font-bold text-green-700">✓</span>
+                  </div>
+                </label>
+
+                <label class="cursor-pointer">
+                  <input type="radio" name="action" value="delete" class="peer hidden" required>
+                  <div class="w-14 h-14 border-2 border-gray-800 rounded-md flex items-center justify-center bg-white
+                              peer-checked:bg-red-100 peer-checked:border-red-700">
+                    <span class="text-3xl font-bold text-red-700">✕</span>
+                  </div>
+                </label>
+              </div>
+
+              <div class="mt-4">
+                <button class="btn btn-primary w-full">Save</button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <div class="bg-white rounded-2xl shadow border border-gray-200 p-10 text-center text-gray-600">
+      No appeals submitted.
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}
