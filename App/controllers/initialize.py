@@ -3,6 +3,7 @@ from time import sleep, time
 from .user import create_user
 from .badge import awardTestBadge, createBadge
 from App.database import db
+from App.models import Student
 import random
 
 def initialize():
@@ -12,8 +13,9 @@ def initialize():
     # Create users
     bob = create_user('bob@my.uwi.edu', 'bob', 'bobpass')
     jane = create_user('jane@sta.uwi.edu', 'jane', 'janepass')
+    alice = create_user('alice@my.uwi.edu', 'alice', 'alicepass')
     suspicious_student = create_user('suspicious@my.uwi.edu', 'suspicious', 'suspiciouspass')
-    print (f'Created users: {bob}, {jane}, {suspicious_student}')
+    print (f'Created users: {bob}, {jane}, {alice}, {suspicious_student}')
 
     # Create badges
     badge_25 = createBadge('25 Points', 'Awarded for earning 25 points', 25)
@@ -169,3 +171,9 @@ def initialize():
         db.session.commit()
     else:
         print('Failed to create user Bob. Please check the user creation process.')
+
+    bob_obj = Student.query.filter_by(username='bob').first()
+    if bob_obj:
+        bob.isFlagged = True  # Manually set Bob as flagged for testing purposes
+        db.session.commit()
+        print("Bob has been flagged for attending suspicious events. Bob is flagged:", bob.isFlagged)
