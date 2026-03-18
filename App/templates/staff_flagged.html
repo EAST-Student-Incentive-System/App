@@ -14,9 +14,9 @@ Flagged Students
   <!-- TABLE -->
   {%if flagged_students%}
   <div class="overflow-x-auto">
-    <table id="flagged-table" class="table w-full">
+    <table id="flagged-table" class="table w-full bg-white rounded-lg shadow-md">
       <thead>
-        <tr>
+        <tr class="bg-gray-50 text-left-bold text-black">
           <th>Name</th>
           <th>View suspicious activity</th>
           <th>Actions</th>
@@ -36,12 +36,14 @@ Flagged Students
           </td>
           <td>
             <!-- Action buttons (e.g., View, Unflag) -->
+            <div class="flex gap-1">
             <form action="{{ url_for('user_views.unflag_student', student_id=student.id) }}" method="POST">
               <button class="btn btn-sm" type="submit">Unflag</button>
             </form>
             <form action method="POST">
-              <button class="btn btn-sm danger">Report (specifics TBD)</button>
+              <button class="btn btn-sm btn-error">Timeout</button>
             </form>
+            </div>
           </td>
         </tr>
         {% endfor %}
