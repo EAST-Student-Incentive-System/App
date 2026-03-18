@@ -1,5 +1,5 @@
 from App.database import db
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class Attendance(db.Model):
     __tablename__ ='attendance'
@@ -40,4 +40,14 @@ class Attendance(db.Model):
             self.timestamp = timestamp
         else:
             self.timestamp = datetime.now()
+            
+    def is_suspicious(self):
+        # Check if they are attending multiple events within a short time frame (e.g., 1 hour)
+        recent_attendances = Attendance.query.filter(
+            Attendance.student_id == self.student_id,
+            Attendance.id != self.id,
+            Attendance.timestamp >= self.timestamp - timedelta(hours=1)
+        ).all()
+        return len(recent_attendances) > 0  # Return True if any recent attendances are found
+
 #test
