@@ -1,0 +1,60 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+Flagged Students
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-6 py-8">
+  <!-- HEADER ROW -->
+  <div class="flex items-center mb-8 gap-4">
+    <h1 class="text-3xl font-bold text-gray-800 flex-1 text-center">Flagged Students</h1>
+  </div>
+
+  <!-- TABLE -->
+  {%if flagged_students%}
+  <div class="overflow-x-auto">
+    <table id="flagged-table" class="table w-full bg-white rounded-lg shadow-md">
+      <thead>
+        <tr class="bg-gray-50 text-left-bold text-black">
+          <th>Name</th>
+          <th>View suspicious activity</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for student in flagged_students %}
+        <tr>
+          <td>{{ student.id }}</td>
+          <td>
+
+            {% for attendance in student.attendances %}
+            {% if attendance.is_suspicious %}
+            <p>{{ attendance.event.name }} - {{ attendance.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+            {% endif %}
+            {% endfor %}
+          </td>
+          <td>
+            <!-- Action buttons (e.g., View, Unflag) -->
+            <div class="flex gap-1">
+            <form action="{{ url_for('user_views.unflag_student', student_id=student.id) }}" method="POST">
+              <button class="btn btn-sm" type="submit">Unflag</button>
+            </form>
+            <form action method="POST">
+              <button class="btn btn-sm btn-error">Timeout</button>
+            </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% else %}
+    <div class="text-center py-8">
+      <p>No flagged students at the moment.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template, jsonify, request, send_from_directory, flash, redirect, url_for
 from flask_jwt_extended import jwt_required, current_user as jwt_current_user, get_jwt_identity
-from App.models import Student
+from App.models import Student, user
+from App.models.staff import Staff
+from App import db
 
 from.index import index_views
 
@@ -34,7 +36,7 @@ def get_users_action():
 @user_views.route('/api/users', methods=['POST'])
 def create_user_endpoint():
     data = request.json
-    user = create_user(data['username'], data['password'])
+    user = create_user(data['username'], data['password']) # pyright: ignore[reportOptionalSubscript]
     return jsonify({'message': f"user {user.username} created with id {user.id}"})
 
 @user_views.route('/static/users', methods=['GET'])
@@ -63,3 +65,33 @@ def student_history_page(student_id):
     if history is None:
         return "Student not found", 404
     return render_template('student_history.html', history=history, user=user)
+
+# --------------------------------------------------
+# Staff command endpoints
+# --------------------------------------------------
+
+@user_views.route('/staff/flagged', methods=['GET'])
+@jwt_required()
+def flagged_command():   
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    print (user_id, user)
+    if not user or not user.role == "staff":
+        return jsonify({'error': 'Unauthorized'}), 403
+    return render_template('staff_flagged.html', user=user, flagged_students=Student.query.filter_by(isFlagged=True).all())
+
+@user_views.route('/staff/flagged/<int:student_id>/unflag', methods=['POST'])
+@jwt_required()
+def unflag_student(student_id):
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or not user.role == "staff":
+        return jsonify({'error': 'Unauthorized'}), 403
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({'error': 'Student not found'}), 404
+    student.isFlagged = False
+    db.session.commit()
+    flash(f"Student {student.username} has been unflagged.")
+    print (f"Unflagged student {student.username} (ID: {student.id})" f" by staff {user.username} (ID: {user.id})")
+    return redirect(url_for(endpoint='user_views.flagged_command'))

@@ -2,6 +2,7 @@ from App.models.event import Event
 from App.models import Attendance, Student, Staff
 from App.models.student_event import student_event
 from App.database import db
+from datetime import datetime, timedelta
 import qrcode
 import io
 import base64
@@ -135,9 +136,15 @@ def log_attendance(student_id, event_id, timestamp=None, student_lat=None, stude
         if distance > event.radius:
             db.session.commit()
             return False
+    for attendance in student.attendances:
+        if attendance.timestamp > datetime.now() - timedelta(hours=1):
+            print ("STUDENT ATTENDED ANOTHER EVENT WITHIN THE LAST HOUR, STUDENT IS NOW FLAGGED")
+            student.isFlagged = True
     student.add_points(event.calculate_point_value())
     attendance = Attendance(student_id=student_id, event_id=event_id, timestamp=timestamp or datetime.utcnow())
     print("NEW ATTENDANCE:", attendance)
+    if not student.isFlagged:
+        print("POINTS AWARDED:", event.calculate_point_value())
     db.session.add(attendance)
     db.session.commit()
     return attendance.get_json()
