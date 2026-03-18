@@ -285,6 +285,9 @@ def get_student_events_route():
         print("Unauthorized access attempt by user_id:", user_id)
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))
+    if user.isFlagged:
+        flash('Your account is flagged due to suspicious activity. Please submit an appeal to resolve this issue.', 'error')
+        return redirect(url_for('appeal_views.student_appeal_page'))
     student_id = user.id
     events = Event.query.filter_by(active=True).all()
     print("DEBUG: Events for student_id", student_id, "=", [e.name for e in events])
