@@ -20,6 +20,7 @@ class Student(User):
     events = db.relationship("Event", secondary=student_event, back_populates="students")
     appeal_desc = db.Column(db.Text, nullable=True)
     appeal_image = db.Column(db.String(256), nullable=True)
+    appeal_status = db.Column(db.String(20), nullable=True)  # "pending" | "approved" | "rejected"
     timeout_count = db.Column(db.Integer, default=0)
     temporary_gps_holder = db.Column(db.String(64), nullable = True)   # store last GPS attempt
     temporary_device_holder = db.Column(db.String(256), nullable = True)  # store last device attempt
@@ -28,6 +29,7 @@ class Student(User):
     __mapper_args__ = {
         'polymorphic_identity': 'student',
     }
+
 
     def add_points(self, amount):
         if amount <= 0:
