@@ -2,12 +2,13 @@ from App.models.event import Event
 from App.models import Attendance, Student, Staff
 from App.models.student_event import student_event
 from App.database import db
-from datetime import datetime
 import qrcode
 import io
 import base64
 import time
 from geopy.distance import geodesic
+from datetime import datetime
+
 
 
 
@@ -108,7 +109,7 @@ def leave_event(student_id, event_id):
     db.session.commit()
     return True
 
-def log_attendance(student_id, event_id, datetime=None, student_lat=None, student_lon=None):
+def log_attendance(student_id, event_id, timestamp=None, student_lat=None, student_lon=None):
     student = db.session.get(Student, student_id)
     print("STUDENT:", student)
     event = db.session.get(Event, event_id)
@@ -135,7 +136,7 @@ def log_attendance(student_id, event_id, datetime=None, student_lat=None, studen
             db.session.commit()
             return False
     student.add_points(event.calculate_point_value())
-    attendance = Attendance(student_id=student_id, event_id=event_id, timestamp=datetime)
+    attendance = Attendance(student_id=student_id, event_id=event_id, timestamp=timestamp or datetime.utcnow())
     print("NEW ATTENDANCE:", attendance)
     db.session.add(attendance)
     db.session.commit()
