@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+{% block title %}Appeal{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-8">
+
+  <div class="bg-white rounded-xl p-6 sm:p-10">
+
+    <!-- Page heading -->
+    <div class="text-center pb-6">
+      <h1 class="text-4xl font-bold tracking-wide text-gray-900">Appeals</h1>
+    </div>
+
+    <!-- Status section -->
+    <div class="mb-10">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+        <div class="text-2xl font-semibold text-gray-800">
+          Status
+        </div>
+
+        <div class="flex items-center gap-3">
+          {% set status = (student.appeal_status or 'pending') %}
+
+          {% if status == 'approved' %}
+            <span class="badge badge-success badge-lg">Approved</span>
+            <span class="text-gray-600">Your appeal was approved.</span>
+
+          {% elif status == 'rejected' %}
+            <span class="badge badge-error badge-lg">Rejected</span>
+            <span class="text-gray-600">Your appeal was rejected.</span>
+
+          {% else %}
+            <span class="badge badge-warning badge-lg">Pending</span>
+            <span class="text-gray-600">Your appeal is awaiting review.</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <form
+      method="POST"
+      action="{{ url_for('appeal_views.submit_student_appeal_action') }}"
+      enctype="multipart/form-data"
+      class="space-y-10"
+    >
+
+      <!-- Row 1: Description label + textarea + counter -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        <div class="text-2xl font-semibold text-gray-800">
+          Description
+        </div>
+
+        <div>
+          <textarea
+            id="appeal_desc"
+            name="appeal_desc"
+            maxlength="200"
+            class="w-full min-h-56 textarea textarea-bordered text-base"
+            placeholder="Describe why you think you were wrongly flagged..."
+            required
+          >{{ student.appeal_desc or '' }}</textarea>
+
+          <div class="mt-2 text-lg text-gray-700">
+            <span id="descCount">0</span>/200
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Upload label + dropzone -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        <div class="text-2xl font-semibold text-gray-800">
+          Upload Photos
+        </div>
+
+        <div>
+          <label
+            for="appeal_image"
+            id="dropzone"
+            class="w-full min-h-44 rounded-xl border-2 border-dashed border-gray-400 bg-gray-50
+                   flex flex-col items-center justify-center gap-2 cursor-pointer
+                   hover:bg-gray-100 transition"
+          >
+            <div class="text-4xl text-gray-400">☁︎</div>
+            <div class="text-2xl font-bold text-gray-800">Upload a File</div>
+            <div class="text-base text-gray-600">Drag and drop files here</div>
+            <div class="text-sm text-gray-500 mt-2" id="fileName"></div>
+          </label>
+
+          <input
+            id="appeal_image"
+            type="file"
+            name="appeal_image"
+            accept="image/*"
+            class="hidden"
+          />
+
+          {% if student.appeal_image %}
+            <div class="mt-4">
+              <div class="text-sm text-gray-500 mb-2">Current uploaded proof:</div>
+              <img
+                src="{{ url_for('static', filename='uploads/' ~ student.appeal_image) }}"
+                class="rounded-lg border border-gray-200 max-h-80 object-contain w-full bg-white"
+                alt="Appeal proof"
+              />
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="border-t border-gray-200"></div>
+
+      <div class="flex justify-center pt-2">
+        <button type="submit" class="btn bg-green-500 hover:bg-green-600 text-white px-16">
+          Submit
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const desc = document.getElementById("appeal_desc");
+  const descCount = document.getElementById("descCount");
+
+  function updateCount() {
+    if (!desc || !descCount) return;
+    descCount.textContent = (desc.value || "").length;
+  }
+  updateCount();
+  desc?.addEventListener("input", updateCount);
+
+  const input = document.getElementById("appeal_image");
+  const fileName = document.getElementById("fileName");
+  const dropzone = document.getElementById("dropzone");
+
+  function showFile(file) {
+    if (!file) return;
+    fileName.textContent = file.name;
+  }
+
+  input?.addEventListener("change", () => {
+    const file = input.files && input.files[0];
+    showFile(file);
+  });
+
+  dropzone?.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropzone.classList.add("bg-gray-100");
+  });
+
+  dropzone?.addEventListener("dragleave", () => {
+    dropzone.classList.remove("bg-gray-100");
+  });
+
+  dropzone?.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropzone.classList.remove("bg-gray-100");
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      input.files = files;
+      showFile(files[0]);
+    }
+  });
+</script>
+{% endblock %}
