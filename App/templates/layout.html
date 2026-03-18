@@ -84,6 +84,7 @@
       <ul class="menu flex-1 p-4">
         <li><a href="{{ url_for('event_views.get_staff_events_route') }}">Events</a></li>
         <li><a href="{{ url_for('reward_views.list_rewards_page') }}">Rewards</a></li>
+        <li><a href="{{ url_for('appeal_views.staff_appeals_page') }}">Appeals</a></li>
         <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
       </ul>
     </div>
@@ -119,6 +120,7 @@
       <li><a href="{{ url_for('user_views.student_history_page', student_id=user.id) }}">History</a></li>
       <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}">Rewards</a></li>
       <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}">Badges</a></li>
+      
       <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
     </ul>
   </div>
@@ -144,7 +146,8 @@
 
 
   <!-- FontAwesome for icons -->
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script>
   document.addEventListener("DOMContentLoaded", () => {
     const alerts = document.querySelectorAll("#flash-container .alert");
     alerts.forEach(alert => {
