@@ -17,3 +17,8 @@ rich==13.4.2
 qrcode==7.3.1
 pytz==2024.1
 sqlalchemy
+Pillow==10.2.0
+alembic==1.13.1
+SQLAlchemy==2.0.25
+setuptools>=65.0.0
+
