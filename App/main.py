@@ -48,3 +48,7 @@ def create_app(overrides={}):
         return redirect(url_for('auth_views.login_page'))
 
     return app
+
+
+app = create_app()
+
