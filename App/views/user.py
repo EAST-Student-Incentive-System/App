@@ -95,3 +95,20 @@ def unflag_student(student_id):
     flash(f"Student {student.username} has been unflagged.")
     print (f"Unflagged student {student.username} (ID: {student.id})" f" by staff {user.username} (ID: {user.id})")
     return redirect(url_for(endpoint='user_views.flagged_command'))
+
+"""@user_views.route('/staff/flagged/<int:student_id>/timeout', methods=['POST'])
+@jwt_required()
+def timeout_student(student_id):
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or not user.role == "staff":
+        return jsonify({'error': 'Unauthorized'}), 403
+    student = Student.query.get(student_id)
+    if not student:
+        return jsonify({'error': 'Student not found'}), 404
+    student.isFlagged = False
+    student.timeout_until = datetime.now() + timedelta(days=7)  # Timeout for 30 minutes
+    db.session.commit()
+    flash(f"Student {student.username} has been timed out for 30 minutes.")
+    print (f"Timed out student {student.username} (ID: {student.id})" f" by staff {user.username} (ID: {user.id})")
+    return redirect(url_for(endpoint='user_views.flagged_command'))"""  #add column timeout_until to Student model to use this function, add logic to display device info if that was suspicious activity that led to the timeout
