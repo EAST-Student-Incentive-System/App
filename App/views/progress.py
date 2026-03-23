@@ -22,6 +22,17 @@ def view_leaderboard_route():
     leaderboard = progress.viewLeaderBoard()
     user_id = get_jwt_identity()
     user = Student.query.get(user_id)
-    return render_template("leaderboard.html", leaderboard=leaderboard, user=user)
+
+    # Build a username -> avatar_seed lookup so the template can render DiceBear avatars
+    usernames = [entry['username'] for entry in leaderboard]
+    students = Student.query.filter(Student.username.in_(usernames)).all()
+    avatar_seeds = {s.username: s.avatar_seed for s in students}
+
+    return render_template(
+        "leaderboard.html",
+        leaderboard=leaderboard,
+        user=user,
+        avatar_seeds=avatar_seeds,
+    )
 
 
