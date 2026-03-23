@@ -4,6 +4,8 @@ from App.database import db
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from itsdangerous import URLSafeTimedSerializer
 
+from App.utils import is_valid_username
+
 user = Blueprint('user', __name__)
 serializer= URLSafeTimedSerializer('your_secret_key')
 
@@ -52,6 +54,24 @@ def view_profile(user_id):
         return user.get_json()
     print ("User not found")
     return None
+
+def update_username(user_id, new_username):
+    valid, error = is_valid_username(new_username)
+    if not valid:
+        return False, error
+
+    # Check it's not taken by someone else
+    existing = User.query.filter(
+        User.username == new_username,
+        User.id != user_id
+    ).first()
+    if existing:
+        return False, "That username is already taken."
+
+    user = User.query.get(user_id)
+    user.username = new_username
+    db.session.commit()
+    return True, "Username updated successfully!"
 
 
 @user.route("/login", methods=["GET", "POST"])

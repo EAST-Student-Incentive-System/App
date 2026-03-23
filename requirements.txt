@@ -18,9 +18,4 @@ python-dotenv==1.0.1
 rich==13.4.2
 qrcode==7.3.1
 pytz==2024.1
-sqlalchemy
-Pillow==10.2.0
-alembic==1.13.1
-SQLAlchemy==2.0.25
-pip==23.2.1
-
+better-profanity==0.7.0
