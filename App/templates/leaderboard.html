@@ -93,11 +93,13 @@
     background: #ede9fe;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
-    border: 2px solid #d8b4fe; color: #7c3aed;
+    border: 2px solid #d8b4fe;
+    overflow: hidden;
   }
-  .lb-avatar.gold   { background: #fef9c3; border-color: #fbbf24; color: #b45309; }
-  .lb-avatar.silver { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
-  .lb-avatar.bronze { background: #fef3c7; border-color: #d97706; color: #92400e; }
+  .lb-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lb-avatar.gold   { background: #fef9c3; border-color: #fbbf24; }
+  .lb-avatar.silver { background: #f1f5f9; border-color: #94a3b8; }
+  .lb-avatar.bronze { background: #fef3c7; border-color: #d97706; }
 
   .lb-rank {
     width: 28px; min-width: 28px;
@@ -174,7 +176,7 @@
       <div class="lb-rows-wrap">
         {% if leaderboard %}
           {% for entry in leaderboard[start:end] %}
-            {% set rank = entry.rank %}
+            {% set rank = entry['rank'] %}
             {% if   rank == 1 %}{% set ac = "gold"   %}{% set bc = "gold"   %}
             {% elif rank == 2 %}{% set ac = "silver" %}{% set bc = "silver" %}
             {% elif rank == 3 %}{% set ac = "bronze" %}{% set bc = "bronze" %}
@@ -182,17 +184,20 @@
             {% endif %}
             <div class="lb-row">
               <div class="lb-avatar {{ ac }}">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-                  <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clip-rule="evenodd"/>
-                </svg>
+                {% set seed = avatar_seeds.get(entry['username'], entry['username']) %}
+                <img
+                  src="https://api.dicebear.com/9.x/fun-emoji/svg?seed={{ seed }}"
+                  alt="{{ entry.username }}'s avatar"
+                  loading="lazy"
+                />
               </div>
               <div class="lb-rank">
                 {% if rank <= 3 %}<span class="medal-badge {{ bc }}">{{ rank }}</span>
                 {% else %}{{ rank }}{% endif %}
               </div>
-              <div class="lb-name">{{ entry.username }}</div>
+              <div class="lb-name">{{ entry['username'] }}</div>
               <div class="text-right">
-                <span class="lb-points-val">{{ entry.total_points }}</span>
+                <span class="lb-points-val">{{ entry['total_points'] }}</span>
               </div>
             </div>
           {% endfor %}
