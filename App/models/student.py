@@ -1,3 +1,4 @@
+import uuid
 from App.database import db
 from .user import User
 from .redeemed_reward import RedeemedReward
@@ -12,6 +13,7 @@ class Student(User):
     total_points = db.Column(db.Integer, default=0, nullable=False)
     redeemed_points = db.Column(db.Integer, default=0, nullable=False)
     current_balance = db.Column(db.Integer, default=0, nullable=False)
+    avatar_seed = db.Column(db.String(100), nullable=False, default=lambda: str(uuid.uuid4()))
 
     attendances = db.relationship('Attendance', back_populates='student', cascade="all, delete-orphan")
     redeemed_rewards = db.relationship('Reward', secondary=RedeemedReward.__table__, back_populates='students')
@@ -59,6 +61,12 @@ class Student(User):
     
     def check_enough_points(self, reward):
         return self.current_balance >= reward.pointCost
+
+    def get_avatar_url(self, style="fun-emoji"):
+        return f"https://api.dicebear.com/9.x/{style}/svg?seed={self.avatar_seed}"
+
+    def regenerate_avatar(self):
+        self.avatar_seed = str(uuid.uuid4())
     
 
     
