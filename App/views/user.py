@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request, send_from_directory, flash, redirect, url_for
 from flask_jwt_extended import jwt_required, current_user as jwt_current_user, get_jwt_identity
+from App.controllers.user import update_username
 from App.models import Student
 from App.database import db
 
@@ -71,4 +72,12 @@ def regenerate_avatar():
     jwt_current_user.regenerate_avatar()
     db.session.commit()
     flash('New profile picture generated!', 'success')
+    return redirect(url_for('user_views.student_history_page', student_id=jwt_current_user.id))
+
+@user_views.route('/profile/update-username', methods=['POST'])
+@jwt_required()
+def update_username_route():
+    new_username = request.form.get('username', '').strip()
+    success, message = update_username(jwt_current_user.id, new_username)
+    flash(message, 'success' if success else 'danger')
     return redirect(url_for('user_views.student_history_page', student_id=jwt_current_user.id))
