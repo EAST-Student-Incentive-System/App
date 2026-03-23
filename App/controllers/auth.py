@@ -4,7 +4,8 @@ from App.database import db
 from flask import request
 
 
-from App.models import User, Staff, Student #! Student should be added in a future update
+from App.models import User, Staff, Student
+from App.utils import is_valid_username 
 
 
 def signUp(email, username, password):
@@ -14,6 +15,11 @@ def signUp(email, username, password):
     ).scalar_one_or_none()
     if existing_email:
         return {'error': 'Email already registered.'}
+
+    # Validate username (length, characters, profanity)
+    valid, error = is_valid_username(username)
+    if not valid:
+        return {'error': error}
 
     # Check if username already exists
     existing_username = db.session.execute(
