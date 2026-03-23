@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request, send_from_directory, flash, redirect, url_for
 from flask_jwt_extended import jwt_required, current_user as jwt_current_user, get_jwt_identity
 from App.models import Student
+from App.database import db
 
 from.index import index_views
 
@@ -63,3 +64,11 @@ def student_history_page(student_id):
     if history is None:
         return "Student not found", 404
     return render_template('student_history.html', history=history, user=user)
+
+@user_views.route('/profile/regenerate-avatar', methods=['POST'])
+@jwt_required()
+def regenerate_avatar():
+    jwt_current_user.regenerate_avatar()
+    db.session.commit()
+    flash('New profile picture generated!', 'success')
+    return redirect(url_for('user_views.student_history_page', student_id=jwt_current_user.id))
