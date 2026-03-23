@@ -56,15 +56,15 @@ def student_history_api(student_id):
     return jsonify(history)
 
 
-@user_views.route('/students/<int:student_id>/history', methods=['GET'])
+@user_views.route('/students/<int:student_id>/profile', methods=['GET'])
 @jwt_required()
-def student_history_page(student_id):
+def profile_page(student_id):
     user_id = get_jwt_identity()
     user = Student.query.get(user_id)
     history = get_student_history(student_id)
     if history is None:
         return "Student not found", 404
-    return render_template('student_history.html', history=history, user=user)
+    return render_template('student_profile.html', history=history, user=user)
 
 @user_views.route('/profile/regenerate-avatar', methods=['POST'])
 @jwt_required()
@@ -72,7 +72,7 @@ def regenerate_avatar():
     jwt_current_user.regenerate_avatar()
     db.session.commit()
     flash('New profile picture generated!', 'success')
-    return redirect(url_for('user_views.student_history_page', student_id=jwt_current_user.id))
+    return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
 
 @user_views.route('/profile/update-username', methods=['POST'])
 @jwt_required()
@@ -80,4 +80,4 @@ def update_username_route():
     new_username = request.form.get('username', '').strip()
     success, message = update_username(jwt_current_user.id, new_username)
     flash(message, 'success' if success else 'danger')
-    return redirect(url_for('user_views.student_history_page', student_id=jwt_current_user.id))
+    return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
