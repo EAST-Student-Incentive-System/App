@@ -3,6 +3,7 @@ from time import sleep, time
 from .user import create_user
 from .badge import awardTestBadge, createBadge
 from App.database import db
+from App.models import Student
 import random
 
 def initialize():
@@ -12,6 +13,9 @@ def initialize():
     # Create users
     bob = create_user('bob@my.uwi.edu', 'bob', 'bobpass')
     jane = create_user('jane@sta.uwi.edu', 'jane', 'janepass')
+    alice = create_user('alice@my.uwi.edu', 'alice', 'alicepass')
+    suspicious_student = create_user('suspicious@my.uwi.edu', 'suspicious', 'suspiciouspass')
+    print (f'Created users: {bob}, {jane}, {alice}, {suspicious_student}')
 
     # Create badges
     badge_25 = createBadge('25 Points', 'Awarded for earning 25 points', 25)
@@ -43,6 +47,22 @@ def initialize():
     badge_Innovator = createBadge('Innovator', 'Awarded for introducing a new idea or initiative that benefits the campus community', 70)
     badge_Faker = createBadge('Faker', 'Awarded for attending an event without checking in (for testing purposes)', 0)
     badge_Jack_of_All_Trades = createBadge('Jack of All Trades', 'Awarded for attending events in at least 5 different categories', 50)
+    badge_Master_of_All_Trades = createBadge('Master of All Trades', 'Awarded for attending events in at least 10 different categories', 100)
+    badge_Bear_Grylls = createBadge('Bear Grylls', 'Awarded for attending an outdoor survival skills event', 40)
+    badge_Whale_Whisperer = createBadge('Whale Whisperer', 'Awarded for attending a marine biology event', 30)
+    badge_Sleep_Deprived = createBadge('Sleep Deprived', 'Awarded for attending an event that lasts past midnight', 50)
+    badge_Globetrotter = createBadge('Globetrotter', 'Awarded for attending an event that celebrates international cultures', 30)
+    badge_King_of_the_Campus = createBadge('King of the Campus', 'Awarded for attending the most events in a semester', 1000)
+    badge_Queen_of_the_Campus = createBadge('Queen of the Campus', 'Awarded for attending the second most events in a semester', 500)
+    badge_Its_Been_so_Long = createBadge('It\'s Been so Long', 'Awarded for attending an event after a long absence from campus activities', 20)
+    badge_Its_High_Noon = createBadge('It\'s High Noon', 'Awarded for attending an event that starts at noon', 20)
+    badge_Rookie = createBadge('Rookie', 'Awarded for attending your first event', 10)
+    badge_Master_Baiter = createBadge('Master Baiter', 'Awarded for attending a fishing event', 20)
+    
+    badge_Enemy_Network = createBadge('Enemy Network', 'Awarded for attending an event organized by a rival university (for testing purposes)', 0)
+    badge_Infilatrator = createBadge('Infiltrator', 'Awarded for attending an event while pretending to be a student from another university (for testing purposes)', 0)
+    badge_SlyFox = createBadge('Sly Fox', 'Awarded for attending an event with a suspiciously vague description and no location (for testing purposes)', 0)
+    badge_Stupidest_Badge_Ever = createBadge('Stupidest Badge Ever', 'This badge has no criteria and is worth 0 points. It is intentionally ridiculous and should never be awarded to any student. It exists solely for testing purposes.', -9999)
     
 
     # Create rewards
@@ -57,7 +77,7 @@ def initialize():
     Movie_Tickets = create_reward('Movie Tickets', 'Two tickets to the movies', 30 ,2)
     Massage_Coupon = create_reward('Massage Coupon', 'A coupon for a free massage at the campus wellness center', 40 ,2)
     Dorm_Snack_Box = create_reward('Dorm Snack Box', 'A box of snacks delivered to your dorm room', 15 ,2)
-    #Fake_Reward = create_reward('Fake Reward', 'This reward is for testing purposes and has no point cost', 0 ,2)
+    #//Fake_Reward = create_reward('Fake Reward', 'This reward is for testing purposes and has no point cost', 0 ,2)
 
     # Create events
     from App.controllers.event import create_event, join_event, log_attendance
@@ -73,6 +93,12 @@ def initialize():
     event8 = create_event(jane.id, 'Art Exhibition', 'Art', 'Showcase of student artwork', now + timedelta(days=28), now + timedelta(days=28, hours=3), 'Art Gallery', None, True)
     event9 = create_event(jane.id, 'Sports Tournament', 'Sports', 'Intramural sports tournament', now + timedelta(days=35), now + timedelta(days=35, hours=6), 'Sports Complex', None, True)
     event10 = create_event(jane.id, 'Environmental Summit', 'Environment', 'Panel discussion on sustainability initiatives', now + timedelta(days=42), now + timedelta(days=42, hours=4), 'Conference Center', None, True)
+    event11 = create_event(jane.id, 'Late Night Study Session', 'Academic', 'Study session for finals week', now + timedelta(days=45, hours=20), now + timedelta(days=46, hours=2), 'Library', None, True)
+    event12 = create_event(jane.id, 'Early Morning Yoga', 'Health', 'Start your day with a yoga session', now + timedelta(days=50, hours=6), now + timedelta(days=50, hours=7), 'Outdoor Pavilion', None, True)
+    event13 = create_event(jane.id, 'Weekend Movie Night', 'Social', 'Relax with a movie night on the weekend', now + timedelta(days=55, hours=19), now + timedelta(days=55, hours=22), 'Student Center Lounge', None, True)
+    
+    suspiciousevent = create_event(jane.id, 'Suspicious Event', 'Unknown', 'This event is for testing the student flagging system. It has no location and is happening right now.', now - timedelta(minutes=30), now + timedelta(minutes=30), None, None, True)
+    suspiciousevent2 = create_event(jane.id, 'Another Suspicious Event', 'Unknown', 'This event is also for testing the student flagging system. It has no location and is happening right now.', now - timedelta(minutes=30), now + timedelta(minutes=30), None, None, True)
 
     # Give Bob some points for demo
     from App.models import Student
@@ -81,24 +107,60 @@ def initialize():
         bob_obj.add_points(999)  # Give enough points for all badges and rewards
         db.session.commit()
 
-        # Award ALL badges to Bob
-        from App.controllers.badge import awardBadge
-        for badge in [badge_25, badge_50, badge_75, badge_100, badge_Clean_Campus, badge_Community_Service, badge_Volunteer, badge_Event_Participant, badge_Helping_Hand, badge_Leadership, badge_Savior_of_the_Planet, badge_Health_and_Wellness, badge_Knight_of_Knowledge, badge_Cultural_Explorer, badge_Mage_of_Mentorship, badge_Social_Butterfly, badge_Technology_Enthusiast, badge_Art_Aficionado, badge_Sports_Fanatic, badge_Thief_of_Time, badge_Night_Owl, badge_Enemy_of_Boredom, badge_Early_Bird, badge_Distinguished_Services, badge_Community_Champion, badge_Heroism, badge_Innovator, badge_Faker, badge_Jack_of_All_Trades]:
+
+        # Award SOME badges to Bob (so the badges page shows both unlocked + locked)
+        # NOTE: We intentionally do NOT award every badge.
+        earned_badges = [
+            badge_25,
+            badge_50,
+            badge_Knight_of_Knowledge,
+            badge_Cultural_Explorer,
+            badge_Health_and_Wellness,
+            badge_Event_Participant,
+            badge_Innovator,
+            badge_Jack_of_All_Trades,
+        ]
+
+        for badge in earned_badges:
             if badge:
-                awardTestBadge(bob_obj.id, badge.id, datetime.now()+timedelta(days=random.randint(1, 30)))  # Use the test badge awarding function to set earned_at at a random time. This will help demonstrate the student history page with badges earned at different times. Should be removed or modified for production use.
+                # Use past timestamps so "history" looks normal (not future-dated)
+                awardTestBadge(
+                    bob_obj.id,
+                    badge.id,
+                    datetime.now() - timedelta(days=random.randint(1, 30))
+                )
             else:
-                print(f'Failed to create badge: {badge}')
-        print(f'Bob has been awarded badges: {[badge.name for badge in [badge_25, badge_50, badge_75] if badge]}')
+                print(f"Failed to create badge: {badge}")
+
+        print(f"Bob has been awarded badges: {[b.name for b in earned_badges if b]}")
         
         # Join Bob to ALL events and log attendance
         print("Now attempting to join events and log attendance for Bob...")
-        for event in [event1, event2, event3, event4, event5, event6, event7, event8, event9, event10]:
+        for event in [event1, event2, event3, event4, event5, event6, event7, event8, event9, event10, event11, event12, event13]:
             if event and hasattr(event, 'id') and hasattr(event, 'name'):
                 join_event(bob_obj.id, event.id)
                 log_attendance(bob_obj.id, event.id, datetime.now() + timedelta(days=random.randint(1, 300)))  # Log attendance with a random timestamp to demonstrate the student history page. Should be removed or modified for production use.
                 print(f'Bob attended event: {event.id} - {event.name}')
             else:
                 print(f'Failed to create event: {event}')
+        # Now make Bob attend the suspicious events to demonstrate the flagging system
+        join_event(bob_obj.id, suspiciousevent.id)
+        log_attendance(bob_obj.id, suspiciousevent.id, datetime.now())
+        join_event(bob_obj.id, suspiciousevent2.id)
+        log_attendance(bob_obj.id, suspiciousevent2.id, datetime.now())
+        print("Bob attended suspicious events to demonstrate the flagging system. Bob is flagged:", bob_obj.isFlagged)
+        
+        # Also make the suspicious student attend the suspicious events to demonstrate the flagging system
+        suspicious_student_obj = Student.query.filter_by(username='suspicious').first()
+        if suspicious_student_obj:
+            join_event(suspicious_student_obj.id, suspiciousevent.id)
+            log_attendance(suspicious_student_obj.id, suspiciousevent.id, datetime.now())
+            join_event(suspicious_student_obj.id, suspiciousevent2.id)
+            log_attendance(suspicious_student_obj.id, suspiciousevent2.id, datetime.now())
+            join_event(suspicious_student_obj.id, event1.id)  # Also have the suspicious student attend a normal event to show that they can still participate in regular activities
+            log_attendance(suspicious_student_obj.id, event1.id, datetime.now() + timedelta(days=1))
+            print("The suspicious student attended suspicious events to demonstrate the flagging system. The suspicious student is flagged:", suspicious_student_obj.isFlagged)
+
         # Redeem ALL rewards for Bob
         for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box]:
             if reward:
@@ -109,3 +171,9 @@ def initialize():
         db.session.commit()
     else:
         print('Failed to create user Bob. Please check the user creation process.')
+
+    bob_obj = Student.query.filter_by(username='bob').first()
+    if bob_obj:
+        bob.isFlagged = True  # Manually set Bob as flagged for testing purposes
+        db.session.commit()
+        print("Bob has been flagged for attending suspicious events. Bob is flagged:", bob.isFlagged)

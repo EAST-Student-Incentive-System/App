@@ -9,7 +9,11 @@ from .reward import reward_views
 from .event import event_views
 from .student_rewards import reward_student_views
 from .progress import progress_views
+from .appeals import appeal_views
 
 
 # Add new reward_views blueprint to the views list
-views = [user_views, index_views, auth_views, reward_views, badge_views, event_views, reward_student_views, progress_views] 
+views = [user_views, index_views, auth_views, reward_views, badge_views, event_views, reward_student_views, progress_views, appeal_views]
+
+
+

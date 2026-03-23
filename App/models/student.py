@@ -5,6 +5,8 @@ from .redeemed_reward import RedeemedReward
 from .student_badge import StudentBadge
 from App.models.reward import Reward
 from App.models.student_event import student_event
+from sqlalchemy.orm import relationship, Mapped, mapped_column
+from App.models.attendance import Attendance
 
 class Student(User):
     __tablename__ = 'student'
@@ -21,6 +23,7 @@ class Student(User):
     events = db.relationship("Event", secondary=student_event, back_populates="students")
     appeal_desc = db.Column(db.Text, nullable=True)
     appeal_image = db.Column(db.String(256), nullable=True)
+    appeal_status = db.Column(db.String(20), nullable=True)  # "pending" | "approved" | "rejected"
     timeout_count = db.Column(db.Integer, default=0)
     temporary_gps_holder = db.Column(db.String(64), nullable = True)   # store last GPS attempt
     temporary_device_holder = db.Column(db.String(256), nullable = True)  # store last device attempt
@@ -29,6 +32,7 @@ class Student(User):
     __mapper_args__ = {
         'polymorphic_identity': 'student',
     }
+
 
     def add_points(self, amount):
         if amount <= 0:
