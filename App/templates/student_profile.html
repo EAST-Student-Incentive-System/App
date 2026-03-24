@@ -1,0 +1,437 @@
+{% extends "layout.html" %}
+
+{% block title %}Student Profile{% endblock %}
+
+{% block content %}
+
+<style>
+  @media (min-width: 768px) {
+    #profile-layout { flex-direction: row !important; }
+    #profile-left   { width: 18rem !important; flex-shrink: 0; }
+    #profile-right  { width: auto !important; }
+  }
+</style>
+
+<div id="profile-layout" style="display:flex; flex-direction:column; gap:1.5rem; align-items:flex-start;">
+
+  <!-- ======== LEFT PANEL: Profile Details ======== -->
+  <div id="profile-left" style="display:flex; flex-direction:column; gap:1rem; width:100%;">
+
+    <!-- Avatar & Name Card -->
+    <div class="rounded-2xl shadow-md overflow-hidden" style="background-color:#ffffff; border:1px solid #e9d5ff;">
+      <!-- Purple header band -->
+      <div class="h-16" style="background-color:#660c9e;"></div>
+      <!-- Avatar (overlapping header) -->
+      <div class="flex flex-col items-center -mt-10 pb-5 px-5">
+        <div class="rounded-full p-1 shadow-lg" style="background:#fff; border: 3px solid #660c9e;">
+          <img
+            src="{{ current_user.get_avatar_url('fun-emoji') }}"
+            alt="Profile Picture"
+            class="rounded-full w-20 h-20 object-cover"
+          />
+        </div>
+        <h2 class="mt-3 text-xl font-bold text-gray-800">{{ current_user.username }}</h2>
+        <span class="text-xs font-semibold uppercase tracking-widest mt-1 px-3 py-1 rounded-full" style="background-color:#f3e8ff; color:#660c9e;">
+          Student
+        </span>
+      </div>
+    </div>
+
+    <!-- Stats Card -->
+    <div class="rounded-2xl shadow-md p-5" style="background-color:#ffffff; border:1px solid #e9d5ff;">
+      <h3 class="text-sm font-semibold uppercase tracking-wider mb-4" style="color:#660c9e;">Overview</h3>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="flex flex-col">
+          <span class="text-2xl font-bold" style="color:#660c9e;">{{ history.badges|length }}</span>
+          <span class="text-xs text-gray-500 mt-1">Badges</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-2xl font-bold" style="color:#660c9e;">{{ history.events|length }}</span>
+          <span class="text-xs text-gray-500 mt-1">Events</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-2xl font-bold" style="color:#660c9e;">{{ history.rewards|length }}</span>
+          <span class="text-xs text-gray-500 mt-1">Rewards</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Card -->
+    <div class="rounded-2xl shadow-md p-5" style="background-color:#ffffff; border:1px solid #e9d5ff;">
+      <h3 class="text-sm font-semibold uppercase tracking-wider mb-4" style="color:#660c9e;">Edit Profile</h3>
+
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert shadow-lg flex justify-between items-center mb-3" style="background-color:white; color:inherit;">
+              <span>{{ message }}</span>
+              <button class="ml-4 text-xl font-bold focus:outline-none" onclick="this.parentElement.remove()">×</button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- Avatar regenerate -->
+      <form method="POST" action="/profile/regenerate-avatar" class="mb-4">
+        <button type="submit" class="btn btn-sm w-full rounded-xl font-semibold" style="background-color:#00d7c0; color:#fff; border:none;">
+          🎲 Regenerate Avatar
+        </button>
+      </form>
+
+      <!-- Username form -->
+      <form method="POST" action="/profile/update-username" class="flex flex-col gap-3">
+        <div>
+          <label for="username" class="block text-xs font-semibold text-gray-600 mb-1">Username</label>
+          <input
+            type="text"
+            name="username"
+            id="username"
+            value="{{ current_user.username }}"
+            minlength="3"
+            maxlength="30"
+            required
+            class="input input-bordered input-sm w-full rounded-lg focus:outline-none"
+            style="border-color:#d8b4fe; focus:border-color:#660c9e;"
+          >
+        </div>
+        <button type="submit" class="btn btn-sm rounded-xl font-semibold text-white w-full" style="background-color:#00d7c0; border:none;">
+          Save Username
+        </button>
+      </form>
+    </div>
+
+  </div><!-- end left panel -->
+
+  <!-- ======== RIGHT PANEL: Activity History ======== -->
+  <div id="profile-right" style="flex:1; min-width:0; width:100%;">
+
+    <!-- Filter tabs -->
+    <div class="flex gap-2 mb-5 flex-wrap">
+      <span class="text-sm font-semibold text-gray-500 self-center mr-1">Filter:</span>
+      <label class="cursor-pointer">
+        <input type="radio" name="historyFilter" value="all" checked onchange="filterHistory(this.value)" class="hidden peer">
+        <span class="px-4 py-1.5 rounded-full text-sm font-semibold border transition-all peer-checked:text-white" style="border-color:#660c9e; color:#660c9e;" id="tab-all">All</span>
+      </label>
+      <label class="cursor-pointer">
+        <input type="radio" name="historyFilter" value="badges" onchange="filterHistory(this.value)" class="hidden peer">
+        <span class="px-4 py-1.5 rounded-full text-sm font-semibold border transition-all" style="border-color:#660c9e; color:#660c9e;" id="tab-badges">Badges</span>
+      </label>
+      <label class="cursor-pointer">
+        <input type="radio" name="historyFilter" value="events" onchange="filterHistory(this.value)" class="hidden peer">
+        <span class="px-4 py-1.5 rounded-full text-sm font-semibold border transition-all" style="border-color:#660c9e; color:#660c9e;" id="tab-events">Events</span>
+      </label>
+      <label class="cursor-pointer">
+        <input type="radio" name="historyFilter" value="rewards" onchange="filterHistory(this.value)" class="hidden peer">
+        <span class="px-4 py-1.5 rounded-full text-sm font-semibold border transition-all" style="border-color:#660c9e; color:#660c9e;" id="tab-rewards">Rewards</span>
+      </label>
+    </div>
+
+    <div class="flex flex-col gap-5">
+
+      <!-- ---- Badges Section ---- -->
+      <section id="badgesSection" class="rounded-2xl shadow-md overflow-hidden" style="border:1px solid #e9d5ff;">
+        <div class="flex items-center gap-2 px-5 py-3" style="background-color:#660c9e;">
+          <h3 class="text-white font-bold text-base tracking-wide">Badges</h3>
+        </div>
+        <div class="p-4 bg-white">
+          {% if history.badges %}
+            <!-- Controls -->
+            <div class="flex flex-wrap gap-2 mb-3 items-center">
+              <input type="text" id="badgeSearch" placeholder="Search badges…"
+                class="input input-bordered input-xs rounded-lg flex-1 min-w-0" style="border-color:#d8b4fe; max-width:200px;"
+                onkeyup="filterBadgeTable('badgeSearch', 'badge-table')">
+              <div class="flex gap-1 flex-wrap">
+                <label class="sort-pill"><input type="radio" name="badgeSort" class="hidden peer" onchange="sortBadgeTable('badge-table',0,'asc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">A→Z</span></label>
+                <label class="sort-pill"><input type="radio" name="badgeSort" class="hidden peer" onchange="sortBadgeTable('badge-table',0,'desc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">Z→A</span></label>
+                <label class="sort-pill"><input type="radio" name="badgeSort" class="hidden peer" onchange="sortBadgeTable('badge-table',2,'asc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">Oldest</span></label>
+                <label class="sort-pill"><input type="radio" name="badgeSort" class="hidden peer" onchange="sortBadgeTable('badge-table',2,'desc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">Newest</span></label>
+              </div>
+            </div>
+            <div class="overflow-x-auto rounded-xl" style="border:1px solid #f3e8ff;">
+              <table class="table w-full badge-table text-sm">
+                <thead>
+                  <tr style="background-color:#f9f5ff; color:#660c9e;">
+                    <th class="font-semibold py-2 px-4">Name</th>
+                    <th class="font-semibold py-2 px-4">Description</th>
+                    <th class="font-semibold py-2 px-4 whitespace-nowrap">Earned At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for entry in history.badges %}
+                    <tr class="border-t hover:bg-purple-50 transition-colors" style="border-color:#f3e8ff;">
+                      <td class="py-2 px-4 font-medium text-gray-800">{{ entry.badge.name }}</td>
+                      <td class="py-2 px-4 text-gray-600">{{ entry.badge.description }}</td>
+                      <td class="py-2 px-4 whitespace-nowrap text-gray-500 text-xs" data-date="{{ entry.earnedAt }}">
+                        {{ entry.earnedAt[2:4] }}/{{ entry.earnedAt[5:7] }}/{{ entry.earnedAt[8:10] }}
+                        <span class="ml-1 px-1.5 py-0.5 rounded" style="background:#f3e8ff; color:#660c9e;">{{ entry.earnedAt[11:16] }}</span>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-gray-400 text-sm italic py-2">No badges earned yet.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- ---- Events Section ---- -->
+      <section id="eventsSection" class="rounded-2xl shadow-md overflow-hidden" style="border:1px solid #e9d5ff;">
+        <div class="flex items-center gap-2 px-5 py-3" style="background-color:#660c9e;">
+          <h3 class="text-white font-bold text-base tracking-wide">Events Attended</h3>
+        </div>
+        <div class="p-4 bg-white">
+          {% if history.events %}
+            <div class="flex flex-wrap gap-2 mb-3 items-center">
+              <input type="text" id="eventSearch" placeholder="Search events…"
+                class="input input-bordered input-xs rounded-lg flex-1 min-w-0" style="border-color:#d8b4fe; max-width:200px;"
+                onkeyup="filterEventTable('eventSearch', 'event-table')">
+              <div class="flex gap-1 flex-wrap">
+                <label class="sort-pill"><input type="radio" name="eventSort" class="hidden peer" onchange="sortEventTable('event-table',0,'asc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">A→Z</span></label>
+                <label class="sort-pill"><input type="radio" name="eventSort" class="hidden peer" onchange="sortEventTable('event-table',0,'desc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">Z→A</span></label>
+                <label class="sort-pill"><input type="radio" name="eventSort" class="hidden peer" onchange="sortEventTable('event-table',2,'asc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">Oldest</span></label>
+                <label class="sort-pill"><input type="radio" name="eventSort" class="hidden peer" onchange="sortEventTable('event-table',2,'desc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">Newest</span></label>
+              </div>
+            </div>
+            <div class="overflow-x-auto rounded-xl" style="border:1px solid #f3e8ff;">
+              <table class="table w-full event-table text-sm">
+                <thead>
+                  <tr style="background-color:#f9f5ff; color:#660c9e;">
+                    <th class="font-semibold py-2 px-4">Event</th>
+                    <th class="font-semibold py-2 px-4">Type</th>
+                    <th class="font-semibold py-2 px-4 whitespace-nowrap">Time</th>
+                    <th class="font-semibold py-2 px-4">Location</th>
+                    <th class="font-semibold py-2 px-4">Description</th>
+                    <th class="font-semibold py-2 px-4 whitespace-nowrap">Attended</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for entry in history.events %}
+                    <tr class="border-t hover:bg-purple-50 transition-colors" style="border-color:#f3e8ff;">
+                      <td class="py-2 px-4 font-medium text-gray-800">{{ entry.event.name }}</td>
+                      <td class="py-2 px-4">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold" style="background:#f3e8ff; color:#660c9e;">
+                          {{ entry.event.type or 'N/A' }}
+                        </span>
+                      </td>
+                      <td class="py-2 px-4 text-xs text-gray-500 whitespace-nowrap">
+                        {% if entry.event.start_date %}
+                          {{ entry.event.start_date[2:4] }}/{{ entry.event.start_date[5:7] }}/{{ entry.event.start_date[8:10] }}
+                          {% if entry.event.end_date %} – {{ entry.event.end_date[2:4] }}/{{ entry.event.end_date[5:7] }}/{{ entry.event.end_date[8:10] }}{% endif %}
+                        {% else %}N/A{% endif %}
+                      </td>
+                      <td class="py-2 px-4 text-gray-600 text-xs">{{ entry.event.location or 'N/A' }}</td>
+                      <td class="py-2 px-4 text-gray-600 text-xs">
+                        {% if entry.event.description and entry.event.description|length > 50 %}
+                          <button class="text-purple-700 underline text-xs hover:text-purple-900"
+                            data-description="{{ entry.event.description }}" onclick="showDescription(this)">
+                            {{ entry.event.description[:50] }}…
+                          </button>
+                        {% else %}
+                          {{ entry.event.description or 'No description' }}
+                        {% endif %}
+                      </td>
+                      <td class="py-2 px-4 whitespace-nowrap text-xs text-gray-500">
+                        <span class="px-1.5 py-0.5 rounded" style="background:#f3e8ff; color:#660c9e;">{{ entry.timestamp[11:16] }}</span>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-gray-400 text-sm italic py-2">No attendance records yet.</p>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- ---- Rewards Section ---- -->
+      <section id="rewardsSection" class="rounded-2xl shadow-md overflow-hidden" style="border:1px solid #e9d5ff;">
+        <div class="flex items-center gap-2 px-5 py-3" style="background-color:#660c9e;">
+          <h3 class="text-white font-bold text-base tracking-wide">Redeemed Rewards</h3>
+        </div>
+        <div class="p-4 bg-white">
+          {% if history.rewards|length > 0 %}
+            <div class="flex flex-wrap gap-2 mb-3 items-center">
+              <input type="text" id="rewardSearch" placeholder="Search rewards…"
+                class="input input-bordered input-xs rounded-lg flex-1 min-w-0" style="border-color:#d8b4fe; max-width:200px;"
+                onkeyup="filterRewardTable('rewardSearch')">
+              <div class="flex gap-1 flex-wrap">
+                <label class="sort-pill"><input type="radio" name="rewardSort" class="hidden peer" onchange="sortRewardTable(0,'asc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">A→Z</span></label>
+                <label class="sort-pill"><input type="radio" name="rewardSort" class="hidden peer" onchange="sortRewardTable(0,'desc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">Z→A</span></label>
+                <label class="sort-pill"><input type="radio" name="rewardSort" class="hidden peer" onchange="sortRewardTable(2,'asc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">Oldest</span></label>
+                <label class="sort-pill"><input type="radio" name="rewardSort" class="hidden peer" onchange="sortRewardTable(2,'desc')"><span class="peer-checked:bg-purple-700 peer-checked:text-white">Newest</span></label>
+              </div>
+            </div>
+            <div class="overflow-x-auto rounded-xl" style="border:1px solid #f3e8ff;">
+              <table class="table w-full text-sm" id="rewardTable">
+                <thead>
+                  <tr style="background-color:#f9f5ff; color:#660c9e;">
+                    <th class="font-semibold py-2 px-4">Reward</th>
+                    <th class="font-semibold py-2 px-4">Cost</th>
+                    <th class="font-semibold py-2 px-4 whitespace-nowrap">Redeemed At</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for entry in history.rewards %}
+                    <tr class="border-t hover:bg-purple-50 transition-colors" style="border-color:#f3e8ff;">
+                      <td class="py-2 px-4 font-medium text-gray-800">{{ entry.rewardName }}</td>
+                      <td class="py-2 px-4">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold" style="background:#f3e8ff; color:#660c9e;">
+                          {{ entry.pointCost }} pts
+                        </span>
+                      </td>
+                      <td class="py-2 px-4 whitespace-nowrap text-xs text-gray-500" data-date="{{ entry.redeemedAt }}">
+                        {{ entry.redeemedAt[2:4] }}/{{ entry.redeemedAt[5:7] }}/{{ entry.redeemedAt[8:10] }}
+                        <span class="ml-1 px-1.5 py-0.5 rounded" style="background:#f3e8ff; color:#660c9e;">{{ entry.redeemedAt[11:16] }}</span>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-gray-400 text-sm italic py-2">No rewards redeemed yet.</p>
+          {% endif %}
+        </div>
+      </section>
+
+    </div><!-- end sections -->
+  </div><!-- end right panel -->
+</div>
+
+<!-- Description modal -->
+<dialog id="descriptionModal" class="modal">
+  <div class="modal-box rounded-2xl" style="border:1px solid #e9d5ff;">
+    <h3 class="font-bold text-lg" style="color:#660c9e;">Full Description</h3>
+    <p id="descriptionContent" class="py-4 text-gray-700"></p>
+    <div class="modal-action">
+      <form method="dialog">
+        <button class="btn rounded-xl" style="background:#00d7c0; color:white; border:none;">Close</button>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+  /* Force all DaisyUI alerts to white regardless of category */
+  #flash-container .alert {
+    background-color: white !important;
+    color: #1f2937 !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Responsive two-column layout */
+  #profile-layout {
+    flex-direction: column;
+  }
+  #profile-left {
+    width: 100%;
+    flex-shrink: 0;
+  }
+  #profile-right {
+    width: 100%;
+    flex: 1;
+  }
+  @media (min-width: 768px) {
+    #profile-layout {
+      flex-direction: row;
+    }
+    #profile-left {
+      width: 18rem;
+    }
+  }
+
+  .sort-pill span {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border: 1px solid #d8b4fe;
+    color: #660c9e;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sort-pill span:hover {
+    background: #f3e8ff;
+  }
+</style>
+<script>
+  // ---- Filter tabs visual active state ----
+  document.querySelectorAll('input[name="historyFilter"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('input[name="historyFilter"]').forEach(r => {
+        const span = r.nextElementSibling;
+        if (r.checked) {
+          span.style.backgroundColor = '#660c9e';
+          span.style.color = 'white';
+        } else {
+          span.style.backgroundColor = '';
+          span.style.color = '#660c9e';
+        }
+      });
+    });
+  });
+  // Set initial active state
+  document.querySelector('input[name="historyFilter"][value="all"]').nextElementSibling.style.backgroundColor = '#660c9e';
+  document.querySelector('input[name="historyFilter"][value="all"]').nextElementSibling.style.color = 'white';
+
+  function filterHistory(value) {
+    document.getElementById('badgesSection').style.display  = (value === 'all' || value === 'badges')  ? '' : 'none';
+    document.getElementById('eventsSection').style.display  = (value === 'all' || value === 'events')  ? '' : 'none';
+    document.getElementById('rewardsSection').style.display = (value === 'all' || value === 'rewards') ? '' : 'none';
+  }
+
+  function showDescription(button) {
+    document.getElementById('descriptionContent').textContent = button.getAttribute('data-description');
+    document.getElementById('descriptionModal').showModal();
+  }
+
+  // Generic table filter
+  function filterTable(rows, filter) {
+    rows.forEach(row => {
+      const match = Array.from(row.cells).some(c => c.textContent.toLowerCase().includes(filter));
+      row.style.display = match ? '' : 'none';
+    });
+  }
+
+  function filterBadgeTable(inputId) {
+    const filter = document.getElementById(inputId).value.toLowerCase();
+    filterTable(Array.from(document.querySelector('.badge-table tbody').rows), filter);
+  }
+  function filterEventTable(inputId) {
+    const filter = document.getElementById(inputId).value.toLowerCase();
+    filterTable(Array.from(document.querySelector('.event-table tbody').rows), filter);
+  }
+  function filterRewardTable(inputId) {
+    const filter = document.getElementById(inputId).value.toLowerCase();
+    filterTable(Array.from(document.querySelector('#rewardTable tbody').rows), filter);
+  }
+
+  // Generic sort
+  function sortRows(tbody, colIdx, order) {
+    const rows = Array.from(tbody.rows);
+    rows.sort((a, b) => {
+      const aVal = a.cells[colIdx]?.getAttribute('data-date') || a.cells[colIdx]?.textContent.trim().toLowerCase() || '';
+      const bVal = b.cells[colIdx]?.getAttribute('data-date') || b.cells[colIdx]?.textContent.trim().toLowerCase() || '';
+      if (colIdx === 2) { // date sort
+        return order === 'asc' ? new Date(aVal) - new Date(bVal) : new Date(bVal) - new Date(aVal);
+      }
+      if (aVal < bVal) return order === 'asc' ? -1 : 1;
+      if (aVal > bVal) return order === 'asc' ? 1 : -1;
+      return 0;
+    });
+    rows.forEach(r => tbody.appendChild(r));
+  }
+
+  function sortBadgeTable(cls, col, order) { sortRows(document.querySelector('.badge-table tbody'), col, order); }
+  function sortEventTable(cls, col, order)  { sortRows(document.querySelector('.event-table tbody'), col, order); }
+  function sortRewardTable(col, order)       { sortRows(document.querySelector('#rewardTable tbody'), col, order); }
+</script>
+{% endblock %}
