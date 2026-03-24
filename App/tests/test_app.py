@@ -1,4 +1,5 @@
 import os, tempfile, pytest, logging, unittest
+from turtle import st
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from App.main import create_app
@@ -44,6 +45,36 @@ class UserUnitTests(unittest.TestCase):
         password = "mypass"
         user = User("bob@example.com", "bob", password)
         assert user.check_password(password)
+        
+class StudentUnitTests(unittest.TestCase):
+    
+    def test_new_student(self):
+        student = create_user("student@my.uwi.edu", "student", "studentpass")
+        assert student.username == "student"
+
+    def test_student_add_points(self):
+        student = create_user("student@my.uwi.edu", "student", "studentpass")
+        # Test adding points to the student
+        student.add_points(100)
+        assert student.current_balance == 100
+
+    def test_student_subtract_points(self):
+        student = create_user("student@my.uwi.edu", "student", "studentpass")
+        # Test subtracting points from the student
+        student.add_points(100)
+        student.subtract_points(50)
+        assert student.current_balance == 50
+
+    def test_check_enough_points_success(self):
+        student = create_user("student@my.uwi.edu", "student", "studentpass")
+        student.add_points(100)
+        assert student.check_enough_points(50) == True
+
+    def test_check_enough_points_failure(self):
+        student = create_user("student@my.uwi.edu", "student", "studentpass")
+        student.add_points(100)
+        assert student.check_enough_points(150) == False
+
 
 '''
     Integration Tests
