@@ -324,6 +324,9 @@ def student_rewards_page():
     """
     user_id = get_jwt_identity()
     user = Student.query.get(user_id)
+    if user.timeout_until and user.timeout_until > datetime.utcnow():
+        flash("You are currently timed out until {}. You cannot access the rewards page until this time is up or an appeal is approved.".format(user.timeout_until), "error")
+        return redirect(url_for('appeal_views.student_appeal_page'))
     if not user or user.role != 'student':
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))

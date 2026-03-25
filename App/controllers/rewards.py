@@ -3,12 +3,16 @@ from App.database import db
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from App.utils import require_role
 
 reward = Blueprint("reward", __name__)
 # Reward CRUD
 
 
 def create_reward(name, description, point_cost, created_by, active=True, image=None, limit=None):
+    staff = require_role(created_by, "staff")
+    if not staff:
+        return None
     reward = Reward(name=name, description=description, pointCost=point_cost, active=active, image=image, created_by=created_by, limit=limit)
     db.session.add(reward)
     db.session.commit()
@@ -39,6 +43,9 @@ def update_reward(reward_id, **kwargs):
     Accepts snake_case keys and maps `point_cost` -> `pointCost`.
     Keys with value `None` are skipped.
     """
+    staff = require_role(kwargs.get('created_by'), "staff")
+    if not staff:
+        return None
     reward = db.session.get(Reward, reward_id)
     if not reward:
         return None
@@ -65,6 +72,9 @@ def update_reward(reward_id, **kwargs):
 
 
 def delete_reward(reward_id):
+    staff = require_role(get_jwt_identity(), "staff")
+    if not staff:
+        return False
     reward = db.session.get(Reward, reward_id)
     if not reward:
         return False
@@ -74,6 +84,9 @@ def delete_reward(reward_id):
 
 
 def toggle_reward(reward_id):
+    staff = require_role(get_jwt_identity(), "staff")
+    if not staff:
+        return None
     reward = db.session.get(Reward, reward_id)
     if not reward:
         return None
@@ -83,7 +96,9 @@ def toggle_reward(reward_id):
 
 
 def redeem_reward(student_id, reward_id, redeemed_at=None):
-    student = db.session.get(Student, student_id)
+    student = require_role(student_id, "student")
+    if not student:
+        return None
     reward = db.session.get(Reward, reward_id)
     if not student or not reward:
         return None
@@ -106,7 +121,7 @@ def redeem_reward(student_id, reward_id, redeemed_at=None):
 
 def viewReward(student_id):
     #Return all active rewards with redeemable flag for given student.
-    student = db.session.get(Student, student_id)
+    student = require_role(student_id, "student")
     if not student:
         return None
     rewards = get_active_rewards()

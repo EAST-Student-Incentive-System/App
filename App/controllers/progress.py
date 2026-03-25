@@ -1,8 +1,9 @@
 from App.models import Student
 from App.database import db
+from App.utils import require_role
 
 def viewProgress(studentId): 
-    student = db.session.get(Student, studentId)
+    student = require_role(studentId, "student")
     if not student:
         return None
     return student.total_points, student.current_balance

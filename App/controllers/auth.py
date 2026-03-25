@@ -31,6 +31,8 @@ def signUp(email, username, password):
     # Create the user using your controller
     try:
         new_user = create_user(email, username, password)
+        new_user.isFlagged = False  # Ensure new users are not flagged by default
+        db.session.commit()
         return {'success': True, 'user': new_user.get_json()}
     except Exception as e:
         db.session.rollback()
@@ -116,5 +118,3 @@ def add_auth_context(app):
       return dict(is_authenticated=is_authenticated, current_user=current_user)
   
 
-
-  #allow email to be parsed for uwi login, let signup use create used function from user, let the create user function determine role based on email pattern, reject non UWI emails, 

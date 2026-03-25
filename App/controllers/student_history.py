@@ -1,5 +1,6 @@
 from App.models import Student, Attendance, RedeemedReward, StudentBadge
 from App.database import db
+from App.utils import require_role
 
 
 def get_student_history(student_id):
@@ -16,7 +17,7 @@ def get_student_history(student_id):
 
     If the student does not exist the function returns ``None``.
     """
-    student = db.session.get(Student, student_id)
+    student = require_role(student_id, "student")
     if not student:
         return None
 
