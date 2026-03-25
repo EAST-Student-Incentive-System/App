@@ -68,7 +68,7 @@ def forgot_password_page():
 
 from flask_jwt_extended import set_access_cookies
 
-@auth_views.route('/login', methods=['POST'])
+@auth_views.route('/login/action', methods=['POST'])
 def login_action():
     data = request.form
     result = login(data['username'], data['password'], data.get('device_id'))
@@ -92,7 +92,7 @@ def login_action():
 
 @auth_views.route('/logout', methods=['GET'])
 def logout_action():
-    response = redirect(url_for('auth_views.login_page'))
+    response = redirect('/login')
     flash("Logged Out!")
     unset_jwt_cookies(response)
     return response #redirect to login page
