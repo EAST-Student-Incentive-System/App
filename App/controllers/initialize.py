@@ -14,8 +14,15 @@ def initialize():
     bob = create_user('bob@my.uwi.edu', 'bob', 'bobpass')
     jane = create_user('jane@sta.uwi.edu', 'jane', 'janepass')
     alice = create_user('alice@my.uwi.edu', 'alice', 'alicepass')
-    suspicious_student = create_user('suspicious@my.uwi.edu', 'suspicious', 'suspiciouspass')
-    print (f'Created users: {bob}, {jane}, {alice}, {suspicious_student}')
+    print (f'Created users: {bob}, {jane}, {alice}')
+
+    bob_obj = Student.query.filter_by(username='bob').first()
+    alice_obj = Student.query.filter_by(username='alice').first()
+
+    if bob_obj and alice_obj:
+        bob_obj.temporary_device_holder = "DEVICE123"
+        alice_obj.temporary_device_holder = "DEVICE123"
+        db.session.commit()
 
     # Create badges
     badge_25 = createBadge('25 Points', 'Awarded for earning 25 points', 25)
@@ -83,25 +90,26 @@ def initialize():
     from App.controllers.event import create_event, join_event, log_attendance
     from datetime import datetime, timedelta
     now = datetime.now()
-    event1 = create_event(jane.id, 'Orientation', 'Seminar', 'Welcome event for new students', now - timedelta(days=10), now - timedelta(days=10, hours=-2), 'Campus Hall', None, True)
-    event2 = create_event(jane.id, 'Hackathon', 'Competition', 'Coding competition', now - timedelta(days=5), now - timedelta(days=5, hours=-4), 'Tech Lab', None, True)
-    event3 = create_event(jane.id, 'Workshop', 'Workshop', 'Python workshop', now - timedelta(days=2), now - timedelta(days=2, hours=-3), 'Lecture Room 101', None, True)
-    event4 = create_event(jane.id, 'Community Service', 'Volunteer', 'Beach cleanup event', now + timedelta(days=3), now + timedelta(days=3, hours=2), 'Beach', None, True)
-    event5 = create_event(jane.id, 'Health Fair', 'Health', 'Campus health fair with free screenings and wellness resources', now + timedelta(days=7), now + timedelta(days=7, hours=4), 'Student Center', None, True)
-    event6 = create_event(jane.id, 'Cultural Festival', 'Cultural', 'Celebration of diverse cultures with food, music, and performances', now + timedelta(days=14), now + timedelta(days=14, hours=5), 'Main Quad', None, True)
-    event7 = create_event(jane.id, 'Tech Talk', 'Seminar', 'Guest speaker discussing emerging technologies', now + timedelta(days=21), now + timedelta(days=21, hours=2), 'Tech Auditorium', None, True)
-    event8 = create_event(jane.id, 'Art Exhibition', 'Art', 'Showcase of student artwork', now + timedelta(days=28), now + timedelta(days=28, hours=3), 'Art Gallery', None, True)
-    event9 = create_event(jane.id, 'Sports Tournament', 'Sports', 'Intramural sports tournament', now + timedelta(days=35), now + timedelta(days=35, hours=6), 'Sports Complex', None, True)
-    event10 = create_event(jane.id, 'Environmental Summit', 'Environment', 'Panel discussion on sustainability initiatives', now + timedelta(days=42), now + timedelta(days=42, hours=4), 'Conference Center', None, True)
-    event11 = create_event(jane.id, 'Late Night Study Session', 'Academic', 'Study session for finals week', now + timedelta(days=45, hours=20), now + timedelta(days=46, hours=2), 'Library', None, True)
-    event12 = create_event(jane.id, 'Early Morning Yoga', 'Health', 'Start your day with a yoga session', now + timedelta(days=50, hours=6), now + timedelta(days=50, hours=7), 'Outdoor Pavilion', None, True)
-    event13 = create_event(jane.id, 'Weekend Movie Night', 'Social', 'Relax with a movie night on the weekend', now + timedelta(days=55, hours=19), now + timedelta(days=55, hours=22), 'Student Center Lounge', None, True)
-    
-    suspiciousevent = create_event(jane.id, 'Suspicious Event', 'Unknown', 'This event is for testing the student flagging system. It has no location and is happening right now.', now - timedelta(minutes=30), now + timedelta(minutes=30), None, None, True)
-    suspiciousevent2 = create_event(jane.id, 'Another Suspicious Event', 'Unknown', 'This event is also for testing the student flagging system. It has no location and is happening right now.', now - timedelta(minutes=30), now + timedelta(minutes=30), None, None, True)
 
+    def create_active_event(owner_id, name, type, desc, location):
+        start = now - timedelta(hours=1)   # started 1 hour ago
+        end   = now + timedelta(hours=1)   # ends 1 hour from now
+        return create_event(owner_id, name, type, desc, start, end, location, None, True)
+
+    event1 = create_active_event(jane.id, 'Orientation', 'Social', 'Welcome to campus! Join us for orientation activities and meet your fellow students.', 'Main Auditorium')
+    event2 = create_active_event(jane.id, 'Tech Talk', 'Technology', 'Learn about the latest trends in technology with industry experts.', 'Engineering Building, Room 101')
+    event3 = create_active_event(jane.id, 'Yoga Class', 'Health & Wellness', 'Relax and unwind with a yoga session led by a certified instructor.', 'Campus Gym')
+    event4 = create_active_event(jane.id, 'Cultural Festival', 'Cultural', 'Experience the rich diversity of our campus with food, music, and performances from around the world.', 'Student Center Lawn')
+    event5 = create_active_event(jane.id, 'Career Fair', 'Career', 'Connect with potential employers and learn about internship and job opportunities.', 'Exhibition Hall')
+    event6 = create_active_event(jane.id, 'Art Workshop', 'Art', 'Get creative with a hands-on art workshop led by local artists.', 'Art Building, Room 202')
+    event7 = create_active_event(jane.id, 'Environmental Cleanup', 'Community Service', 'Join us for a campus cleanup event and earn points while making a positive impact on the environment.', 'Meet at Campus Entrance')
+    event8 = create_active_event(jane.id, 'Cooking Class', 'Food', 'Learn to cook a new dish with a cooking class led by a local chef.', 'Culinary Arts Building, Room 303')
+    event9 = create_active_event(jane.id, 'Dance Party', 'Social', 'Dance the night away at our campus dance party with a live DJ and refreshments.', 'Student Center Ballroom')
+    event10 = create_active_event(jane.id, 'Sports Tournament', 'Sports', 'Compete in a friendly sports tournament with your fellow students. All skill levels welcome!', 'Campus Sports Field')
+    event11 = create_active_event(jane.id, 'Movie Night', 'Entertainment', 'Join us for a movie night under the stars with free popcorn and drinks.', 'Campus Lawn')
+    event12 = create_active_event(jane.id, 'Volunteer Fair', 'Community Service', 'Learn about volunteer opportunities on and off campus and sign up to make a difference in your community.', 'Student Center Lobby')
+    event13 = create_active_event(jane.id, 'Hackathon', 'Technology', 'Collaborate with fellow students to develop innovative solutions to real-world problems in our 24-hour hackathon.', 'Engineering Building, Room 101')
     # Give Bob some points for demo
-    from App.models import Student
     bob_obj = Student.query.filter_by(username='bob').first()
     if bob_obj:
         bob_obj.add_points(999)  # Give enough points for all badges and rewards
@@ -136,30 +144,22 @@ def initialize():
         
         # Join Bob to ALL events and log attendance
         print("Now attempting to join events and log attendance for Bob...")
-        for event in [event1, event2, event3, event4, event5, event6, event7, event8, event9, event10, event11, event12, event13]:
-            if event and hasattr(event, 'id') and hasattr(event, 'name'):
-                join_event(bob_obj.id, event.id)
-                log_attendance(bob_obj.id, event.id, datetime.now() + timedelta(days=random.randint(1, 300)))  # Log attendance with a random timestamp to demonstrate the student history page. Should be removed or modified for production use.
-                print(f'Bob attended event: {event.id} - {event.name}')
+        for event in [ event1, event2, event3, event4, event5, event6, event7, event8, event9, event10, event11, event12, event13 ]:
+            if event:
+                joined = join_event(bob_obj.id, event.id)
+                if joined:
+                    log_attendance(bob_obj.id, event.id, datetime.now())
+                    print(f'Bob attended event: {event.id} - {event.name}')
+                else:
+                    print(f'Bob failed to join or log attendance for event: {event.id} - {event.name}')
             else:
                 print(f'Failed to create event: {event}')
-        # Now make Bob attend the suspicious events to demonstrate the flagging system
-        join_event(bob_obj.id, suspiciousevent.id)
-        log_attendance(bob_obj.id, suspiciousevent.id, datetime.now())
-        join_event(bob_obj.id, suspiciousevent2.id)
-        log_attendance(bob_obj.id, suspiciousevent2.id, datetime.now())
-        print("Bob attended suspicious events to demonstrate the flagging system. Bob is flagged:", bob_obj.isFlagged)
-        
-        # Also make the suspicious student attend the suspicious events to demonstrate the flagging system
-        suspicious_student_obj = Student.query.filter_by(username='suspicious').first()
-        if suspicious_student_obj:
-            join_event(suspicious_student_obj.id, suspiciousevent.id)
-            log_attendance(suspicious_student_obj.id, suspiciousevent.id, datetime.now())
-            join_event(suspicious_student_obj.id, suspiciousevent2.id)
-            log_attendance(suspicious_student_obj.id, suspiciousevent2.id, datetime.now())
-            join_event(suspicious_student_obj.id, event1.id)  # Also have the suspicious student attend a normal event to show that they can still participate in regular activities
-            log_attendance(suspicious_student_obj.id, event1.id, datetime.now() + timedelta(days=1))
-            print("The suspicious student attended suspicious events to demonstrate the flagging system. The suspicious student is flagged:", suspicious_student_obj.isFlagged)
+
+    alice_obj = Student.query.filter_by(username='alice').first()
+    if alice_obj and event1:  # pick Orientation or any event
+        join_event(alice_obj.id, event1.id)
+        log_attendance(alice_obj.id, event1.id, datetime.now())
+        print(f'Alice attended event: {event1.id} - {event1.name}')
 
         # Redeem ALL rewards for Bob
         for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box]:
@@ -171,9 +171,3 @@ def initialize():
         db.session.commit()
     else:
         print('Failed to create user Bob. Please check the user creation process.')
-
-    bob_obj = Student.query.filter_by(username='bob').first()
-    if bob_obj:
-        bob.isFlagged = True  # Manually set Bob as flagged for testing purposes
-        db.session.commit()
-        print("Bob has been flagged for attending suspicious events. Bob is flagged:", bob.isFlagged)

@@ -25,24 +25,81 @@ Flagged Students
       <tbody>
         {% for student in flagged_students %}
         <tr>
-          <td>{{ student.id }}</td>
+          <td>{{ student.username }}</td>
           <td>
+  <button class="btn btn-sm" onclick="document.getElementById('activity-modal-{{ student.id }}').showModal()">
+    Activity
+  </button>
 
-            {% for attendance in student.attendances %}
-            {% if attendance.is_suspicious %}
-            <p>{{ attendance.event.name }} - {{ attendance.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+  <dialog id="activity-modal-{{ student.id }}" class="modal">
+    <div class="modal-box max-w-xl">
+      <h3 class="font-bold text-lg mb-4">Suspicious Activity for {{ student.username }}</h3>
+
+      {# Overlaps #}
+      {% set flagged_events = [] %}
+      {% for attendance in student.attendances %}
+        {% if attendance.get_overlap_events()|length > 0 %}
+          {% if attendance.event.name not in flagged_events %}
+            {% set _ = flagged_events.append(attendance.event.name) %}
+          {% endif %}
+          {% for ev in attendance.get_overlap_events() %}
+            {% if ev.event.name not in flagged_events %}
+              {% set _ = flagged_events.append(ev.event.name) %}
             {% endif %}
-            {% endfor %}
-          </td>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+
+      {% if flagged_events %}
+        <p><strong>Attended multiple events within 1 hour:</strong></p>
+        <ul class="list-disc list-inside mb-4">
+          {% for name in flagged_events %}
+            <li>{{ name }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {# Device conflicts #}
+      {% set seen_devices = [] %}
+      {% for attendance in student.attendances %}
+        {% for conflict in attendance.get_device_conflicts() %}
+          {% if conflict.student.username not in seen_devices %}
+            {% set _ = seen_devices.append(conflict.student.username) %}
+            <p><strong>Device conflict:</strong> Shared device with {{ conflict.student.username }} at {{ attendance.event.name }}</p>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+
+      <div class="modal-action">
+        <form method="dialog"><button class="btn">Close</button></form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop"><button>close</button></form>
+  </dialog>
+</td>
+
           <td>
             <!-- Action buttons (e.g., View, Unflag) -->
             <div class="flex gap-1">
             <form action="{{ url_for('user_views.unflag_student', student_id=student.id) }}" method="POST">
               <button class="btn btn-sm" type="submit">Unflag</button>
             </form>
-            <form action method="POST">
-              <button class="btn btn-sm btn-error">Timeout</button>
-            </form>
+            <button class="btn btn-sm btn-error" onclick="document.getElementById('timeout-modal-{{ student.id }}').showModal()">Timeout</button>
+
+<dialog id="timeout-modal-{{ student.id }}" class="modal">
+  <div class="modal-box">
+    <h3 class="font-bold text-lg text-error mb-2">Confirm Timeout</h3>
+    <p class="text-sm text-gray-600 mb-4">Are you sure you want to timeout <strong>{{ student.username }}</strong>?</p>
+    <div class="modal-action">
+      <form method="dialog"><button class="btn">Cancel</button></form>
+      <form action="{{ url_for('user_views.timeout_student', student_id=student.id) }}" method="POST">
+        <button class="btn btn-error" type="submit">Yes, Timeout</button>
+      </form>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
+
             </div>
           </td>
         </tr>

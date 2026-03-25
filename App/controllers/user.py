@@ -3,6 +3,7 @@ from App.database import db
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from itsdangerous import URLSafeTimedSerializer
+from datetime import datetime
 
 from App.utils import is_valid_username
 
@@ -13,6 +14,7 @@ def create_user(email, username, password):
     if email.endswith('@my.uwi.edu'):
         newuser = Student(email=email, username=username, password=password)
         newuser.role = 'student'
+        newuser.isFlagged = False  # Ensure new students are not flagged by default
     elif  email.endswith('@sta.uwi.edu'):
         newuser = Staff(email=email, username=username, password=password)
         newuser.role = 'staff'
@@ -127,3 +129,10 @@ def reset_password(token):
         return redirect(url_for("user.login"))
 
     return render_template("reset_password.html", email=email)
+
+def has_active_timeout(student):
+    if student.timeout_until and student.timeout_until > datetime.utcnow():
+        return True
+    if student.timeout_count >= 3 and student.timeout_until is None:
+        return True
+    return False

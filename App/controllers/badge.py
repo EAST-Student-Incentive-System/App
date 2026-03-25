@@ -2,6 +2,7 @@ from App.models import Badge
 from App.models import Student, StudentBadge
 from App.database import db
 from sqlalchemy.exc import IntegrityError
+from App.utils import require_role
 
 # Controller function to award a badge to a student
 def awardBadge(student_id, badge_id):
@@ -37,7 +38,7 @@ def viewBadges():
 
 # Controller function to view badges earned by a specific student
 def viewStudentBadges(student_id):
-    student = Student.query.get(student_id)
+    student = require_role(student_id, "student")
     if student:
         return student.student_badges
     return []

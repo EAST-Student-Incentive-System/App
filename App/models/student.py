@@ -28,6 +28,7 @@ class Student(User):
     temporary_gps_holder = db.Column(db.String(64), nullable = True)   # store last GPS attempt
     temporary_device_holder = db.Column(db.String(256), nullable = True)  # store last device attempt
     isFlagged = db.Column(db.Boolean, default=False)
+    timeout_until = db.Column(db.DateTime, nullable=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'student',

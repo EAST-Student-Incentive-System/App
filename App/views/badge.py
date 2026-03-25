@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from App.models.student import Student
 from App.controllers import badge
+from datetime import datetime
 
 badge_views = Blueprint("badge_views", __name__, template_folder="../templates")
 
@@ -52,6 +53,10 @@ def view_student_badges_route(student_id):
 def student_badges_sections_page():
     user_id = get_jwt_identity()
     student = Student.query.get(user_id)
+
+    if student.timeout_until and student.timeout_until > datetime.utcnow():
+        flash("You are currently timed out until {}. You cannot access the badges page until this time is up or an appeal is approved.".format(student.timeout_until), "error")
+        return redirect(url_for('appeal_views.student_appeal_page'))
 
     if not student or student.role != "student":
         flash("Unauthorized", "error")

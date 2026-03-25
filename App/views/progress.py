@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, flash, redirect, url_for
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from App.database import db
 from App.controllers import progress
 from App.models.student import Student
+from datetime import datetime
 
 progress_views = Blueprint("progress_views", __name__)
 
@@ -22,6 +23,10 @@ def view_leaderboard_route():
     leaderboard = progress.viewLeaderBoard()
     user_id = get_jwt_identity()
     user = Student.query.get(user_id)
+
+    if user.timeout_until and user.timeout_until > datetime.utcnow():
+        flash("You are currently timed out until {}. You cannot access the leaderboard page until this time is up or an appeal is approved.".format(user.timeout_until), "error")
+        return redirect(url_for('appeal_views.student_appeal_page'))
 
     # Build a username -> avatar_seed lookup so the template can render DiceBear avatars
     usernames = [entry['username'] for entry in leaderboard]
