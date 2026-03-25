@@ -61,10 +61,10 @@
         {% endif %}
 
         <div class="text-sm text-gray-600 mb-3 mt-2 space-y-1">
-          <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
+          <p class="truncate-text"><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
           <p><span class="font-semibold text-gray-800">Type:</span> {{ event.type }}</p>
-          <p class="description hidden"><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
-          <p><span class="font-semibold text-gray-800">Location:</span> {{ event.location }}</p>
+          <p class="truncate-text"><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
+          <p class="truncate-text"><span class="font-semibold text-gray-800">Location:</span> {{ event.location }}</p>
           <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
           <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
         </div>
@@ -75,13 +75,13 @@
 <p>Joined: {{ count }}{% if event.limit %}/{{ event.limit }}{% endif %}</p>
 
 {% if student in event.students %}
-  <form action="{{ url_for('event_views.leave_event_action', event_id=event.id) }}" method="post">
+  <form action="{{ url_for('event_views.leave_event_action', event_id=event.id) }}" method="post" onclick="event.stopPropagation()" onsubmit="return confirmLeave(event)">
     <button class="btn btn-sm btn-error w-full">Leave</button>
   </form>
 {% elif event.limit and count >= event.limit %}
-  <button class="btn btn-sm btn-warning w-full">Full</span>
+  <button class="btn btn-sm btn-warning w-full" onclick="event.stopPropagation()">Full</span>
 {% else %}
-  <form action="{{ url_for('event_views.join_event_action', event_id=event.id) }}" method="post">
+  <form action="{{ url_for('event_views.join_event_action', event_id=event.id) }}" method="post" onclick="event.stopPropagation()">
     <button class="btn btn-sm btn-accent w-full">Join</button>
   </form>
 {% endif %}
@@ -90,6 +90,19 @@
       </div>
       {% endfor %}
     </div>
+
+    <div id="event-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white rounded-lg shadow-lg p-6 max-w-lg w-full">
+    <h2 id="modal-name" class="text-xl font-bold mb-2"></h2>
+    <p id="modal-type" class="text-sm text-gray-600 mb-2"></p>
+    <p id="modal-description" class="mb-4"></p>
+    <p id="modal-location" class="mb-2"></p>
+    <p id="modal-start" class="mb-2"></p>
+    <p id="modal-end" class="mb-4"></p>
+    <button onclick="closeModal()" class="btn btn-error">Close</button>
+  </div>
+</div>
+
 
     <!-- Empty State -->
     <div id="no-results" class="hidden text-center py-20">
@@ -103,6 +116,28 @@
 </div>
 
 <script>
+  function toggleExpand(card) {
+  document.getElementById('modal-name').textContent = card.dataset.name;
+  document.getElementById('modal-type').textContent = "Type: " + card.dataset.type;
+  document.getElementById('modal-description').textContent = "Description: " + card.dataset.description;
+  document.getElementById('modal-location').textContent = "Location: " + card.dataset.location;
+  document.getElementById('modal-start').textContent = "Start: " + card.dataset.start;
+  document.getElementById('modal-end').textContent = "End: " + card.dataset.end;
+
+  document.getElementById('event-modal').classList.remove('hidden');
+}
+
+
+
+function closeModal() {
+  document.getElementById('event-modal').classList.add('hidden');
+}
+
+function confirmLeave(event) {
+  return confirm("Are you sure you want to leave this event?");
+}
+
+
   let activeFilter = 'all';
 
   function getEventStatus(card) {
@@ -147,18 +182,16 @@
     document.getElementById('no-results').classList.toggle('hidden', visible > 0);
   }
 
-  function toggleExpand(card) {
-    card.classList.toggle("expanded");
-    const desc = card.querySelector(".description");
-    if (desc) desc.classList.toggle("hidden");
-  }
+
 </script>
 
 <style>
-  .event-card.expanded {
-    transform: scale(1.05);
-    grid-column: span 2; /* expands width on larger screens */
-    z-index: 10;
-  }
+  .truncate-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 </style>
+
 {% endblock %}
