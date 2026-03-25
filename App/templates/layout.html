@@ -12,7 +12,7 @@
 
   <!-- Staff Navbar -->
  {% if user is defined and user.role == "staff" %}
-<div class="navbar px-6" style="background-color:#660c9e; color:white;">
+<div  class="sticky top-0 z-50 bg-base-100 shadow flex items-center justify-between px-4" style="background-color:#660c9e; color:white;">
   <div class="flex-1">
     <a href="{{ url_for('event_views.get_staff_events_route')}}" ></a>
     <span class="text-xl font-bold">🏆 Merit</span>
@@ -25,7 +25,7 @@
 </div>
   {% elif user is defined and user.role == "student" %}
   <!-- Student Navbar (top) -->
-  <div class="navbar px-6" style="background-color:#660c9e; color:white;">
+  <div class="sticky top-0 z-50 bg-base-100 shadow flex items-center justify-between px-4" style="background-color:#660c9e; color:white;">
     <div class="flex-1">
       <span class="text-xl font-bold">🏆 Merit</span>
     </div>
@@ -38,7 +38,7 @@
 
   {% else %}
   <!-- Guest Navbar (no user yet) -->
-  <div class="navbar px-6" style="background-color:#660c9e; color:white;">
+  <div class="sticky top-0 z-50 bg-base-100 shadow flex items-center justify-between px-4" style="background-color:#660c9e; color:white;">
     <div class="flex-1">
       <span class="text-xl font-bold">🏆 Merit</span>
     </div>
@@ -93,7 +93,7 @@
 </div>
 {% endif %}
 
-  <!-- Student Bottom Nav -->
+  <!-- Student Nav -->
   {% if user is defined and user.role == "student" %}
 <div class="drawer">
   <input id="student-drawer" type="checkbox" class="drawer-toggle" />
