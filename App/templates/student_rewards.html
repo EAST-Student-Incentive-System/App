@@ -79,6 +79,8 @@
                onclick="setFilter('lowest','Lowest points')">Lowest points</a></li>
         <li><a class="filter-option" data-filter="highest"
                onclick="setFilter('highest','Highest points')">Highest points</a></li>
+        <li><a class="filter-option" data-filter="redeemed"
+       onclick="setFilter('redeemed','Redeemed')">Redeemed</a></li>
       </ul>
     </div>
   </div>
@@ -180,16 +182,16 @@
 
   <!-- Redeemed history (optional but useful) -->
   {% if redeemed is defined %}
-  <div class="mt-10">
+  <div class="mt-10" id="redeemed-section">
     <h2 class="text-xl font-bold text-gray-800 mb-3">Redeemed</h2>
     <!-- Filter + Sort bar -->
 <div class="flex flex-wrap items-center gap-6 mb-4">
   <!-- Dropdown filter -->
-  <div class="dropdown dropdown-end relative z-50">
+  <div class="dropdown dropdown-end">
     <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
-      <span id="filter-label">All</span>
+      <span id="redeemed-filter-label">All</span>
     </label>
-    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48">
+    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 z-10">
       <li><a class="filter-option selected" data-filter="all" onclick="setRedeemedFilter('all','All')">All</a></li>
       <li><a class="filter-option" data-filter="collected" onclick="setRedeemedFilter('collected','Collected')">Collected</a></li>
       <li><a class="filter-option" data-filter="uncollected" onclick="setRedeemedFilter('uncollected','Uncollected')">Uncollected</a></li>
@@ -269,6 +271,12 @@
     document.querySelectorAll('.filter-option').forEach(opt => {
       opt.classList.toggle('selected', opt.dataset.filter === filter);
     });
+
+    if (filter === 'redeemed') {
+    document.getElementById('redeemed-section').scrollIntoView({ behavior: 'smooth' });
+    return;  // don't run filterRewards()
+  }
+
 
     filterRewards();
   }
@@ -351,5 +359,11 @@ let redeemedFilter = 'all';
       tbody.appendChild(row);
     });
   }
+
+  function setRedeemedFilter(filter, label) {
+  redeemedFilter = filter;
+  document.getElementById('redeemed-filter-label').textContent = label;
+  filterRedeemedRewards();
+}
 </script>
 {% endblock %}
