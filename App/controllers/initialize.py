@@ -66,11 +66,6 @@ def initialize():
     badge_Rookie = createBadge('Rookie', 'Awarded for attending your first event', 10)
     badge_Master_Baiter = createBadge('Master Baiter', 'Awarded for attending a fishing event', 20)
     
-    badge_Enemy_Network = createBadge('Enemy Network', 'Awarded for attending an event organized by a rival university (for testing purposes)', 0)
-    badge_Infilatrator = createBadge('Infiltrator', 'Awarded for attending an event while pretending to be a student from another university (for testing purposes)', 0)
-    badge_SlyFox = createBadge('Sly Fox', 'Awarded for attending an event with a suspiciously vague description and no location (for testing purposes)', 0)
-    badge_Stupidest_Badge_Ever = createBadge('Stupidest Badge Ever', 'This badge has no criteria and is worth 0 points. It is intentionally ridiculous and should never be awarded to any student. It exists solely for testing purposes.', -9999)
-    
 
     # Create rewards
     from App.controllers.rewards import create_reward, redeem_reward
