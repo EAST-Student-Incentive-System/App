@@ -150,24 +150,23 @@
 </div>
 
 <script>
-document.getElementById('event-modal').addEventListener('click', function (e) {
-  if (e.target === this) {
-    closeModal();
-  }
-});
-document.addEventListener('keydown', function (e) {
-  if (e.key === 'Escape') {
-    closeModal();
-  }
-});
+  document.getElementById('event-modal').addEventListener('click', function (e) {
+    if (e.target === this) {
+      closeModal();
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      closeModal();
+    }
+  });
   function toggleExpand(card) {
     document.getElementById('modal-name').textContent = card.dataset.name;
     document.getElementById('modal-type').textContent = "Type: " + card.dataset.type;
     document.getElementById('modal-description').textContent = "Description: " + card.dataset.description;
     document.getElementById('modal-location').textContent = "Location: " + card.dataset.location;
-    document.getElementById('modal-start').textContent = "Start: " + card.dataset.start;
-    document.getElementById('modal-end').textContent = "End: " + card.dataset.end;
-
+    document.getElementById('modal-start').textContent = "Start: " + card.dataset.start.trim().replace('T', ' ').split('.')[0];
+    document.getElementById('modal-end').textContent = "End: " + card.dataset.end.trim().replace('T', ' ').split('.')[0];
     document.getElementById('event-modal').classList.remove('hidden');
   }
 
