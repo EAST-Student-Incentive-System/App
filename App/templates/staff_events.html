@@ -3,202 +3,216 @@
 {% block title %}Events{% endblock %}
 
 {% block content %}
-  <div class="max-w-6xl mx-auto px-6 py-8">
+<div class="flex flex-col items-center px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
+  <div class="w-full max-w-6xl">
 
-    <!-- HEADER ROW -->
-    <div class="flex items-center mb-8 gap-4">
+    <!-- HEADER -->
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
 
-      <!-- Add Button -->
       <a href="{{ url_for('event_views.create_event_route') }}"
-         class="btn btn-circle btn-accent shadow-md shrink-0" title="Create Event">
-        +
+         class="btn btn-accent shadow-md">
+        + Create Event
       </a>
 
-      <h1 class="text-3xl font-bold text-gray-800 flex-1 text-center">
+      <h1 class="text-3xl font-bold text-gray-800 text-center flex-1">
         Events
       </h1>
 
-            <div class="flex items-center gap-3 shrink-0">
+      <!-- Search + Filter -->
+      <div class="flex items-center gap-3">
 
-        <!-- Search -->
-        <div class="form-control">
-          <div class="input-group">
-            <input id="event-search"
-                   type="text"
-                   placeholder="Search..."
-                   class="input input-bordered"
-                   oninput="filterEvents()" />
-            <button class="btn btn-square btn-accent">
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   class="h-5 w-5"
-                   fill="none"
-                   viewBox="0 0 24 24"
-                   stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
-              </svg>
-            </button>
-          </div>
-        </div>
+        <input id="event-search"
+               type="text"
+               placeholder="Search..."
+               class="input input-bordered"
+               oninput="filterEvents()" />
 
-        <!-- Filter Dropdown -->
         <div class="dropdown dropdown-end relative z-50">
           <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
             <span id="filter-label">All</span>
           </label>
           <ul tabindex="0"
-              class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-40">
-            <li><a class="filter-option selected" data-filter="all"
-                   onclick="setFilter('all','All')">All</a></li>
-            <li><a class="filter-option" data-filter="ongoing"
-                   onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
-            <li><a class="filter-option" data-filter="upcoming"
-                   onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
-            <li><a class="filter-option" data-filter="previous"
-                   onclick="setFilter('previous','Previous')">Previous</a></li>
-            <li><a class="filter-option" data-filter="active"
-                onclick="setFilter('active','Active')">Active</a></li>
-            <li><a class="filter-option" data-filter="inactive"
-                 onclick="setFilter('inactive','Inactive')">Inactive</a></li>
+              class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-44">
+            <li><a class="filter-option selected" onclick="setFilter('all','All')">All</a></li>
+            <li><a class="filter-option" onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
+            <li><a class="filter-option" onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
+            <li><a class="filter-option" onclick="setFilter('previous','Previous')">Previous</a></li>
+            <li><a class="filter-option" onclick="setFilter('active','Active')">Active</a></li>
+            <li><a class="filter-option" onclick="setFilter('inactive','Inactive')">Inactive</a></li>
           </ul>
         </div>
+
       </div>
     </div>
 
-    <!-- EVENTS GRID -->
+    <!-- GRID -->
     <div id="events-container"
          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
       {% for event in events %}
-      <div class="card bg-base-100 shadow-md p-4 event-card"
-           data-name="{{ event.name|lower }}"
-           data-description="{{ event.description|lower }}"
-           data-type="{{ event.type|lower }}"
-           data-start="{{ event.start }}"
-           data-end="{{ event.end }}"
-           data-location="{{ event.location|lower }}"
-           data-active="{{ 'true' if event.active else 'false' }}">
+      <div
+        class="event-card bg-base-100 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
+        data-name="{{ event.name|lower }}"
+        data-description="{{ event.description|lower }}"
+        data-type="{{ event.type|lower }}"
+        data-start="{{ event.start }}"
+        data-end="{{ event.end }}"
+        data-location="{{ event.location|lower }}"
+        data-active="{{ 'true' if event.active else 'false' }}">
 
+        <!-- Image -->
         {% if event.image %}
-          <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
-               alt="{{ event.name }}"
-               class="object-cover rounded-lg max-h-[110px] w-full"
-               onerror="this.replaceWith(document.createTextNode('🖼️'))">
+        <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
+             class="object-cover h-40 w-full group-hover:scale-105 transition-transform duration-300">
         {% else %}
-          <div class="flex items-center justify-center h-[110px] bg-base-200 rounded-lg text-3xl">🖼️</div>
+        <div class="flex items-center justify-center h-40 bg-base-200 text-4xl">🖼️</div>
         {% endif %}
 
-        <div class="flex-1 text-sm text-gray-600 space-y-1 mb-3 mt-2">
-          <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
-          <p><span class="font-semibold text-gray-800">Type:</span> {{ event.type }}</p>
-          <p><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
-          <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
-          <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
-            <p><span class="font-semibold text-gray-800">Location:</span> {{ event.location }}</p>
-            <p><span class="font-semibold text-gray-800">Status:</span>
-                {% if event.active %} Active {% else %} Inactive {% endif %}
+        <!-- Content -->
+        <div class="p-4 space-y-3">
+
+          <!-- Header -->
+          <div class="flex justify-between items-start">
+            <h2 class="text-lg font-bold text-gray-800">
+              {{ event.name }}
+            </h2>
+
+            <span class="text-xs px-2 py-1 rounded-full
+              {% if event.active %}
+                bg-green-100 text-green-700
+              {% else %}
+                bg-gray-200 text-gray-500
+              {% endif %}">
+              {% if event.active %}Active{% else %}Inactive{% endif %}
+            </span>
+          </div>
+
+          <!-- Type -->
+          <span class="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary inline-block w-fit">
+            {{ event.type }}
+          </span>
+
+          <!-- Description -->
+          <p class="text-sm text-gray-600 line-clamp-2">
+            {{ event.description }}
+          </p>
+
+          <!-- Info -->
+          <div class="flex flex-col gap-2 text-sm text-gray-700">
+
+            <div class="flex items-center gap-2">
+              <span>📅</span>
+              <span>
+                {{ event.start.strftime("%b %d, %Y") }}
+                • {{ event.start.strftime("%H:%M") }} - {{ event.end.strftime("%H:%M") }}
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span>📍</span>
+              <span class="truncate">{{ event.location }}</span>
+            </div>
+
+          </div>
+
         </div>
 
-        <div class="pt-2 border-t">
+        <!-- ACTIONS -->
+        <div class="px-4 py-3 border-t flex flex-col gap-2">
 
           <a href="{{ url_for('event_views.update_event_route', event_id=event.id) }}"
              class="btn btn-sm btn-outline btn-accent w-full">
-            Edit
+            Edit Event
           </a>
+
+          <button onclick="startAttendance({{ event.id }})"
+                  class="btn btn-sm btn-accent w-full">
+            Start Attendance
+          </button>
+
         </div>
-
-       {# {% if event.qr_code %}
-        <label for="qr-modal-{{ event.id }}" class="mt-2 cursor-pointer flex justify-center">
-          <img src="data:image/png;base64,{{ event.qr_code }}"
-               class="w-16 h-16 hover:scale-105 transition-transform duration-200">
-        </label>
-        <input type="checkbox" id="qr-modal-{{ event.id }}" class="modal-toggle" />
-        <div class="modal">
-          <div class="modal-box text-center">
-            <h3 class="font-bold text-lg mb-4">Event QR Code</h3>
-            <img src="data:image/png;base64,{{ event.qr_code }}" class="w-72 h-72 mx-auto">
-            <div class="modal-action">
-              <label for="qr-modal-{{ event.id }}" class="btn">Close</label>
-            </div>
-        </div>
-        {% endif %}#}
-
-        <div class="pt-2 border-t">
-  <!-- Staff sees Start Attendance button -->
-    <button onclick="startAttendance({{ event.id }})" class="btn btn-sm btn-accent w-full">
-      Start Attendance
-    </button>
-
-</div>
 
       </div>
       {% endfor %}
+
     </div>
 
-
-        <!-- Empty State -->
-        <div id="no-results" class="hidden text-center py-20">
-            <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="#9b30ff" stroke-width="1.5" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
-            </svg>
-            <p class="text-gray-500 font-medium">No events found</p>
-            <p class="text-gray-400 text-sm mt-1">Try a different search or filter.</p>
-        </div>
+    <!-- EMPTY STATE -->
+    <div id="no-results" class="hidden text-center py-20">
+      <svg class="w-14 h-14 mx-auto mb-4 opacity-30"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="1.5"
+           viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7"/>
+        <path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+      </svg>
+      <p class="text-gray-500 font-medium">No events found</p>
+      <p class="text-gray-400 text-sm mt-1">Try a different search or filter.</p>
     </div>
 
-  <script>
-    let activeFilter = 'all';
+  </div>
+</div>
 
-    function getEventStatus(card) {
-      const now = new Date(), start = new Date(card.dataset.start), end = new Date(card.dataset.end);
-      if (now < start) return 'upcoming';
-      if (now > end) return 'previous';
-      return 'ongoing';
-    }
+<script>
+let activeFilter = 'all';
 
-    function setFilter(filter, label) {
-      activeFilter = filter;
-      document.getElementById('filter-label').textContent = label;
-      document.querySelectorAll('.filter-option').forEach(opt => {
-        opt.classList.toggle('selected', opt.dataset.filter === filter);
-      });
-      filterEvents();
-    }
+function getEventStatus(card) {
+  const now = new Date();
+  const start = new Date(card.dataset.start);
+  const end = new Date(card.dataset.end);
 
-    function filterEvents() {
-      const query = document.getElementById('event-search').value.toLowerCase().trim();
-      const cards = document.querySelectorAll('.event-card');
-      let visible = 0;
-      cards.forEach(card => {
-        const matchesSearch = !query ||
-          card.dataset.name.includes(query) ||
-          card.dataset.description.includes(query) ||
-          card.dataset.type.includes(query);
-        
-        const status = getEventStatus(card);
-        const isActive = card.dataset.active === 'true';
-
-        const matchesFilter = activeFilter === 'all' || getEventStatus(card) === activeFilter || (activeFilter === 'active' && isActive) || (activeFilter === 'inactive' && !isActive);
-
-        card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
-        if (matchesSearch && matchesFilter) visible++;
-      });
-      document.getElementById('no-results').classList.toggle('hidden', visible > 0);
-    }
-
-  function startAttendance(eventId) {
-    navigator.geolocation.getCurrentPosition(function(pos) {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        const radius = 200; // default radius
-
-        // Redirect to the existing attendance route
-        const url = `/events/${eventId}/attendance?lat=${lat}&lon=${lon}&radius=${radius}`;
-        window.location.href = url;
-    }, function(error) {
-        alert("Unable to get location: " + error.message);
-    });
+  if (now < start) return 'upcoming';
+  if (now > end) return 'previous';
+  return 'ongoing';
 }
 
-  </script>
+function setFilter(filter, label) {
+  activeFilter = filter;
+  document.getElementById('filter-label').textContent = label;
+  filterEvents();
+}
+
+function filterEvents() {
+  const query = document.getElementById('event-search').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.event-card');
+  let visible = 0;
+
+  cards.forEach(card => {
+    const matchesSearch =
+      !query ||
+      card.dataset.name.includes(query) ||
+      card.dataset.description.includes(query) ||
+      card.dataset.type.includes(query);
+
+    const status = getEventStatus(card);
+    const isActive = card.dataset.active === 'true';
+
+    const matchesFilter =
+      activeFilter === 'all' ||
+      status === activeFilter ||
+      (activeFilter === 'active' && isActive) ||
+      (activeFilter === 'inactive' && !isActive);
+
+    const show = matchesSearch && matchesFilter;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+
+  document.getElementById('no-results').classList.toggle('hidden', visible > 0);
+}
+
+function startAttendance(eventId) {
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    const radius = 200;
+
+    window.location.href = `/events/${eventId}/attendance?lat=${lat}&lon=${lon}&radius=${radius}`;
+  }, function(error) {
+    alert("Unable to get location: " + error.message);
+  });
+}
+</script>
+
 {% endblock %}
