@@ -21,9 +21,9 @@
         <p class="text-sm font-semibold text-gray-800">Progress</p>
         <p class="text-xs text-gray-500">
           {% if next_target %}
-            Next milestone: <span class="font-medium">{{ next_target }} points</span>
+          Next milestone: <span class="font-medium">{{ next_target }} points</span>
           {% else %}
-            Keep earning points!
+          Keep earning points!
           {% endif %}
         </p>
       </div>
@@ -36,10 +36,10 @@
     </div>
 
     {% if next_target %}
-      <div class="mt-4">
-        <progress class="progress progress-accent w-full" value="{{ pct }}" max="100"></progress>
-        <div class="mt-1 text-xs text-gray-500 text-right">{{ pct }}%</div>
-      </div>
+    <div class="mt-4">
+      <progress class="progress progress-accent w-full" value="{{ pct }}" max="100"></progress>
+      <div class="mt-1 text-xs text-gray-500 text-right">{{ pct }}%</div>
+    </div>
     {% endif %}
   </div>
 
@@ -47,12 +47,9 @@
   <div class="flex flex-wrap items-center gap-3 mb-5">
     <div class="form-control flex-1 min-w-[220px]">
       <div class="input-group w-full">
-        <input id="reward-search"
-               type="text"
-               placeholder="Search..."
-               class="input input-bordered w-full"
-               oninput="filterRewards()" />
-     <!--   <button class="btn btn-square btn-accent" type="button" title="Search">
+        <input id="reward-search" type="text" placeholder="Search..." class="input input-bordered w-full"
+          oninput="filterRewards()" />
+        <!--   <button class="btn btn-square btn-accent" type="button" title="Search">
           <svg xmlns="http://www.w3.org/2000/svg"
                class="h-5 w-5"
                fill="none"
@@ -69,106 +66,116 @@
       <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
         <span id="filter-label" class="font-bold">All</span>
       </label>
-      <ul tabindex="0"
-          class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 z-50">
-        <li><a class="filter-option selected" data-filter="all"
-               onclick="setFilter('all','All')">All</a></li>
-        <li><a class="filter-option" data-filter="eligible"
-               onclick="setFilter('eligible','Eligible')">Eligible</a></li>
-        <li><a class="filter-option" data-filter="lowest"
-               onclick="setFilter('lowest','Lowest points')">Lowest points</a></li>
-        <li><a class="filter-option" data-filter="highest"
-               onclick="setFilter('highest','Highest points')">Highest points</a></li>
+      <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48 z-50">
+        <li><a class="filter-option selected" data-filter="all" onclick="setFilter('all','All')">All</a></li>
+        <li><a class="filter-option" data-filter="eligible" onclick="setFilter('eligible','Eligible')">Eligible</a></li>
+        <li><a class="filter-option" data-filter="lowest" onclick="setFilter('lowest','Lowest points')">Lowest
+            points</a></li>
+        <li><a class="filter-option" data-filter="highest" onclick="setFilter('highest','Highest points')">Highest
+            points</a></li>
       </ul>
     </div>
   </div>
 
   <!-- Rewards Grid -->
-  <div id="rewards-container"
-       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  <div id="rewards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
     {% for r in rewards %}
-    <div class="card bg-base-100 shadow-md p-4 reward-card"
-         data-name="{{ r.name|lower }}"
-         data-points="{{ r.pointCost }}"
-         data-eligible="{{ 'true' if r.redeemable else 'false' }}">
+    <div
+      class="reward-card bg-base-100 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
+      data-name="{{ r.name|lower }}" data-points="{{ r.pointCost }}"
+      data-eligible="{{ 'true' if r.redeemable else 'false' }}">
 
+      <!-- IMAGE -->
       {% if r.image %}
-        <img src="{{ url_for('static', filename='uploads/' ~ r.image) }}"
-             alt="{{ r.name }}"
-             class="object-cover rounded-lg max-h-[140px] w-full"
-             onerror="this.replaceWith(document.createTextNode('🎁'))">
+      <img src="{{ url_for('static', filename='uploads/' ~ r.image) }}" alt="{{ r.name }}"
+        class="object-cover h-40 w-full group-hover:scale-105 transition-transform duration-300">
       {% else %}
-        <div class="flex items-center justify-center h-[140px] bg-base-200 rounded-lg text-4xl">
-          🎁
-        </div>
+      <div class="flex items-center justify-center h-40 bg-base-200 text-4xl">
+        🎁
+      </div>
       {% endif %}
 
-      <div class="mt-3 space-y-1">
-        <p class="text-sm text-gray-500">Reward</p>
-        <h2 class="text-lg font-bold text-gray-800 leading-tight">{{ r.name }}</h2>
+      <!-- CONTENT -->
+      <div class="p-4 space-y-3">
+
+        <!-- TITLE -->
+        <h2 class="text-lg font-bold text-gray-800 leading-tight">
+          {{ r.name }}
+        </h2>
+
+        <!-- DESCRIPTION -->
         {% if r.description %}
-          <p class="text-sm text-gray-600">{{ r.description }}</p>
+        <p class="text-sm text-gray-600 line-clamp-2">
+          {{ r.description }}
+        </p>
         {% endif %}
-      </div>
 
-      <div class="mt-3 flex items-center justify-between">
-        <div class="badge badge-outline">
-          {{ r.pointCost }} points
+        <!-- POINTS + STATUS -->
+        <div class="flex items-center justify-between text-sm">
+
+          <!-- POINTS -->
+          <div class="flex items-center gap-1 font-semibold text-purple-700">
+            ⭐ {{ r.pointCost }} pts
+          </div>
+
+          <!-- ELIGIBILITY -->
+          {% if r.redeemable %}
+          <input type="checkbox" id="redeem-modal-{{ r.id }}" class="modal-toggle" />
+
+          <div class="modal">
+            <div class="modal-box">
+
+              <h3 class="font-bold text-lg">Redeem "{{ r.name }}"?</h3>
+
+              <p class="py-3 text-sm text-gray-600">
+                This will deduct <span class="font-semibold">{{ r.pointCost }}</span> points.
+              </p>
+
+              <div class="flex justify-between text-sm mb-4">
+                <div>
+                  <div class="text-gray-500">Current</div>
+                  <div class="font-bold">{{ balance }}</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-gray-500">After</div>
+                  <div class="font-bold">{{ balance - r.pointCost }}</div>
+                </div>
+              </div>
+
+              <div class="modal-action">
+                <label for="redeem-modal-{{ r.id }}" class="btn btn-ghost">Cancel</label>
+
+                <form method="POST" action="{{ url_for('reward_views.student_redeem_reward_action', reward_id=r.id) }}">
+                  <button type="submit" class="btn btn-accent">
+                    Confirm
+                  </button>
+                </form>
+              </div>
+
+            </div>
+          </div>
+          {% endif %}
         </div>
 
-        {% if r.redeemable %}
-          <span class="badge badge-success">Eligible</span>
-        {% else %}
-          <span class="badge badge-ghost">Not enough points</span>
-        {% endif %}
       </div>
 
-      <div class="pt-3 mt-3 border-t">
+      <!-- FOOTER -->
+      <div class="px-4 py-3 border-t">
+
         {% if r.redeemable %}
-          <!-- Redeem button opens modal -->
-          <label for="redeem-modal-{{ r.id }}" class="btn btn-sm btn-accent w-full">
-            Redeem
-          </label>
+        <label for="redeem-modal-{{ r.id }}" class="btn btn-sm btn-accent w-full">
+          Redeem
+        </label>
         {% else %}
-          <button class="btn btn-sm btn-disabled w-full" disabled>
-            Redeem
-          </button>
+        <button class="btn btn-sm btn-disabled w-full">
+          Redeem
+        </button>
         {% endif %}
+
       </div>
+
     </div>
-
-    {% if r.redeemable %}
-      <!-- Redeem confirm modal -->
-      <input type="checkbox" id="redeem-modal-{{ r.id }}" class="modal-toggle" />
-      <div class="modal">
-        <div class="modal-box">
-          <h3 class="font-bold text-lg">Redeem "{{ r.name }}"?</h3>
-          <p class="py-3 text-sm text-gray-600">
-            This will immediately deduct <span class="font-semibold">{{ r.pointCost }}</span> points from your balance.
-          </p>
-
-          <div class="flex items-center justify-between">
-            <div class="text-sm">
-              <div class="text-gray-500">Current balance</div>
-              <div class="font-bold">{{ balance }} points</div>
-            </div>
-            <div class="text-sm text-right">
-              <div class="text-gray-500">After redeem</div>
-              <div class="font-bold">{{ balance - r.pointCost }} points</div>
-            </div>
-          </div>
-
-          <div class="modal-action">
-            <label for="redeem-modal-{{ r.id }}" class="btn btn-ghost">Cancel</label>
-
-            <form method="POST" action="{{ url_for('reward_views.student_redeem_reward_action', reward_id=r.id) }}">
-              <button type="submit" class="btn btn-accent">Confirm</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    {% endif %}
     {% endfor %}
   </div>
 
@@ -183,74 +190,97 @@
   <div class="mt-10">
     <h2 class="text-xl font-bold text-gray-800 mb-3">Redeemed</h2>
     <!-- Filter + Sort bar -->
-<div class="flex flex-wrap items-center gap-6 mb-4">
-  <!-- Dropdown filter -->
-  <div class="dropdown dropdown-end relative z-50">
-    <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
-      <span id="filter-label">All</span>
-    </label>
-    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48">
-      <li><a class="filter-option selected" data-filter="all" onclick="setRedeemedFilter('all','All')">All</a></li>
-      <li><a class="filter-option" data-filter="collected" onclick="setRedeemedFilter('collected','Collected')">Collected</a></li>
-      <li><a class="filter-option" data-filter="uncollected" onclick="setRedeemedFilter('uncollected','Uncollected')">Uncollected</a></li>
-    </ul>
-  </div>
+    <div class="flex flex-wrap items-center gap-6 mb-4">
+      <!-- Dropdown filter -->
+      <div class="dropdown dropdown-end relative z-50">
+        <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
+          <span id="redeemed-filter-label">All</span>
+        </label>
+        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-48">
+          <li><a class="filter-option selected" data-filter="all" onclick="setRedeemedFilter('all','All')">All</a></li>
+          <li><a class="filter-option" data-filter="collected"
+              onclick="setRedeemedFilter('collected','Collected')">Collected</a></li>
+          <li><a class="filter-option" data-filter="uncollected"
+              onclick="setRedeemedFilter('uncollected','Uncollected')">Uncollected</a></li>
+        </ul>
+      </div>
 
-  <!-- Radio buttons for sort -->
-  <div class="flex items-center gap-4">
-    <label class="flex items-center gap-1 cursor-pointer">
-      <input type="radio" name="redeemed-sort" value="newest" class="radio radio-sm" checked onclick="setRedeemedSort('newest')">
-      <span class="text-sm">Newest</span>
-    </label>
-    <label class="flex items-center gap-1 cursor-pointer">
-      <input type="radio" name="redeemed-sort" value="oldest" class="radio radio-sm" onclick="setRedeemedSort('oldest')">
-      <span class="text-sm">Oldest</span>
-    </label>
-  </div>
-</div>
+      <!-- Radio buttons for sort -->
+      <div class="flex items-center gap-4">
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="radio" name="redeemed-sort" value="newest" class="radio radio-sm" checked
+            onclick="setRedeemedSort('newest')">
+          <span class="text-sm">Newest</span>
+        </label>
+        <label class="flex items-center gap-1 cursor-pointer">
+          <input type="radio" name="redeemed-sort" value="oldest" class="radio radio-sm"
+            onclick="setRedeemedSort('oldest')">
+          <span class="text-sm">Oldest</span>
+        </label>
+      </div>
+    </div>
 
 
     {% if redeemed|length == 0 %}
-      <div class="card bg-base-100 shadow-md p-5 text-sm text-gray-600">
-        You haven’t redeemed any rewards yet.
-      </div>
+    <div class="card bg-base-100 shadow-md p-5 text-sm text-gray-600">
+      You haven’t redeemed any rewards yet.
+    </div>
     {% else %}
-      <div class="overflow-x-auto bg-base-100 rounded-lg shadow-md">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Reward</th>
-              <th>Cost</th>
-              <th>Redeemed at</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for item in redeemed %}
-              <tr class="redeemed-row"
-            data-valid="{{ 'true' if item.isValid else 'false' }}"
-            data-date="{{ item.redeemedAt }}">
-          <td class="font-medium">
-                <td class="font-medium">{{ item['rewardName'] }}</td>
-                <td>{{ item['pointCost'] }}</td>
-                <td class="text-sm text-gray-500">{{ item['redeemedAt'] }}</td>
-                <td>
-                  {% if item['isValid'] %}
-                    <form method="POST" action="{{ url_for('reward_views.collect_reward_action', reward_id=item['id']) }}">
-                      <button type="submit" class="btn btn-sm btn-accent"
-                              onclick="return confirm('Are you sure you are ready to collect this reward?')">
-                        Collect
-                      </button>
-                    </form>
-                  {% else %}
-                    <span class="badge badge-ghost">Collected</span>
-                  {% endif %}
-                </td>
+    <div class="overflow-x-auto bg-base-100 rounded-2xl shadow-lg">
+      <table class="table">
 
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+        <thead class="bg-base-200 text-gray-700 text-sm">
+          <tr>
+            <th>Reward</th>
+            <th>Points</th>
+            <th>Redeemed</th>
+            <th class="text-right">Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for item in redeemed %}
+          <tr class="redeemed-row hover" data-valid="{{ 'true' if item.isValid else 'false' }}"
+            data-date="{{ item.redeemedAt }}">
+
+            <!-- Reward -->
+            <td class="font-semibold text-gray-800">
+              {{ item['rewardName'] }}
+            </td>
+
+            <!-- Points -->
+            <td>
+              <span class="badge badge-outline">
+                ⭐ {{ item['pointCost'] }}
+              </span>
+            </td>
+
+            <!-- Date -->
+            <td class="text-sm text-gray-500">
+              {{ item['redeemedAt'].split('.')[0]|replace('T', ' ') }}
+            </td>
+
+            <!-- Action -->
+            <td class="text-right">
+              {% if item['isValid'] %}
+              <form method="POST" action="{{ url_for('reward_views.collect_reward_action', reward_id=item['id']) }}">
+                <button type="submit" class="btn btn-xs btn-accent" onclick="return confirm('Collect this reward?')">
+                  Collect
+                </button>
+              </form>
+              {% else %}
+              <span class="badge badge-success badge-outline">
+                ✓ Collected
+              </span>
+              {% endif %}
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
     {% endif %}
   </div>
   {% endif %}
@@ -313,13 +343,13 @@
 
     document.getElementById('no-results').classList.toggle('hidden', visible > 0);
   }
-  
-let redeemedFilter = 'all';
+
+  let redeemedFilter = 'all';
   let redeemedSort = 'newest';
 
   function setRedeemedFilter(filter, label) {
     redeemedFilter = filter;
-    document.getElementById('filter-label').textContent = label;
+    document.getElementById('redeemed-filter-label').textContent = label;
     filterRedeemedRewards();
   }
 
@@ -335,8 +365,8 @@ let redeemedFilter = 'all';
     let filtered = rows.filter(row => {
       const valid = row.dataset.valid === 'true';
       return redeemedFilter === 'all' ||
-             (redeemedFilter === 'collected' && !valid) ||
-             (redeemedFilter === 'uncollected' && valid);
+        (redeemedFilter === 'collected' && !valid) ||
+        (redeemedFilter === 'uncollected' && valid);
     });
 
     filtered.sort((a, b) => {
