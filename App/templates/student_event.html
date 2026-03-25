@@ -133,7 +133,9 @@
     <button id="leave-btn" class="btn btn-outline btn-error w-full">
       Leave Event
     </button>
-
+    <button id="join-btn" class="btn btn-primary w-full">
+      Join Event
+    </button>
 
   </div>
 </div>
@@ -160,21 +162,42 @@
       "End: " + card.dataset.end.replace('T', ' ').split('.')[0];
 
     document.getElementById('event-modal').classList.remove('hidden');
-  const leaveBtn = document.getElementById('leave-btn');
-  if (joined){
-    leaveBtn.classList.remove('hidden'); // Only show leave button if student has joined the event
-    leaveBtn.onclick = function () {
-      confirmLeave(eventId);
-    };
+    const leaveBtn = document.getElementById('leave-btn');
+    const joinBtn = document.getElementById('join-btn');
+    console.log("Joined:", joined);
+    if (joined) {
+      leaveBtn.classList.remove('hidden'); // Only show leave button if student has joined the event
+      joinBtn.classList.add('hidden'); // Hide join button if student has already joined the event
+      leaveBtn.onclick = function () {
+        confirmLeave(eventId);
+      };
+    }
+    else {
+      leaveBtn.classList.add('hidden'); // Hide leave button if student has not joined the event
+      joinBtn.classList.remove('hidden'); // Show join button if student has not joined the event
+      joinBtn.onclick = function () {
+        // Send a POST request to the Flask route
+        fetch(`/events/${eventId}/join`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+          .then(response => {
+            if (response.ok) {
+              // Refresh page or redirect after successful join
+              window.location.reload(true);
+            } else {
+              alert("Something went wrong. Please try again.");
+            }
+          })
+          .catch(error => console.error("Error:", error));
+      }
+    }
+    function closeModal() {
+      document.getElementById('event-modal').classList.add('hidden');
+    }
   }
-  else {
-    leaveBtn.classList.add('hidden'); // Hide leave button if student has not joined the event
-  }
-  }
-  function closeModal() {
-    document.getElementById('event-modal').classList.add('hidden');
-  }
-
   function confirmLeave(eventId) {
     if (confirm("Are you sure you want to leave this event?")) {
       // Send a POST request to the Flask route
