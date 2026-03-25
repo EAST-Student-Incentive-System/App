@@ -86,15 +86,25 @@
 
         <!-- Footer -->
         <div class="px-4 py-3 border-t flex justify-between items-center text-sm">
+
+          <!-- LEFT -->
           {% if event in student.events %}
           <span class="text-green-600 font-medium">✔ Joined</span>
           {% else %}
           <button class="text-gray-400" onclick="join(this)">Join?</button>
           {% endif %}
 
+          <!-- CENTER (attendance count) -->
+          <div class="flex items-center gap-1 text-gray-600">
+            <span>👥</span>
+            <span>{{ event.attendances|length }}</span>
+          </div>
+
+          <!-- RIGHT -->
           <span class="text-primary font-medium group-hover:underline">
             View Details →
           </span>
+
         </div>
 
       </div>
@@ -141,92 +151,92 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", () => {
 
-  const modal = document.getElementById('event-modal');
-  const leaveBtn = document.getElementById('leave-btn');
-  const joinBtn = document.getElementById('join-btn');
+    const modal = document.getElementById('event-modal');
+    const leaveBtn = document.getElementById('leave-btn');
+    const joinBtn = document.getElementById('join-btn');
 
-  let currentEventId = null;
+    let currentEventId = null;
 
-  // CLOSE MODAL
-  window.closeModal = function () {
-    modal.classList.add('hidden');
-  };
+    // CLOSE MODAL
+    window.closeModal = function () {
+      modal.classList.add('hidden');
+    };
 
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
-
-  // JOIN EVENT
-  function joinById(eventId) {
-    fetch(`/events/${eventId}/join`, {
-      method: "POST"
-    })
-    .then(res => {
-      if (res.ok) location.reload();
-      else alert("Failed to join");
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
     });
-  }
 
-  // LEAVE EVENT
-  function leaveById(eventId) {
-    if (!confirm("Leave this event?")) return;
-
-    fetch(`/events/${eventId}/leave`, {
-      method: "POST"
-    })
-    .then(res => {
-      if (res.ok) location.reload();
-      else alert("Failed to leave");
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeModal();
     });
-  }
 
-  // GLOBAL FUNCTIONS (IMPORTANT)
-  window.join = function(button) {
-    const card = button.closest('.event-card');
-    const id = card.dataset.id;
-    joinById(id);
-  };
-
-  window.toggleExpand = function(card) {
-    currentEventId = card.dataset.id;
-    const joined = card.dataset.joined === 'true';
-
-    document.getElementById('modal-name').textContent = card.dataset.name;
-    document.getElementById('modal-type').textContent = "Type: " + card.dataset.type;
-    document.getElementById('modal-description').textContent = card.dataset.description;
-    document.getElementById('modal-location').textContent = "Location: " + card.dataset.location;
-    document.getElementById('modal-start').textContent =
-      "Start: " + card.dataset.start.replace('T', ' ').split('.')[0];
-    document.getElementById('modal-end').textContent =
-      "End: " + card.dataset.end.replace('T', ' ').split('.')[0];
-
-    if (joined) {
-      leaveBtn.classList.remove('hidden');
-      joinBtn.classList.add('hidden');
-    } else {
-      leaveBtn.classList.add('hidden');
-      joinBtn.classList.remove('hidden');
+    // JOIN EVENT
+    function joinById(eventId) {
+      fetch(`/events/${eventId}/join`, {
+        method: "POST"
+      })
+        .then(res => {
+          if (res.ok) location.reload();
+          else alert("Failed to join");
+        });
     }
 
-    modal.classList.remove('hidden');
-  };
+    // LEAVE EVENT
+    function leaveById(eventId) {
+      if (!confirm("Leave this event?")) return;
 
-  // BUTTON ACTIONS
-  joinBtn.addEventListener('click', () => {
-    if (currentEventId) joinById(currentEventId);
+      fetch(`/events/${eventId}/leave`, {
+        method: "POST"
+      })
+        .then(res => {
+          if (res.ok) location.reload();
+          else alert("Failed to leave");
+        });
+    }
+
+    // GLOBAL FUNCTIONS (IMPORTANT)
+    window.join = function (button) {
+      const card = button.closest('.event-card');
+      const id = card.dataset.id;
+      joinById(id);
+    };
+
+    window.toggleExpand = function (card) {
+      currentEventId = card.dataset.id;
+      const joined = card.dataset.joined === 'true';
+
+      document.getElementById('modal-name').textContent = card.dataset.name;
+      document.getElementById('modal-type').textContent = "Type: " + card.dataset.type;
+      document.getElementById('modal-description').textContent = card.dataset.description;
+      document.getElementById('modal-location').textContent = "Location: " + card.dataset.location;
+      document.getElementById('modal-start').textContent =
+        "Start: " + card.dataset.start.replace('T', ' ').split('.')[0];
+      document.getElementById('modal-end').textContent =
+        "End: " + card.dataset.end.replace('T', ' ').split('.')[0];
+
+      if (joined) {
+        leaveBtn.classList.remove('hidden');
+        joinBtn.classList.add('hidden');
+      } else {
+        leaveBtn.classList.add('hidden');
+        joinBtn.classList.remove('hidden');
+      }
+
+      modal.classList.remove('hidden');
+    };
+
+    // BUTTON ACTIONS
+    joinBtn.addEventListener('click', () => {
+      if (currentEventId) joinById(currentEventId);
+    });
+
+    leaveBtn.addEventListener('click', () => {
+      if (currentEventId) leaveById(currentEventId);
+    });
+
   });
-
-  leaveBtn.addEventListener('click', () => {
-    if (currentEventId) leaveById(currentEventId);
-  });
-
-});
 </script>
 
 {% endblock %}
