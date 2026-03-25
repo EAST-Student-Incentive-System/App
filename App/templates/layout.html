@@ -121,7 +121,7 @@
       <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}">Profile</a></li>
       <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}">Rewards</a></li>
       <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}">Badges</a></li>
-      <li><a href="{{ url_for('appeal_views.student_appeal_page') }}">Appeals</a></li>
+      {% if user.timeout_until %}<li><a href="{{ url_for('appeal_views.student_appeal_page') }}">Appeals</a></li>{%endif%}
       <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
     </ul>
   </div>
