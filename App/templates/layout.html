@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,131 +12,196 @@
 
 <body data-theme="light" class="bg-gray-200 text-neutral flex flex-col min-h-screen">
 
-{% set is_staff = user is defined and user.role == "staff" %}
-{% set is_student = user is defined and user.role == "student" %}
-{% set active_class = "bg-white text-purple-700 font-semibold" %}
+  {% set is_staff = user is defined and user.role == "staff" %}
+  {% set is_student = user is defined and user.role == "student" %}
+  {% set active_class = "bg-white text-purple-700 font-semibold" %}
 
-<!-- DRAWER WRAPPER -->
-<div class="drawer lg:drawer-open">
+  <!-- DRAWER WRAPPER -->
+  <div class="drawer lg:drawer-open">
 
-  <input id="main-drawer" type="checkbox" class="drawer-toggle" />
+    <input id="main-drawer" type="checkbox" class="drawer-toggle" />
 
-  <!-- MAIN CONTENT -->
-  <div class="drawer-content flex flex-col">
+    <!-- MAIN CONTENT -->
+    <div class="drawer-content flex flex-col">
 
-    <!-- 🔝 TOP NAVBAR -->
-    <div class="navbar px-4 lg:px-6" style="background-color:#660c9e; color:white;">
+      <!-- 🔝 TOP NAVBAR -->
+      <div class="navbar px-4 lg:px-6" style="background-color:#660c9e; color:white;">
 
-      <!-- LEFT: Hamburger (mobile only) -->
-      <div class="flex-none lg:hidden">
-        <label for="main-drawer" class="btn btn-ghost text-white text-xl">☰</label>
+        <!-- LEFT: Hamburger (mobile only) -->
+        <div class="flex-none lg:hidden">
+          <label for="main-drawer" class="btn btn-ghost text-white text-xl">☰</label>
+        </div>
+
+        <!-- BRAND -->
+        <div class="flex-1">
+          <span class="text-xl font-bold">🏆 Merit</span>
+        </div>
+
+        <!-- DESKTOP MENU -->
+        <div class="hidden lg:flex">
+          <ul class="menu menu-horizontal px-1">
+
+            {% if is_staff %}
+            <li><a href="{{ url_for('event_views.get_staff_events_route') }}"
+                class="{% if request.path == url_for('event_views.get_staff_events_route') %}{{ active_class }}{% endif %}">Events</a>
+            </li>
+            <li><a href="{{ url_for('reward_views.list_rewards_page') }}"
+                class="{% if request.path == url_for('reward_views.list_rewards_page') %}{{ active_class }}{% endif %}">Rewards</a>
+            </li>
+            <li><a href="{{ url_for('user_views.flagged_command') }}"
+                class="{% if request.path == url_for('user_views.flagged_command') %}{{ active_class }}{% endif %}">Flagged</a>
+            </li>
+            <li><a href="{{ url_for('appeal_views.staff_appeals_page') }}"
+                class="{% if request.path == url_for('appeal_views.staff_appeals_page') %}{{ active_class }}{% endif %}">Appeals</a>
+            </li>
+            {% elif is_student %}
+            <li><a href="{{ url_for('event_views.get_student_events_route') }}"
+                class="{% if request.path == url_for('event_views.get_student_events_route') %}{{ active_class }}{% endif %}">Events</a>
+            </li>
+            <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}"
+                class="{% if request.path == url_for('progress_views.view_leaderboard_route') %}{{ active_class }}{% endif %}">Leaderboard</a>
+            </li>
+            <li><a href="{{ url_for('event_views.scan_qr_page') }}"
+                class="{% if request.path == url_for('event_views.scan_qr_page') %}{{ active_class }}{% endif %}">Scan
+                QR</a></li>
+            <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}"
+                class="{% if request.path == url_for('reward_student_views.student_rewards_page') %}{{ active_class }}{% endif %}">Rewards</a>
+            </li>
+            <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}"
+                class="{% if request.path == url_for('badge_views.student_badges_sections_page') %}{{ active_class }}{% endif %}">Badges</a>
+            </li>
+            <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}">Profile</a></li>
+            {% else %}
+            <li><a href="{{ url_for('index_views.about') }}">About</a></li>
+            {% endif %}
+
+            {% if user is defined %}
+            <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
+            {% endif %}
+
+          </ul>
+        </div>
       </div>
 
-      <!-- BRAND -->
-      <div class="flex-1">
-        <span class="text-xl font-bold">🏆 Merit</span>
+      <!-- PAGE CONTENT -->
+      <div class="w-full max-w-6xl mx-auto p-6">
+        {% block content %}{% endblock %}
       </div>
 
-      <!-- DESKTOP MENU -->
-      <div class="hidden lg:flex">
-        <ul class="menu menu-horizontal px-1">
+    </div>
+
+    <!-- 📱 DRAWER (MOBILE ONLY) -->
+    <div class="drawer-side">
+      <label for="main-drawer" class="drawer-overlay lg:hidden"></label>
+
+      <div class="w-64 min-h-full p-4 space-y-4 lg:hidden" style="background-color:#660c9e; color:white;">
+
+        <h2 class="text-lg font-bold mb-4">Menu</h2>
+
+        <ul class="menu">
 
           {% if is_staff %}
-            <li><a href="{{ url_for('event_views.get_staff_events_route') }}" class = "{% if request.path == url_for('event_views.get_staff_events_route') %}{{ active_class }}{% endif %}">Events</a></li>
-            <li><a href="{{ url_for('reward_views.list_rewards_page') }}" class = "{% if request.path == url_for('reward_views.list_rewards_page') %}{{ active_class }}{% endif %}">Rewards</a></li>
-            <li><a href="{{ url_for('user_views.flagged_command') }}" class = "{% if request.path == url_for('user_views.flagged_command') %}{{ active_class }}{% endif %}">Flagged</a></li>
-            <li><a href="{{ url_for('appeal_views.staff_appeals_page') }}" class = "{% if request.path == url_for('appeal_views.staff_appeals_page') %}{{ active_class }}{% endif %}">Appeals</a></li>
+          <li><a href="{{ url_for('event_views.get_staff_events_route') }}"
+              class="{% if request.path == url_for('event_views.get_staff_events_route') %}{{ active_class }}{% endif %}">Events</a>
+          </li>
+          <li><a href="{{ url_for('reward_views.list_rewards_page') }}"
+              class="{% if request.path == url_for('reward_views.list_rewards_page') %}{{ active_class }}{% endif %}">Rewards</a>
+          </li>
+          <li><a href="{{ url_for('user_views.flagged_command') }}"
+              class="{% if request.path == url_for('user_views.flagged_command') %}{{ active_class }}{% endif %}">Flagged
+              Students</a></li>
+          <li><a href="{{ url_for('appeal_views.staff_appeals_page') }}"
+              class="{% if request.path == url_for('appeal_views.staff_appeals_page') %}{{ active_class }}{% endif %}">Appeals</a>
+          </li>
           {% elif is_student %}
-            <li><a href="{{ url_for('event_views.get_student_events_route') }}" class = "{% if request.path == url_for('event_views.get_student_events_route') %}{{ active_class }}{% endif %}">Events</a></li>
-            <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}" class = "{% if request.path == url_for('progress_views.view_leaderboard_route') %}{{ active_class }}{% endif %}">Leaderboard</a></li>
-            <li><a href="{{ url_for('event_views.scan_qr_page') }}" class = "{% if request.path == url_for('event_views.scan_qr_page') %}{{ active_class }}{% endif %}">Scan QR</a></li>
-            <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}" class = "{% if request.path == url_for('reward_student_views.student_rewards_page') %}{{ active_class }}{% endif %}">Rewards</a></li>
-            <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}" class = "{% if request.path == url_for('badge_views.student_badges_sections_page') %}{{ active_class }}{% endif %}">Badges</a></li>
-            <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}">Profile</a></li>
+          <li><a href="{{ url_for('event_views.get_student_events_route') }}"
+              class="{% if request.path == url_for('event_views.get_student_events_route') %}{{ active_class }}{% endif %}">Events</a>
+          </li>
+          <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}"
+              class="{% if request.path == url_for('progress_views.view_leaderboard_route') %}{{ active_class }}{% endif %}">Leaderboard</a>
+          </li>
+          <li><a href="{{ url_for('event_views.scan_qr_page') }}"
+              class="{% if request.path == url_for('event_views.scan_qr_page') %}{{ active_class }}{% endif %}">Scan
+              QR</a></li>
+          <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}"
+              class="{% if request.path == url_for('user_views.profile_page', student_id=user.id) %}{{ active_class }}{% endif %}">Profile</a>
+          </li>
+          <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}"
+              class="{% if request.path == url_for('reward_student_views.student_rewards_page') %}{{ active_class }}{% endif %}">Rewards</a>
+          </li>
+          <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}"
+              class="{% if request.path == url_for('badge_views.student_badges_sections_page') %}{{ active_class }}{% endif %}">Badges</a>
+          </li>
+          <li><a href="{{ url_for('appeal_views.student_appeal_page') }}"
+              class="{% if request.path == url_for('appeal_views.student_appeal_page') %}{{ active_class }}{% endif %}">Appeals</a>
+          </li>
           {% else %}
-            <li><a href="{{ url_for('index_views.about') }}">About</a></li>
+          <li><a href="{{ url_for('index_views.about') }}">About</a></li>
           {% endif %}
 
           {% if user is defined %}
-            <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
+          <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
           {% endif %}
 
         </ul>
       </div>
     </div>
 
-    <!-- PAGE CONTENT -->
-    <div class="w-full max-w-6xl mx-auto p-6">
-      {% block content %}{% endblock %}
-    </div>
-
   </div>
 
-  <!-- 📱 DRAWER (MOBILE ONLY) -->
-<div class="drawer-side">
-  <label for="main-drawer" class="drawer-overlay lg:hidden"></label>
-
-  <div class="w-64 min-h-full p-4 space-y-4 lg:hidden"
-       style="background-color:#660c9e; color:white;">
-
-      <h2 class="text-lg font-bold mb-4">Menu</h2>
-
-      <ul class="menu">
-
-        {% if is_staff %}
-          <li><a href="{{ url_for('event_views.get_staff_events_route') }}" class = "{% if request.path == url_for('event_views.get_staff_events_route') %}{{ active_class }}{% endif %}">Events</a></li>
-          <li><a href="{{ url_for('reward_views.list_rewards_page') }}" class = "{% if request.path == url_for('reward_views.list_rewards_page') %}{{ active_class }}{% endif %}">Rewards</a></li>
-          <li><a href="{{ url_for('user_views.flagged_command') }}" class = "{% if request.path == url_for('user_views.flagged_command') %}{{ active_class }}{% endif %}">Flagged Students</a></li>
-          <li><a href="{{ url_for('appeal_views.staff_appeals_page') }}" class = "{% if request.path == url_for('appeal_views.staff_appeals_page') %}{{ active_class }}{% endif %}" >Appeals</a></li>
-        {% elif is_student %}
-          <li><a href="{{ url_for('event_views.get_student_events_route') }}" class = "{% if request.path == url_for('event_views.get_student_events_route') %}{{ active_class }}{% endif %}">Events</a></li>
-          <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}" class = "{% if request.path == url_for('progress_views.view_leaderboard_route') %}{{ active_class }}{% endif %}">Leaderboard</a></li>
-          <li><a href="{{ url_for('event_views.scan_qr_page') }}" class = "{% if request.path == url_for('event_views.scan_qr_page') %}{{ active_class }}{% endif %}">Scan QR</a></li>
-          <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}" class = "{% if request.path == url_for('user_views.profile_page', student_id=user.id) %}{{ active_class }}{% endif %}">Profile</a></li>
-          <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}" class = "{% if request.path == url_for('reward_student_views.student_rewards_page') %}{{ active_class }}{% endif %}">Rewards</a></li>
-          <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}" class = "{% if request.path == url_for('badge_views.student_badges_sections_page') %}{{ active_class }}{% endif %}">Badges</a></li>
-          <li><a href="{{ url_for('appeal_views.student_appeal_page') }}" class = "{% if request.path == url_for('appeal_views.student_appeal_page') %}{{ active_class }}{% endif %}" >Appeals</a></li>
-        {% else %}
-          <li><a href="{{ url_for('index_views.about') }}">About</a></li>
-        {% endif %}
-
-        {% if user is defined %}
-          <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
-        {% endif %}
-
-      </ul>
-    </div>
-  </div>
-
-</div>
-
-<!-- FLASH MESSAGES -->
-{% with messages = get_flashed_messages(with_categories=true) %}
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div id="flash-container" class="fixed top-4 right-4 space-y-2 z-50">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} shadow-lg flex justify-between items-center">
-          <span>{{ message }}</span>
-          <button onclick="this.parentElement.remove()">×</button>
-        </div>
-      {% endfor %}
+  <div id="flash-container" class="fixed top-4 right-4 space-y-2 z-50">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} shadow-lg flex justify-between items-center">
+      <span>{{ message }}</span>
+      <button onclick="this.parentElement.remove()">×</button>
     </div>
+    {% endfor %}
+  </div>
   {% endif %}
-{% endwith %}
+  {% endwith %}
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  const alerts = document.querySelectorAll("#flash-container .alert");
-  alerts.forEach(alert => {
-    setTimeout(() => {
-      alert.style.opacity = "0";
-      setTimeout(() => alert.remove(), 500);
-    }, 3000);
-  });
-});
-</script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const alerts = document.querySelectorAll("#flash-container .alert");
+      alerts.forEach(alert => {
+        setTimeout(() => {
+          alert.style.opacity = "0";
+          setTimeout(() => alert.remove(), 500);
+        }, 3000);
+      });
+    });
+  </script>
+  <script>
+    window.closeModal = function (id = 'event-modal') {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      // Checkbox modal
+      if (el.type === "checkbox") {
+        el.checked = false;
+      }
+      // If it's a <dialog>
+      if (modal.tagName === 'DIALOG') {
+        modal.close();
+      } else {
+        modal.classList.add('hidden');
+      }
+    };
+  </script>
+  <script>
+    document.addEventListener('click', function (e) {
+      const modal = document.getElementById('descriptionModal');
+      if (!modal) return;
 
-{% block scripts %}{% endblock %}
+      if (modal.open && e.target === modal) {
+        modal.close();
+      }
+    });
+  </script>
+  {% block scripts %}{% endblock %}
 
 </body>
+
 </html>
