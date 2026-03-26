@@ -165,10 +165,6 @@
       if (e.target === modal) closeModal();
     });
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeModal();
-    });
-
     // JOIN EVENT
     function joinById(eventId) {
       fetch(`/events/${eventId}/join`, {

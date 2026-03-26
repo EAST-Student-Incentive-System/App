@@ -202,7 +202,20 @@
     });
   </script>
   {% block scripts %}{% endblock %}
+<script>
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
 
+      // 1. Close div/dialog modals
+      closeModal();
+
+      // 2. Close ALL DaisyUI checkbox modals
+      document.querySelectorAll('.modal-toggle').forEach(cb => {
+        cb.checked = false;
+      });
+    }
+  });
+</script>
 </body>
 
 </html>
