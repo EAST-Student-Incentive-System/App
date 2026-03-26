@@ -179,13 +179,14 @@
       const modal = document.getElementById(id);
       if (!modal) return;
       // Checkbox modal
-      if (el.type === "checkbox") {
-        el.checked = false;
-      }
-      // If it's a <dialog>
+      if (modal.type === "checkbox") {
+  modal.checked = false;
+}
+      // Dialog modal
       if (modal.tagName === 'DIALOG') {
         modal.close();
       } else {
+        //Div modal
         modal.classList.add('hidden');
       }
     };
