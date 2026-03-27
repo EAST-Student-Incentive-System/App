@@ -37,25 +37,27 @@ Flagged Students
 
       {# Overlaps #}
       {% set flagged_events = [] %}
-      {% for attendance in student.attendances %}
-        {% if attendance.get_overlap_events()|length > 0 %}
-          {% if attendance.event.name not in flagged_events %}
-            {% set _ = flagged_events.append(attendance.event.name) %}
-          {% endif %}
-          {% for ev in attendance.get_overlap_events() %}
-            {% if ev.event.name not in flagged_events %}
-              {% set _ = flagged_events.append(ev.event.name) %}
-            {% endif %}
-          {% endfor %}
-        {% endif %}
-      {% endfor %}
-
+{% set flagged_event_names = [] %}
+{% for attendance in student.attendances %}
+  {% if attendance.get_overlap_events()|length > 0 %}
+    {% if attendance.event.name not in flagged_event_names %}
+      {% set _ = flagged_event_names.append(attendance.event.name) %}
+      {% set _ = flagged_events.append({"name": attendance.event.name, "timestamp": attendance.timestamp}) %}
+    {% endif %}
+    {% for ev in attendance.get_overlap_events() %}
+      {% if ev.event.name not in flagged_event_names %}
+        {% set _ = flagged_event_names.append(ev.event.name) %}
+        {% set _ = flagged_events.append({"name": ev.event.name, "timestamp": ev.timestamp}) %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
       {% if flagged_events %}
         <p><strong>Attended multiple events within 1 hour:</strong></p>
         <ul class="list-disc list-inside mb-4">
-          {% for name in flagged_events %}
-            <li>{{ name }}</li>
-          {% endfor %}
+          {% for e in flagged_events %}
+  <li>{{ e.name }} - {{ e.timestamp.strftime('%Y-%m-%d %H:%M') }}</li>
+{% endfor %}
         </ul>
       {% endif %}
 
