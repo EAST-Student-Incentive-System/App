@@ -86,25 +86,15 @@
 
         <!-- Footer -->
         <div class="px-4 py-3 border-t flex justify-between items-center text-sm">
-
-          <!-- LEFT -->
           {% if event in student.events %}
           <span class="text-green-600 font-medium">✔ Joined</span>
           {% else %}
-          <button class="text-gray-400" onclick="join(this)">Join?</button>
+          <span class="text-gray-400">Not Joined</span>
           {% endif %}
 
-          <!-- CENTER (attendance count) -->
-          <div class="flex items-center gap-1 text-gray-600">
-            <span>👥</span>
-            <span>{{ event.attendances|length }}</span>
-          </div>
-
-          <!-- RIGHT -->
           <span class="text-primary font-medium group-hover:underline">
             View Details →
           </span>
-
         </div>
 
       </div>
@@ -151,85 +141,130 @@
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById('event-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
 
-    const modal = document.getElementById('event-modal');
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  function toggleExpand(card) {
+    const eventId = card.getAttribute('data-id');
+    const joined = card.dataset.joined === 'true';
+    document.getElementById('modal-name').textContent = card.dataset.name;
+    document.getElementById('modal-type').textContent = "Type: " + card.dataset.type;
+    document.getElementById('modal-description').textContent = "Description: " + card.dataset.description;
+    document.getElementById('modal-location').textContent = "Location: " + card.dataset.location;
+    document.getElementById('modal-start').textContent =
+      "Start: " + card.dataset.start.replace('T', ' ').split('.')[0];
+    document.getElementById('modal-end').textContent =
+      "End: " + card.dataset.end.replace('T', ' ').split('.')[0];
+
+    document.getElementById('event-modal').classList.remove('hidden');
     const leaveBtn = document.getElementById('leave-btn');
     const joinBtn = document.getElementById('join-btn');
-
-    let currentEventId = null;
-
-
-
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeModal();
-    });
-
-    // JOIN EVENT
-    function joinById(eventId) {
-      fetch(`/events/${eventId}/join`, {
-        method: "POST"
-      })
-        .then(res => {
-          if (res.ok) location.reload();
-          else alert("Failed to join");
-        });
+    console.log("Joined:", joined);
+    if (joined) {
+      leaveBtn.classList.remove('hidden'); // Only show leave button if student has joined the event
+      joinBtn.classList.add('hidden'); // Hide join button if student has already joined the event
+      leaveBtn.onclick = function () {
+        confirmLeave(eventId);
+      };
     }
-
-    // LEAVE EVENT
-    function leaveById(eventId) {
-      if (!confirm("Leave this event?")) return;
-
+    else {
+      leaveBtn.classList.add('hidden'); // Hide leave button if student has not joined the event
+      joinBtn.classList.remove('hidden'); // Show join button if student has not joined the event
+      joinBtn.onclick = function () {
+        // Send a POST request to the Flask route
+        fetch(`/events/${eventId}/join`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+          .then(response => {
+            if (response.ok) {
+              // Refresh page or redirect after successful join
+              window.location.reload(true);
+            } else {
+              alert("Something went wrong. Please try again.");
+            }
+          })
+          .catch(error => console.error("Error:", error));
+      }
+    }
+  }
+    function closeModal() {
+      document.getElementById('event-modal').classList.add('hidden');
+    }
+  function confirmLeave(eventId) {
+    if (confirm("Are you sure you want to leave this event?")) {
+      // Send a POST request to the Flask route
       fetch(`/events/${eventId}/leave`, {
-        method: "POST"
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
       })
-        .then(res => {
-          if (res.ok) location.reload();
-          else alert("Failed to leave");
-        });
+        .then(response => {
+          if (response.ok) {
+            // Refresh page or redirect after successful leave
+            window.location.reload(true);
+          } else {
+            alert("Something went wrong. Please try again.");
+          }
+        })
+        .catch(error => console.error("Error:", error));
     }
+  }
 
-    // GLOBAL FUNCTIONS (IMPORTANT)
-    window.join = function (button) {
-      const card = button.closest('.event-card');
-      const id = card.dataset.id;
-      joinById(id);
-    };
 
-    window.toggleExpand = function (card) {
-      currentEventId = card.dataset.id;
+  let activeFilter = 'all';
+
+  function getEventStatus(card) {
+    const now = new Date();
+    const start = new Date(card.dataset.start);
+    const end = new Date(card.dataset.end);
+
+    if (now < start) return 'upcoming';
+    if (now > end) return 'previous';
+    return 'ongoing';
+  }
+
+  function setFilter(filter, label) {
+    activeFilter = filter;
+    document.getElementById('filter-label').textContent = label;
+    filterEvents();
+  }
+
+  function filterEvents() {
+    const query = document.getElementById('event-search').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.event-card');
+    let visible = 0;
+
+    cards.forEach(card => {
+      const matchesSearch =
+        !query ||
+        card.dataset.name.includes(query) ||
+        card.dataset.description.includes(query) ||
+        card.dataset.type.includes(query);
+
+      const status = getEventStatus(card);
       const joined = card.dataset.joined === 'true';
 
-      document.getElementById('modal-name').textContent = card.dataset.name;
-      document.getElementById('modal-type').textContent = "Type: " + card.dataset.type;
-      document.getElementById('modal-description').textContent = card.dataset.description;
-      document.getElementById('modal-location').textContent = "Location: " + card.dataset.location;
-      document.getElementById('modal-start').textContent =
-        "Start: " + card.dataset.start.replace('T', ' ').split('.')[0];
-      document.getElementById('modal-end').textContent =
-        "End: " + card.dataset.end.replace('T', ' ').split('.')[0];
+      const matchesFilter =
+        activeFilter === 'all' ||
+        status === activeFilter ||
+        (activeFilter === 'joined' && joined);
 
-      if (joined) {
-        leaveBtn.classList.remove('hidden');
-        joinBtn.classList.add('hidden');
-      } else {
-        leaveBtn.classList.add('hidden');
-        joinBtn.classList.remove('hidden');
-      }
-
-      modal.classList.remove('hidden');
-    };
-
-    // BUTTON ACTIONS
-    joinBtn.addEventListener('click', () => {
-      if (currentEventId) joinById(currentEventId);
+      const show = matchesSearch && matchesFilter;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
     });
 
-    leaveBtn.addEventListener('click', () => {
-      if (currentEventId) leaveById(currentEventId);
-    });
-
-  });
+    document.getElementById('no-results').classList.toggle('hidden', visible > 0);
+  }
 </script>
 
 {% endblock %}
