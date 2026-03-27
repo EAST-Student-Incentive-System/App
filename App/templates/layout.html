@@ -12,12 +12,45 @@
 
 <body data-theme="light" class="bg-gray-200 text-neutral flex flex-col min-h-screen">
 
-  {% set is_staff = user is defined and user.role == "staff" %}
-  {% set is_student = user is defined and user.role == "student" %}
-  {% set active_class = "bg-white text-purple-700 font-semibold" %}
+  <!-- Staff Navbar -->
+ {% if user is defined and user.role == "staff" %}
+<div  class="sticky top-0 z-50 bg-base-100 shadow flex items-center justify-between px-4" style="background-color:#660c9e; color:white;">
+  <div class="flex-1">
+    <a href="{{ url_for('event_views.get_staff_events_route')}}" ></a>
+    <span class="text-xl font-bold">🏆 Merit</span>
+  </div>
+  <div class="flex-none">
+    <ul class="menu menu-horizontal px-1">
+      <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
+    </ul>
+  </div>
+</div>
+  {% elif user is defined and user.role == "student" %}
+  <!-- Student Navbar (top) -->
+  <div class="sticky top-0 z-50 bg-base-100 shadow flex items-center justify-between px-4" style="background-color:#660c9e; color:white;">
+    <div class="flex-1">
+      <span class="text-xl font-bold">🏆 Merit</span>
+    </div>
+    <div class="flex-none">
+      <ul class="menu menu-horizontal px-1">
+        <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
+      </ul>
+    </div>
+  </div>
 
-  <!-- DRAWER WRAPPER -->
-  <div class="drawer lg:drawer-open">
+  {% else %}
+  <!-- Guest Navbar (no user yet) -->
+  <div class="sticky top-0 z-50 bg-base-100 shadow flex items-center justify-between px-4" style="background-color:#660c9e; color:white;">
+    <div class="flex-1">
+      <span class="text-xl font-bold">🏆 Merit</span>
+    </div>
+    <div class="flex-none">
+      <ul class="menu menu-horizontal px-1">
+        <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
+      </ul>
+    </div>
+  </div>
+  {% endif %}
 
     <input id="main-drawer" type="checkbox" class="drawer-toggle" />
 
@@ -88,11 +121,39 @@
         {% block content %}{% endblock %}
       </div>
 
+  <!-- Student Nav -->
+  {% if user is defined and user.role == "student" %}
+<div class="drawer">
+  <input id="student-drawer" type="checkbox" class="drawer-toggle" />
+  <div class="drawer-content">
+    <label for="student-drawer" class="btn btn-accent fixed bottom-4 left-4">
+      ☰
+    </label>
+  </div>
+<div class="drawer-side mt-[64px]">
+  <label for="student-drawer" class="drawer-overlay"></label>
+
+  <!-- Full-height flex column -->
+  <div class="flex flex-col h-screen" style="background-color:#ca8bf1; color:white;">
+    
+    <!-- Top: Back button -->
+    <div class="p-4 border-b border-white/30">
+      <label for="student-drawer" class="btn btn-sm btn-ghost text-white">← Back</label>
     </div>
 
-    <!-- 📱 DRAWER (MOBILE ONLY) -->
-    <div class="drawer-side">
-      <label for="main-drawer" class="drawer-overlay lg:hidden"></label>
+    <!-- Middle: Menu items -->
+    <ul class="menu flex-1 p-4">
+      <li><a href="{{ url_for('event_views.get_student_events_route') }}">Events</a></li>
+      <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}">Leaderboard</a></li>
+      <li><a href="{{ url_for('event_views.scan_qr_page') }}">Scan QR</a></li>
+      <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}">Profile</a></li>
+      <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}">Rewards</a></li>
+      <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}">Badges</a></li>
+      {% if user.timeout_until %}<li><a href="{{ url_for('appeal_views.student_appeal_page') }}">Appeals</a></li>{%endif%}
+      <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
+    </ul>
+  </div>
+</div>
 
       <div class="w-64 min-h-full p-4 space-y-4 lg:hidden" style="background-color:#660c9e; color:white;">
 
