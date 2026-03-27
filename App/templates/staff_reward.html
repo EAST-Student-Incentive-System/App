@@ -10,8 +10,8 @@
 
       <!-- Add Button -->
       <a href="{{ url_for('reward_views.create_reward_page') }}"
-         class="btn btn-circle btn-accent shadow-md shrink-0">
-        +
+         class="btn btn-accent shadow-md">
+        + Create Reward
       </a>
 
       <h1 class="text-3xl font-bold text-gray-800 flex-1 text-center">
@@ -122,8 +122,8 @@
   <!-- FOOTER -->
   <div class="px-4 py-3 border-t flex justify-end items-center text-sm">
     <a href="{{ url_for('reward_views.update_reward_page', reward_id=reward.id) }}"
-       class="text-primary font-medium group-hover:underline">
-      Edit →
+       class="btn btn-sm btn-outline btn-accent w-full">
+      Edit Reward
     </a>
   </div>
 
