@@ -34,12 +34,16 @@
 
       {% for event in events if event.active %}
       <div
-        class="event-card bg-base-100 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group"
-        onclick="toggleExpand(this)" data-id="{{ event.id }}" data-name="{{ event.name|lower }}"
-        data-description="{{ event.description|lower }}" data-type="{{ event.type|lower }}"
-        data-start="{{ event.start }}" data-end="{{ event.end }}"
-        data-joined="{% if event in student.events %}true{% else %}false{% endif %}"
-        data-location="{{ event.location|lower }}">
+  class="event-card bg-base-100 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group flex flex-col h-full"
+  onclick="toggleExpand(this)"
+  data-id="{{ event.id }}"
+  data-name="{{ event.name|lower }}"
+  data-description="{{ event.description|lower }}"
+  data-type="{{ event.type|lower }}"
+  data-start="{{ event.start }}"
+  data-end="{{ event.end }}"
+  data-joined="{% if event in student.events %}true{% else %}false{% endif %}"
+  data-location="{{ event.location|lower }}">
 
         <!-- Image -->
         {% if event.image %}
@@ -51,7 +55,7 @@
         {% endif %}
 
         <!-- Content -->
-        <div class="p-2 space-y-2">
+        <div class="p-2 space-y-2 flex-1">
 
           <div class="flex items-start justify-between">
             <h2 class="text-lg font-bold text-gray-800 leading-tight">
@@ -76,26 +80,36 @@
               </span>
             </div>
 
-            <div class="flex items-center gap-2">
-              <span>📍</span>
-              <span class="truncate">{{ event.location }}</span>
+                        <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <span>📍</span>
+                <span class="truncate">{{ event.location }}</span>
+              </div>
+              <p class="text-gray-600 font-medium">
+                👥{{ event.students|length }}{% if event.limit %}/{{ event.limit }}{% endif %}
+              </p>
             </div>
+
           </div>
 
         </div>
 
-        <!-- Footer -->
-        <div class="px-4 py-3 border-t flex justify-between items-center text-sm">
-          {% if event in student.events %}
-          <span class="text-green-600 font-medium">✔ Joined</span>
-          {% else %}
-          <span class="text-gray-400">Not Joined</span>
-          {% endif %}
+       <!-- Footer -->
+<div class="px-4 py-3 border-t mt-auto">
+  {% set count = event.students|length %}
 
-          <span class="text-primary font-medium group-hover:underline">
-            View Details →
-          </span>
-        </div>
+  {% if student in event.students %}
+    <!-- Greyed out Joined button -->
+    <button class="btn btn-sm btn-disabled w-full">Joined</button>
+  {% elif event.limit and count >= event.limit %}
+    <!-- Just text for Full -->
+    <span class="text-gray-400 font-medium">Full</span>
+  {% else %}
+    <!-- Normal Join button -->
+    <button class="btn btn-sm btn-accent w-full">Join</button>
+  {% endif %}
+</div>
+
 
       </div>
       {% endfor %}
