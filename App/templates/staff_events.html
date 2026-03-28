@@ -3,11 +3,11 @@
 {% block title %}Events{% endblock %}
 
 {% block content %}
-<div class="flex flex-col items-center px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
+<div class="flex flex-col items-center px-2 sm:px-4 lg:px-6 py-4 min-h-screen">
   <div class="w-full max-w-6xl">
 
     <!-- HEADER -->
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
 
       <a href="{{ url_for('event_views.create_event_route') }}"
          class="btn btn-accent shadow-md">
@@ -19,7 +19,7 @@
       </h1>
 
       <!-- Search + Filter -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
 
         <input id="event-search"
                type="text"
@@ -46,8 +46,8 @@
     </div>
 
     <!-- GRID -->
-    <div id="events-container"
-         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="events-container"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
       {% for event in events %}
       <div
@@ -69,7 +69,7 @@
         {% endif %}
 
         <!-- Content -->
-        <div class="p-4 space-y-3">
+        <div class="p-2 space-y-2">
 
           <!-- Header -->
           <div class="flex justify-between items-start">
