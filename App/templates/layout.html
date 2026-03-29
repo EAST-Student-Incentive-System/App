@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Merit{% endblock %}</title>
-  <!-- Tailwind + DaisyUI -->
+
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
 
@@ -34,13 +35,19 @@
     }
   </style>
 </head>
-<body data-theme="light" class="bg-gray-200 text-neutral flex flex-col min-h-screen">
 
-  <!-- Staff Navbar -->
- {% if user is defined and user.role == "staff" %}
+<body data-theme="light" class="bg-gray-200 text-neutral flex flex-col min-h-screen">
+  
+
+  <!-- User Navbar -->
+ {% if user is defined and (user.role == "staff" or user.role=="student")%}
 <div  class="sticky top-0 z-50 bg-base-100 shadow flex items-center justify-between px-4" style="background-color:#660c9e; color:white;">
   <div class="flex-1">
     <a href="{{ url_for('event_views.get_staff_events_route')}}" ></a>
+  <!-- Hamburger -->
+  <label for="main-drawer" class="btn btn-ghost text-white text-xl">
+    ☰
+  </label>
     <span class="text-xl font-bold">🏆 Merit</span>
   </div>
   <div class="flex-none">
@@ -49,18 +56,6 @@
     </ul>
   </div>
 </div>
-  {% elif user is defined and user.role == "student" %}
-  <!-- Student Navbar (top) -->
-  <div class="sticky top-0 z-50 bg-base-100 shadow flex items-center justify-between px-4" style="background-color:#660c9e; color:white;">
-    <div class="flex-1">
-      <span class="text-xl font-bold">🏆 Merit</span>
-    </div>
-    <div class="flex-none">
-      <ul class="menu menu-horizontal px-1">
-        <li><a href="{{ url_for('auth_views.logout_action') }}">Logout</a></li>
-      </ul>
-    </div>
-  </div>
 
   {% else %}
   <!-- Guest Navbar (no user yet) -->
@@ -76,119 +71,119 @@
   </div>
   {% endif %}
 
-  <!-- Page content -->
-  <div class="w-full max-w-5xl mx-auto p-6">
-    {% block content %}{% endblock %}
-  </div>
-{% if user is defined and user.role == "staff" %}
+
+  <!-- Drawer for Staff/Student -->
 <div class="drawer">
-  <!-- Toggle -->
-  <input id="staff-drawer" type="checkbox" class="drawer-toggle" />
+  <!-- Toggle checkbox -->
+  <input id="main-drawer" type="checkbox" class="drawer-toggle" />
 
   <!-- Page content -->
   <div class="drawer-content">
-    <!-- Drawer toggle button -->
-    <label for="staff-drawer" class="btn btn-accent fixed bottom-4 left-4">
-      ☰
-    </label>
-    <!-- Your main page content goes here -->
+    <!-- Your normal page content continues here -->
   </div>
 
   <!-- Drawer side -->
   <div class="drawer-side mt-[64px]">
-    <label for="staff-drawer" class="drawer-overlay"></label>
+    <label for="main-drawer" class="drawer-overlay"></label>
+    <div class="flex flex-col h-screen bg-[#E3E8E7] text-black">
 
-    <!-- Full-height flex column -->
-    <div class="flex flex-col h-screen" style="background-color:#ca8bf1; color:white;">
-      
-      <!-- Top: Back button -->
-      <div class="p-4 border-b border-white/30">
-        <label for="staff-drawer" class="btn btn-sm btn-ghost text-white">← Back</label>
-      </div>
-
-      <!-- Middle: Menu items -->
-      <ul class="menu flex-1 p-4">
-        <li><a href="{{ url_for('event_views.get_staff_events_route') }}">Events</a></li>
-        <li><a href="{{ url_for('reward_views.list_rewards_page') }}">Rewards</a></li>
-        <li><a href="{{ url_for('user_views.flagged_command') }}">Flagged Students</a></li>
-        <li><a href="{{ url_for('appeal_views.staff_appeals_page') }}">Appeals</a></li>
-        <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
+      <!-- Menu items -->
+      <ul class="menu flex-1 p-4 space-y-2">
+        {% if user is defined and user.role == "staff" %}
+          <li><a href="{{ url_for('event_views.get_staff_events_route') }}">Events</a></li>
+          <li><a href="{{ url_for('reward_views.list_rewards_page') }}">Rewards</a></li>
+          <li><a href="{{ url_for('user_views.flagged_command') }}">Flagged Students</a></li>
+          <li><a href="{{ url_for('appeal_views.staff_appeals_page') }}">Appeals</a></li>
+          <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
+        {% elif user is defined and user.role == "student" %}
+          <li><a href="{{ url_for('event_views.get_student_events_route') }}">Events</a></li>
+          <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}">Leaderboard</a></li>
+          <li><a href="{{ url_for('event_views.scan_qr_page') }}">Scan QR</a></li>
+          <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}">Profile</a></li>
+          <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}">Rewards</a></li>
+          <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}">Badges</a></li>
+          {% if user.timeout_until %}
+            <li><a href="{{ url_for('appeal_views.student_appeal_page') }}">Appeals</a></li>
+          {% endif %}
+          <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
+        {% endif %}
       </ul>
     </div>
   </div>
 </div>
-{% endif %}
 
-  <!-- Student Nav -->
-  {% if user is defined and user.role == "student" %}
-<div class="drawer">
-  <input id="student-drawer" type="checkbox" class="drawer-toggle" />
-  <div class="drawer-content">
-    <label for="student-drawer" class="btn btn-accent fixed bottom-4 left-4">
-      ☰
-    </label>
-  </div>
-<div class="drawer-side mt-[64px]">
-  <label for="student-drawer" class="drawer-overlay"></label>
+      <!-- PAGE CONTENT -->
+      <div class="w-full max-w-6xl mx-auto p-6">
+        {% block content %}{% endblock %}
+      </div>
 
-  <!-- Full-height flex column -->
-  <div class="flex flex-col h-screen" style="background-color:#ca8bf1; color:white;">
-    
-    <!-- Top: Back button -->
-    <div class="p-4 border-b border-white/30">
-      <label for="student-drawer" class="btn btn-sm btn-ghost text-white">← Back</label>
-    </div>
-
-    <!-- Middle: Menu items -->
-    <ul class="menu flex-1 p-4">
-      <li><a href="{{ url_for('event_views.get_student_events_route') }}">Events</a></li>
-      <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}">Leaderboard</a></li>
-      <li><a href="{{ url_for('event_views.scan_qr_page') }}">Scan QR</a></li>
-      <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}">Profile</a></li>
-      <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}">Rewards</a></li>
-      <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}">Badges</a></li>
-      {% if user.timeout_until %}<li><a href="{{ url_for('appeal_views.student_appeal_page') }}">Appeals</a></li>{%endif%}
-      <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
-    </ul>
-  </div>
-</div>
-
- 
-  </div>
-</div>
-{% endif %}
-
-{% with messages = get_flashed_messages(with_categories=true) %}
+  <!-- FLASH MESSAGES -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-    <div id="flash-container" class="fixed top-4 right-4 space-y-2 z-50">
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} shadow-lg flex justify-between items-center">
-          <span>{{ message }}</span>
-          <button class="ml-4 text-xl font-bold focus:outline-none" onclick="this.parentElement.remove()">×</button>
-        </div>
-      {% endfor %}
+  <div id="flash-container" class="fixed top-4 right-4 space-y-2 z-50">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }} shadow-lg flex justify-between items-center">
+      <span>{{ message }}</span>
+      <button onclick="this.parentElement.remove()">×</button>
     </div>
+    {% endfor %}
+  </div>
   {% endif %}
-{% endwith %}
+  {% endwith %}
 
-
-  <!-- FontAwesome for icons -->
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const alerts = document.querySelectorAll("#flash-container .alert");
-    alerts.forEach(alert => {
-      // Wait 3 seconds, then fade out
-      setTimeout(() => {
-        alert.style.opacity = "0";   // fade out
-        // After fade animation, remove element
-        setTimeout(() => alert.remove(), 500);
-      }, 3000);
+    document.addEventListener("DOMContentLoaded", () => {
+      const alerts = document.querySelectorAll("#flash-container .alert");
+      alerts.forEach(alert => {
+        setTimeout(() => {
+          alert.style.opacity = "0";
+          setTimeout(() => alert.remove(), 500);
+        }, 3000);
+      });
     });
-  });
   </script>
+  <script>
+    window.closeModal = function (id = 'event-modal') {
+      const modal = document.getElementById(id);
+      if (!modal) return;
+      // Checkbox modal
+      if (modal.type === "checkbox") {
+  modal.checked = false;
+}
+      // Dialog modal
+      if (modal.tagName === 'DIALOG') {
+        modal.close();
+      } else {
+        //Div modal
+        modal.classList.add('hidden');
+      }
+    };
+  </script>
+  <script>
+    document.addEventListener('click', function (e) {
+      const modal = document.getElementById('descriptionModal');
+      if (!modal) return;
 
+      if (modal.open && e.target === modal) {
+        modal.close();
+      }
+    });
+  </script>
   {% block scripts %}{% endblock %}
-  
+<script>
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+
+      // 1. Close div/dialog modals
+      closeModal();
+
+      // 2. Close ALL DaisyUI checkbox modals
+      document.querySelectorAll('.modal-toggle').forEach(cb => {
+        cb.checked = false;
+      });
+    }
+  });
+</script>
 </body>
+
 </html>
