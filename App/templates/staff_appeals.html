@@ -13,12 +13,12 @@
     {# ---------------- DESKTOP/TABLET: TABLE (CLICK ROW -> DETAILS MODAL -> CONFIRM MODAL) ---------------- #}
 <div class="hidden md:block bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
   <div class="overflow-x-auto">
-    <table class="table table-lg w-full">
+    <table class="table w-full">
       <thead>
         <tr class="text-lg text-gray-800">
-          <th class="w-1/6 py-6">Username</th>
-          <th class="w-2/6 py-6">Status</th>
-          <th class="w-3/6 py-6">Appeal Preview</th>
+          <th class="w-1/6 py-3">Username</th>
+          <th class="w-2/6 py-3">Status</th>
+          <th class="w-3/6 py-3">Appeal Preview</th>
         </tr>
       </thead>
 
@@ -26,13 +26,13 @@
         {% for s in appeals %}
           {# Clickable row #}
           <tr
-            class="cursor-pointer hover:bg-base-200 transition align-top"
+            class="cursor-pointer hover:bg-base-200 transition align-middle"
             onclick="document.getElementById('appeal-details-{{ s.id }}').showModal()"
             role="button"
             tabindex="0"
             onkeydown="if(event.key === 'Enter' || event.key === ' ') { document.getElementById('appeal-details-{{ s.id }}').showModal(); }"
           >
-            <td class="font-semibold text-gray-900 py-7 text-lg">
+            <td class="font-semibold text-gray-900 py-4 text-lg">
               {{ s.username }}
               {% if s.isFlagged %}
                 <div class="mt-3">
@@ -42,12 +42,12 @@
               <div class="text-sm text-gray-500 mt-2">ID: {{ s.id }}</div>
             </td>
 
-            <td class="py-7 text-base text-gray-700">
+            <td class="py-4 text-base text-gray-700">
               <div><span class="font-semibold">Timeout count:</span> {{ s.timeout_count }}</div>
               <div class="mt-2 text-sm text-gray-500">Click row to view details</div>
             </td>
 
-            <td class="py-7 text-base text-gray-700">
+            <td class="py-4 text-base text-gray-700">
               <div class="line-clamp-2 whitespace-pre-wrap">
                 {{ s.appeal_desc or "—" }}
               </div>
@@ -83,10 +83,6 @@
                       <span class="font-semibold">Last Device ID:</span>
                       <span class="font-mono break-all">{{ s.temporary_device_holder or "—" }}</span>
                     </div>
-                    <div>
-                      <span class="font-semibold">Last GPS attempt:</span>
-                      <span class="font-mono break-all">{{ s.temporary_gps_holder or "—" }}</span>
-                    </div>
                   </div>
                 </div>
 
@@ -111,20 +107,14 @@
               <div class="mt-6 border-t pt-5">
                 <h4 class="font-semibold text-lg mb-3">Actions</h4>
 
-                <div class="flex flex-col sm:flex-row gap-3">
-                  <button
-                    type="button"
-                    class="btn btn-success w-full"
-                    onclick="document.getElementById('confirm-approve-{{ s.id }}').showModal()"
-                  >
+                <div class="flex flex-wrap justify-end gap-3">
+                  <button type="button" class="btn btn-success btn-sm"
+                    onclick="document.getElementById('confirm-approve-{{ s.id }}').showModal()">
                     Remove Timeout
                   </button>
 
-                  <button
-                    type="button"
-                    class="btn btn-error w-full"
-                    onclick="document.getElementById('confirm-delete-{{ s.id }}').showModal()"
-                  >
+                  <button type="button" class="btn btn-error btn-sm"
+                    onclick="document.getElementById('confirm-delete-{{ s.id }}').showModal()">
                     Remove Appeal
                   </button>
                 </div>
@@ -235,10 +225,6 @@
                 <div>
                   <span class="font-semibold">Last Device ID:</span>
                   <span class="font-mono break-all">{{ s.temporary_device_holder or "—" }}</span>
-                </div>
-                <div>
-                  <span class="font-semibold">Last GPS attempt:</span>
-                  <span class="font-mono break-all">{{ s.temporary_gps_holder or "—" }}</span>
                 </div>
               </div>
             </div>
