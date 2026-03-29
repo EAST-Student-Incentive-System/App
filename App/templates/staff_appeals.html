@@ -10,106 +10,196 @@
 
   {% if appeals and appeals|length > 0 %}
 
-    {# ---------------- DESKTOP/TABLET: TABLE ---------------- #}
-    <div class="hidden md:block bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="table table-lg w-full">
-          <thead>
-            <tr class="text-lg text-gray-800">
-              <th class="w-1/6 py-6">Username</th>
-              <th class="w-2/6 py-6">View Flagged Activity</th>
-              <th class="w-2/6 py-6">Appeal</th>
-              <th class="w-1/6 py-6 text-center">Approve/Delete</th>
-            </tr>
-          </thead>
+    {# ---------------- DESKTOP/TABLET: TABLE (CLICK ROW -> DETAILS MODAL -> CONFIRM MODAL) ---------------- #}
+<div class="hidden md:block bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="table w-full">
+      <thead>
+        <tr class="text-lg text-gray-800">
+          <th class="w-1/6 py-3">Username</th>
+          <th class="w-2/6 py-3">Status</th>
+          <th class="w-3/6 py-3">Appeal Preview</th>
+        </tr>
+      </thead>
 
-          <tbody>
-            {% for s in appeals %}
-              <tr class="align-top">
-                <td class="font-semibold text-gray-900 py-7 text-lg">
-                  {{ s.username }}
-                  {% if s.isFlagged %}
-                    <div class="mt-3">
-                      <span class="badge badge-error">Flagged</span>
+      <tbody>
+        {% for s in appeals %}
+          {# Clickable row #}
+          <tr
+            class="cursor-pointer hover:bg-base-200 transition align-middle"
+            onclick="document.getElementById('appeal-details-{{ s.id }}').showModal()"
+            role="button"
+            tabindex="0"
+            onkeydown="if(event.key === 'Enter' || event.key === ' ') { document.getElementById('appeal-details-{{ s.id }}').showModal(); }"
+          >
+            <td class="font-semibold text-gray-900 py-4 text-lg">
+              {{ s.username }}
+              {% if s.isFlagged %}
+                <div class="mt-3">
+                  <span class="badge badge-error">Flagged</span>
+                </div>
+              {% endif %}
+              <div class="text-sm text-gray-500 mt-2">ID: {{ s.id }}</div>
+            </td>
+
+            <td class="py-4 text-base text-gray-700">
+              <div><span class="font-semibold">Timeout count:</span> {{ s.timeout_count }}</div>
+              <div class="mt-2 text-sm text-gray-500">Click row to view details</div>
+            </td>
+
+            <td class="py-4 text-base text-gray-700">
+              <div class="line-clamp-2 whitespace-pre-wrap">
+                {{ s.appeal_desc or "—" }}
+              </div>
+              {% if s.appeal_image %}
+                <div class="mt-2">
+                  <span class="badge badge-outline">📷 proof attached</span>
+                </div>
+              {% endif %}
+            </td>
+          </tr>
+
+          {# ---------------- DETAILS MODAL ---------------- #}
+          <dialog id="appeal-details-{{ s.id }}" class="modal">
+            <div class="modal-box max-w-3xl">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <h3 class="font-bold text-2xl text-gray-900">Appeal: {{ s.username }}</h3>
+                  <div class="text-sm text-gray-500 mt-1">Student ID: {{ s.id }}</div>
+                </div>
+                <form method="dialog">
+                  <button class="btn btn-sm btn-ghost" aria-label="Close">✕</button>
+                </form>
+              </div>
+
+              <div class="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div class="bg-base-200 rounded-xl p-4">
+                  <h4 class="font-semibold text-lg mb-3">Flagged / Timeout Info</h4>
+                  <div class="space-y-2 text-sm text-gray-700">
+                    <div>
+                      <span class="font-semibold">Timeout count:</span> {{ s.timeout_count }}
+                    </div>
+                    <div>
+                      <span class="font-semibold">Last Device ID:</span>
+                      <span class="font-mono break-all">{{ s.temporary_device_holder or "—" }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-base-200 rounded-xl p-4">
+                  <h4 class="font-semibold text-lg mb-3">Appeal</h4>
+                  <div class="text-sm text-gray-700 whitespace-pre-wrap">
+                    {{ s.appeal_desc or "—" }}
+                  </div>
+
+                  {% if s.appeal_image %}
+                    <div class="mt-4">
+                      <img
+                        src="{{ url_for('static', filename='uploads/' ~ s.appeal_image) }}"
+                        alt="Appeal proof"
+                        class="rounded-xl border border-gray-200 bg-white max-h-80 object-contain w-full"
+                      />
                     </div>
                   {% endif %}
-                  <div class="text-sm text-gray-500 mt-2">ID: {{ s.id }}</div>
-                </td>
+                </div>
+              </div>
 
-                <td class="py-6">
-                  <div class="collapse collapse-arrow bg-base-200 rounded-xl">
-                    <input type="checkbox" />
-                    <div class="collapse-title font-semibold text-lg">Attendance / Flag info</div>
-                    <div class="collapse-content text-base text-gray-700 space-y-3">
-                      <div><span class="font-semibold">Timeout count:</span> {{ s.timeout_count }}</div>
-                      <div>
-                        <span class="font-semibold">Last Device ID:</span>
-                        <span class="font-mono break-all">{{ s.temporary_device_holder or "—" }}</span>
-                      </div>
-                      <div>
-                        <span class="font-semibold">Last GPS attempt:</span>
-                        <span class="font-mono break-all">{{ s.temporary_gps_holder or "—" }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </td>
+              <div class="mt-6 border-t pt-5">
+                <h4 class="font-semibold text-lg mb-3">Actions</h4>
 
-                <td class="py-6">
-                  <div class="collapse collapse-arrow bg-base-200 rounded-xl">
-                    <input type="checkbox" />
-                    <div class="collapse-title font-semibold text-lg flex items-center justify-between gap-3">
-                      <span>Appeal</span>
-                      {% if s.appeal_image %}
-                        <span class="badge badge-outline text-base">📷 proof</span>
-                      {% endif %}
-                    </div>
-                    <div class="collapse-content text-base text-gray-700 space-y-4">
-                      <div class="whitespace-pre-wrap">{{ s.appeal_desc }}</div>
-                      {% if s.appeal_image %}
-                        <img
-                          src="{{ url_for('static', filename='uploads/' ~ s.appeal_image) }}"
-                          alt="Appeal proof"
-                          class="rounded-xl border border-gray-200 bg-white max-h-80 object-contain w-full"
-                        />
-                      {% endif %}
-                    </div>
-                  </div>
-                </td>
+                <div class="flex flex-wrap justify-end gap-3">
+                  <button type="button" class="btn btn-success btn-sm"
+                    onclick="document.getElementById('confirm-approve-{{ s.id }}').showModal()">
+                    Remove Timeout
+                  </button>
 
-                <td class="py-6">
-                  <form method="POST" action="{{ url_for('appeal_views.resolve_appeal_action', student_id=s.id) }}">
-                    <div class="flex items-center justify-center gap-4">
-                      {# Approve (radio styled like checkbox) #}
-                      <label class="cursor-pointer">
-                        <input type="radio" name="action" value="approve" class="peer hidden" required>
-                        <div class="w-12 h-12 border-2 border-gray-800 rounded-md flex items-center justify-center bg-white
-                                    peer-checked:bg-green-100 peer-checked:border-green-700">
-                          <span class="text-2xl font-bold text-green-700">✓</span>
-                        </div>
-                      </label>
+                  <button type="button" class="btn btn-error btn-sm"
+                    onclick="document.getElementById('confirm-delete-{{ s.id }}').showModal()">
+                    Remove Appeal
+                  </button>
+                </div>
 
-                      {# Delete (radio styled like checkbox) #}
-                      <label class="cursor-pointer">
-                        <input type="radio" name="action" value="delete" class="peer hidden" required>
-                        <div class="w-12 h-12 border-2 border-gray-800 rounded-md flex items-center justify-center bg-white
-                                    peer-checked:bg-red-100 peer-checked:border-red-700">
-                          <span class="text-2xl font-bold text-red-700">✕</span>
-                        </div>
-                      </label>
-                    </div>
+                <p class="text-xs text-gray-500 mt-3">
+                  Choosing an action will ask you to confirm before it is applied.
+                </p>
+              </div>
+            </div>
 
-                    <div class="mt-4 flex justify-center">
-                      <button class="btn btn-primary btn-sm">Save</button>
-                    </div>
-                  </form>
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
+            <form method="dialog" class="modal-backdrop">
+              <button>close</button>
+            </form>
+          </dialog>
 
-        </table>
-      </div>
-    </div>
+          {# ---------------- CONFIRM: APPROVE / REMOVE TIMEOUT ---------------- #}
+          <dialog id="confirm-approve-{{ s.id }}" class="modal">
+            <div class="modal-box max-w-lg">
+              <h3 class="font-bold text-lg text-success">Confirm: Remove Timeout</h3>
+              <p class="py-3 text-sm text-gray-700">
+                Are you sure you want to <span class="font-semibold">remove a timeout</span> for
+                <span class="font-semibold">{{ s.username }}</span>?
+              </p>
+              <ul class="text-sm text-gray-600 list-disc pl-5 space-y-1">
+                <li>This will approve the appeal.</li>
+                <li>The appeal will be cleared and removed from the queue.</li>
+              </ul>
+
+              <div class="modal-action flex gap-2">
+                <form method="dialog">
+                  <button class="btn">Cancel</button>
+                </form>
+
+                <form method="POST" action="{{ url_for('appeal_views.resolve_appeal_action', student_id=s.id) }}">
+                  <input type="hidden" name="action" value="approve">
+                  <button type="submit" class="btn btn-success">
+                    Yes, remove timeout
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <form method="dialog" class="modal-backdrop">
+              <button>close</button>
+            </form>
+          </dialog>
+
+          {# ---------------- CONFIRM: DELETE / REMOVE APPEAL ---------------- #}
+          <dialog id="confirm-delete-{{ s.id }}" class="modal">
+            <div class="modal-box max-w-lg">
+              <h3 class="font-bold text-lg text-error">Confirm: Remove Appeal</h3>
+              <p class="py-3 text-sm text-gray-700">
+                Are you sure you want to <span class="font-semibold">remove (reject)</span> the appeal for
+                <span class="font-semibold">{{ s.username }}</span>?
+              </p>
+              <ul class="text-sm text-gray-600 list-disc pl-5 space-y-1">
+                <li>This will reject the appeal.</li>
+                <li>The appeal will be cleared and removed from the queue.</li>
+                <li>This action cannot be undone.</li>
+              </ul>
+
+              <div class="modal-action flex gap-2">
+                <form method="dialog">
+                  <button class="btn">Cancel</button>
+                </form>
+
+                <form method="POST" action="{{ url_for('appeal_views.resolve_appeal_action', student_id=s.id) }}">
+                  <input type="hidden" name="action" value="delete">
+                  <button type="submit" class="btn btn-error">
+                    Yes, remove appeal
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <form method="dialog" class="modal-backdrop">
+              <button>close</button>
+            </form>
+          </dialog>
+
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
     {# ---------------- MOBILE: CARDS ---------------- #}
     <div class="md:hidden space-y-4">
@@ -135,10 +225,6 @@
                 <div>
                   <span class="font-semibold">Last Device ID:</span>
                   <span class="font-mono break-all">{{ s.temporary_device_holder or "—" }}</span>
-                </div>
-                <div>
-                  <span class="font-semibold">Last GPS attempt:</span>
-                  <span class="font-mono break-all">{{ s.temporary_gps_holder or "—" }}</span>
                 </div>
               </div>
             </div>
