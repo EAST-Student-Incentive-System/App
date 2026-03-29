@@ -7,6 +7,32 @@
   <!-- Tailwind + DaisyUI -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+
+  <!-- Always-visible horizontal scrollbar styling for Chrome (used by .earned-scroll) -->
+  <style>
+    .earned-scroll {
+      overflow-x: scroll;          /* always show horizontal scrollbar */
+      overflow-y: hidden;
+      scrollbar-gutter: stable;    /* Chromium: reserve space for scrollbar */
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Chrome/Safari scrollbar styling (WebKit) */
+    .earned-scroll::-webkit-scrollbar {
+      height: 12px;
+    }
+    .earned-scroll::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.08);
+      border-radius: 999px;
+    }
+    .earned-scroll::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.28);
+      border-radius: 999px;
+    }
+    .earned-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(0,0,0,0.40);
+    }
+  </style>
 </head>
 <body data-theme="light" class="bg-gray-200 text-neutral flex flex-col min-h-screen">
 
