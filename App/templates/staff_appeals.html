@@ -9,9 +9,7 @@
   </div>
 
   {% if appeals and appeals|length > 0 %}
-
-    {# ---------------- DESKTOP/TABLET: TABLE (CLICK ROW -> DETAILS MODAL -> CONFIRM MODAL) ---------------- #}
-<div class="hidden md:block bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+<div class="block bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
   <div class="overflow-x-auto">
     <table class="table w-full">
       <thead>
@@ -83,6 +81,45 @@
                       <span class="font-semibold">Last Device ID:</span>
                       <span class="font-mono break-all">{{ s.temporary_device_holder or "—" }}</span>
                     </div>
+
+  {# --- Flagged activity logic --- #}
+  {% set flagged_events = [] %}
+  {% set flagged_event_names = [] %}
+  {% for attendance in s.attendances %}
+    {% if attendance.get_overlap_events()|length > 0 %}
+      {% if attendance.event.name not in flagged_event_names %}
+        {% set _ = flagged_event_names.append(attendance.event.name) %}
+        {% set _ = flagged_events.append({"name": attendance.event.name, "timestamp": attendance.timestamp}) %}
+      {% endif %}
+      {% for ev in attendance.get_overlap_events() %}
+        {% if ev.event.name not in flagged_event_names %}
+          {% set _ = flagged_event_names.append(ev.event.name) %}
+          {% set _ = flagged_events.append({"name": ev.event.name, "timestamp": ev.timestamp}) %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+
+  {% if flagged_events %}
+    <p class="mt-2 font-semibold">Attended multiple events within 1 hour:</p>
+    <ul class="list-disc list-inside mb-2">
+      {% for e in flagged_events %}
+        <li>{{ e.name }} - {{ e.timestamp.strftime('%Y-%m-%d %H:%M') }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% set seen_devices = [] %}
+  {% for attendance in s.attendances %}
+    {% for conflict in attendance.get_device_conflicts() %}
+      {% if conflict.student.username not in seen_devices %}
+        {% set _ = seen_devices.append(conflict.student.username) %}
+        <p class="text-sm text-gray-700">
+          <strong>Device conflict:</strong> Shared device with {{ conflict.student.username }} at {{ attendance.event.name }}
+        </p>
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
                   </div>
                 </div>
 
@@ -124,10 +161,6 @@
                 </p>
               </div>
             </div>
-
-            <form method="dialog" class="modal-backdrop">
-              <button>close</button>
-            </form>
           </dialog>
 
           {# ---------------- CONFIRM: APPROVE / REMOVE TIMEOUT ---------------- #}
@@ -156,10 +189,6 @@
                 </form>
               </div>
             </div>
-
-            <form method="dialog" class="modal-backdrop">
-              <button>close</button>
-            </form>
           </dialog>
 
           {# ---------------- CONFIRM: DELETE / REMOVE APPEAL ---------------- #}
@@ -189,10 +218,6 @@
                 </form>
               </div>
             </div>
-
-            <form method="dialog" class="modal-backdrop">
-              <button>close</button>
-            </form>
           </dialog>
 
         {% endfor %}
@@ -201,82 +226,6 @@
   </div>
 </div>
 
-    {# ---------------- MOBILE: CARDS ---------------- #}
-    <div class="md:hidden space-y-4">
-      {% for s in appeals %}
-        <div class="card bg-white shadow-lg border border-gray-200">
-          <div class="card-body">
-
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <h2 class="text-xl font-bold text-gray-900">{{ s.username }}</h2>
-                <div class="text-sm text-gray-500">ID: {{ s.id }}</div>
-                <div class="text-sm text-gray-500">Timeout count: {{ s.timeout_count }}</div>
-              </div>
-              {% if s.isFlagged %}
-                <span class="badge badge-error">Flagged</span>
-              {% endif %}
-            </div>
-
-            <div class="collapse collapse-arrow bg-base-200 rounded-xl mt-3">
-              <input type="checkbox" />
-              <div class="collapse-title font-semibold">View flagged activity</div>
-              <div class="collapse-content text-sm text-gray-700 space-y-2">
-                <div>
-                  <span class="font-semibold">Last Device ID:</span>
-                  <span class="font-mono break-all">{{ s.temporary_device_holder or "—" }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="collapse collapse-arrow bg-base-200 rounded-xl mt-3">
-              <input type="checkbox" />
-              <div class="collapse-title font-semibold flex items-center justify-between">
-                <span>View appeal</span>
-                {% if s.appeal_image %}
-                  <span class="badge badge-outline">📷</span>
-                {% endif %}
-              </div>
-              <div class="collapse-content text-sm text-gray-700 space-y-3">
-                <div class="whitespace-pre-wrap">{{ s.appeal_desc }}</div>
-                {% if s.appeal_image %}
-                  <img
-                    src="{{ url_for('static', filename='uploads/' ~ s.appeal_image) }}"
-                    alt="Appeal proof"
-                    class="rounded-xl border border-gray-200 bg-white max-h-64 object-contain w-full"
-                  />
-                {% endif %}
-              </div>
-            </div>
-
-            <form class="mt-4" method="POST" action="{{ url_for('appeal_views.resolve_appeal_action', student_id=s.id) }}">
-              <div class="flex items-center justify-center gap-4">
-                <label class="cursor-pointer">
-                  <input type="radio" name="action" value="approve" class="peer hidden" required>
-                  <div class="w-14 h-14 border-2 border-gray-800 rounded-md flex items-center justify-center bg-white
-                              peer-checked:bg-green-100 peer-checked:border-green-700">
-                    <span class="text-3xl font-bold text-green-700">✓</span>
-                  </div>
-                </label>
-
-                <label class="cursor-pointer">
-                  <input type="radio" name="action" value="delete" class="peer hidden" required>
-                  <div class="w-14 h-14 border-2 border-gray-800 rounded-md flex items-center justify-center bg-white
-                              peer-checked:bg-red-100 peer-checked:border-red-700">
-                    <span class="text-3xl font-bold text-red-700">✕</span>
-                  </div>
-                </label>
-              </div>
-
-              <div class="mt-4">
-                <button class="btn btn-primary w-full">Save</button>
-              </div>
-            </form>
-
-          </div>
-        </div>
-      {% endfor %}
-    </div>
 
   {% else %}
     <div class="bg-white rounded-2xl shadow border border-gray-200 p-10 text-center text-gray-600">

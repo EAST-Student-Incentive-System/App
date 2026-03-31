@@ -48,6 +48,7 @@ def view_student_badges_route(student_id):
 
 
 # ✅ ADD THIS: Student badges page (Jinja template)
+from datetime import datetime, timedelta
 @badge_views.route("/student/badges", methods=["GET"])
 @jwt_required()
 def student_badges_sections_page():
@@ -55,7 +56,7 @@ def student_badges_sections_page():
     student = Student.query.get(user_id)
 
     if student.timeout_until and student.timeout_until > datetime.utcnow():
-        flash("You are currently timed out until {}. You cannot access the badges page until this time is up or an appeal is approved.".format(student.timeout_until), "error")
+        flash(f"You are currently timed out until {student.timeout_until}.", "error")
         return redirect(url_for('appeal_views.student_appeal_page'))
 
     if not student or student.role != "student":
@@ -64,9 +65,6 @@ def student_badges_sections_page():
 
     all_badges = badge.viewBadges() or []
     earned_badge_ids = set(link.badge_id for link in (student.student_badges or []))
-
-    FEATURED_KEYWORDS = ("workshop", "presentation", "career", "cultural", "competition")
-    WEEKLY_KEYWORDS = ("week", "weekly", "streak", "7", "14", "30")
 
     def icon_for(name: str) -> str:
         n = (name or "").lower()
@@ -79,45 +77,36 @@ def student_badges_sections_page():
         if "career" in n: return "💼"
         return "🏅"
 
-    def section_for(name: str) -> str:
-        n = (name or "").lower()
-        if any(k in n for k in WEEKLY_KEYWORDS):
-            return "weekly"
-        if any(k in n for k in FEATURED_KEYWORDS):
-            return "featured"
-        return "all"
-
-    featured_badges, weekly_badges, rest_badges = [], [], []
-
-    for b in all_badges:
-        data = b.get_json()
-        data["earned"] = data["id"] in earned_badge_ids
-        data["icon"] = icon_for(data.get("name"))
-        pr = data.get("pointsRequired") or 0
-        data["pct"] = int(min(100, (student.current_balance / pr) * 100)) if pr else 0
-        data["isNew"] = False
-
-        sec = section_for(data.get("name", ""))
-        if sec == "featured":
-            featured_badges.append(data)
-        elif sec == "weekly":
+    # Weekly = earned in last 7 days
+    one_week_ago = datetime.utcnow() - timedelta(days=7)
+    weekly_badges = []
+    for link in student.student_badges:
+        if link.earned_at and link.earned_at >= one_week_ago:
+            data = link.badge.get_json()
+            data["earned"] = True
+            data["icon"] = icon_for(data.get("name"))
+            pr = data.get("pointsRequired") or 0
+            data["pct"] = int(min(100, (student.current_balance / pr) * 100)) if pr else 0
             weekly_badges.append(data)
-        else:
+
+    # All badges (minus weekly ones)
+    rest_badges = []
+    for b in all_badges:
+        if b.id not in [wb["id"] for wb in weekly_badges]:
+            data = b.get_json()
+            data["earned"] = b.id in earned_badge_ids
+            data["icon"] = icon_for(data.get("name"))
+            pr = data.get("pointsRequired") or 0
+            data["pct"] = int(min(100, (student.current_balance / pr) * 100)) if pr else 0
             rest_badges.append(data)
 
-    key_fn = lambda x: (not x.get("earned", False), x.get("pointsRequired", 0))
-    featured_badges.sort(key=key_fn)
-    weekly_badges.sort(key=key_fn)
-    rest_badges.sort(key=key_fn)
-
-    earned_badges = [x for x in (featured_badges + weekly_badges + rest_badges) if x.get("earned")]
+    earned_badges = [x for x in (weekly_badges + rest_badges) if x.get("earned")]
 
     return render_template(
-    "student_badges_sections.html",
-    user=student,
-    balance=student.current_balance,
-    earned_badges=earned_badges,
-    featured_badges=featured_badges[:8],
-    weekly_badges=weekly_badges[:8],
-    all_badges=rest_badges
-)
+        "student_badges_sections.html",
+        user=student,
+        balance=student.current_balance,
+        earned_badges=earned_badges,
+        weekly_badges=weekly_badges,
+        all_badges=rest_badges
+    )
