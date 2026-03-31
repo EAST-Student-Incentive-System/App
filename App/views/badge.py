@@ -90,23 +90,24 @@ def student_badges_sections_page():
             weekly_badges.append(data)
 
     # All badges (minus weekly ones)
-    rest_badges = []
+    # All badges (show everything in the system)
+    all_badges_data = []
     for b in all_badges:
-        if b.id not in [wb["id"] for wb in weekly_badges]:
-            data = b.get_json()
-            data["earned"] = b.id in earned_badge_ids
-            data["icon"] = icon_for(data.get("name"))
-            pr = data.get("pointsRequired") or 0
-            data["pct"] = int(min(100, (student.current_balance / pr) * 100)) if pr else 0
-            rest_badges.append(data)
+        data = b.get_json()
+        data["earned"] = b.id in earned_badge_ids
+        data["icon"] = icon_for(data.get("name"))
+        pr = data.get("pointsRequired") or 0
+        data["pct"] = int(min(100, (student.current_balance / pr) * 100)) if pr else 0
+        all_badges_data.append(data)
 
-    earned_badges = [x for x in (weekly_badges + rest_badges) if x.get("earned")]
+
+    earned_badges = [b for b in all_badges_data if b["earned"]]
 
     return render_template(
         "student_badges_sections.html",
         user=student,
-        balance=student.current_balance,
+        balance=student.total_points,
         earned_badges=earned_badges,
         weekly_badges=weekly_badges,
-        all_badges=rest_badges
+        all_badges=all_badges_data
     )
