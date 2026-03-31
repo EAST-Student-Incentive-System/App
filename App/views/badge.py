@@ -69,12 +69,15 @@ def student_badges_sections_page():
     def icon_for(name: str) -> str:
         n = (name or "").lower()
         if "workshop" in n: return "🛠️"
-        if "presentation" in n: return "🎤"
-        if "attendance" in n or "attend" in n or "semester" in n: return "📅"
-        if "cultural" in n: return "🎭"
-        if "competition" in n or "champion" in n: return "🏆"
-        if "health" in n or "wellness" in n: return "💪"
-        if "career" in n: return "💼"
+        if "social" in n: return "🎤"
+        if "seminar" in n: return "📚"
+        if "volunteer" in n: return "🤝"
+        if "time" in n: return "📅"
+        if "master" in n: return "🌟"
+        if "champion" in n: return "🏆"
+        if "king" in n: return "👑"
+        if "legend" in n: return "🦸"
+        if "rookie" in n: return "👶"
         return "🏅"
 
     # Weekly = earned in last 7 days
@@ -89,7 +92,6 @@ def student_badges_sections_page():
             data["pct"] = int(min(100, (student.current_balance / pr) * 100)) if pr else 0
             weekly_badges.append(data)
 
-    # All badges (minus weekly ones)
     # All badges (show everything in the system)
     all_badges_data = []
     for b in all_badges:

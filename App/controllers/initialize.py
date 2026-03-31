@@ -25,47 +25,28 @@ def initialize():
         db.session.commit()
 
     # Create badges
-    badge_25 = createBadge('25 Points', 'Awarded for earning 25 points', 25)
-    badge_50 = createBadge('50 Points', 'Awarded for earning 50 points', 50)
-    badge_75 = createBadge('75 Points', 'Awarded for earning 75 points', 75)
-    badge_100 = createBadge('100 Points', 'Awarded for earning 100 points', 100)
-    badge_Clean_Campus = createBadge('Clean Campus', 'Awarded for participating in a campus cleanup event', 20)
-    badge_Community_Service = createBadge('Community Service', 'Awarded for volunteering in community service activities', 30)
-    badge_Volunteer = createBadge('Volunteer', 'Awarded for volunteering at least 10 hours in any event', 40)
-    badge_Event_Participant = createBadge('Event Participant', 'Awarded for attending at least 5 events', 50)
-    badge_Helping_Hand = createBadge('Helping Hand', 'Awarded for assisting in organizing an event', 60)
-    badge_Leadership = createBadge('Leadership', 'Awarded for leading an event or initiative', 80)
-    badge_Savior_of_the_Planet = createBadge('Savior of the Planet', 'Awarded for participating in an environmental sustainability event', 100)
-    badge_Health_and_Wellness = createBadge('Health and Wellness', 'Awarded for participating in a health and wellness event', 20)
-    badge_Knight_of_Knowledge = createBadge('Knight of Knowledge', 'Awarded for attending a seminar or workshop', 30)
-    badge_Cultural_Explorer = createBadge('Cultural Explorer', 'Awarded for attending a cultural event', 40)
-    badge_Mage_of_Mentorship = createBadge('Mage of Mentorship', 'Awarded for mentoring another student', 50)
-    badge_Social_Butterfly = createBadge('Social Butterfly', 'Awarded for attending a social event', 20)
-    badge_Technology_Enthusiast = createBadge('Technology Enthusiast', 'Awarded for attending a technology-related event', 30)
-    badge_Art_Aficionado = createBadge('Art Aficionado', 'Awarded for attending an art-related event', 30)
-    badge_Sports_Fanatic = createBadge('Sports Fanatic', 'Awarded for attending a sports event', 20)
-    badge_Thief_of_Time = createBadge('Thief of Time', 'Awarded for attending an event outside of regular hours', 40)
-    badge_Night_Owl = createBadge('Night Owl', 'Awarded for attending an event that starts after 6 PM', 30)
-    badge_Enemy_of_Boredom = createBadge('Enemy of Boredom', 'Awarded for attending an event on a weekend', 20)
-    badge_Early_Bird = createBadge('Early Bird', 'Awarded for attending an event that starts before 9 AM', 30)
-    badge_Distinguished_Services = createBadge('Distinguished Services', 'Awarded for exceptional contributions to the campus community', 100)
-    badge_Community_Champion = createBadge('Community Champion', 'Awarded for outstanding involvement in community service', 80)
-    badge_Heroism = createBadge('Heroism', 'Awarded for acts of bravery or heroism during campus events', 100)
-    badge_Innovator = createBadge('Innovator', 'Awarded for introducing a new idea or initiative that benefits the campus community', 70)
-    badge_Faker = createBadge('Faker', 'Awarded for attending an event without checking in (for testing purposes)', 0)
-    badge_Jack_of_All_Trades = createBadge('Jack of All Trades', 'Awarded for attending events in at least 5 different categories', 50)
-    badge_Master_of_All_Trades = createBadge('Master of All Trades', 'Awarded for attending events in at least 10 different categories', 100)
-    badge_Bear_Grylls = createBadge('Bear Grylls', 'Awarded for attending an outdoor survival skills event', 40)
-    badge_Whale_Whisperer = createBadge('Whale Whisperer', 'Awarded for attending a marine biology event', 30)
-    badge_Sleep_Deprived = createBadge('Sleep Deprived', 'Awarded for attending an event that lasts past midnight', 50)
-    badge_Globetrotter = createBadge('Globetrotter', 'Awarded for attending an event that celebrates international cultures', 30)
-    badge_King_of_the_Campus = createBadge('King of the Campus', 'Awarded for attending the most events in a semester', 10000)
-    badge_Queen_of_the_Campus = createBadge('Queen of the Campus', 'Awarded for attending the second most events in a semester', 500)
-    badge_Its_Been_so_Long = createBadge('It\'s Been so Long', 'Awarded for attending an event after a long absence from campus activities', 20)
-    badge_Its_High_Noon = createBadge('It\'s High Noon', 'Awarded for attending an event that starts at noon', 20)
-    badge_Rookie = createBadge('Rookie', 'Awarded for attending your first event', 10)
-    badge_Master_Baiter = createBadge('Master Baiter', 'Awarded for attending a fishing event', 20)
-    
+    badge_25 = createBadge('25 Points', 'Awarded for earning 25 points', 25 , 'milestone')
+    badge_50 = createBadge('50 Points', 'Awarded for earning 50 points', 50 , 'milestone')
+    badge_75 = createBadge('75 Points', 'Awarded for earning 75 points', 75, 'milestone')
+    badge_100 = createBadge('100 Points', 'Awarded for earning 100 points', 100, 'milestone')
+    badge_Community_Service = createBadge('Community Service', 'Awarded for volunteering in community service activities', None, 'Volunteer')
+    badge_Knight_of_Knowledge = createBadge('Knight of Knowledge', 'Awarded for attending a seminar', None, 'Seminar')
+    badge_Cultural_Explorer = createBadge('Explorer', 'Awarded for attending a Workshop event', None, 'Workshop')
+    badge_Social_Butterfly = createBadge('Social Butterfly', 'Awarded for attending a social event', None, 'Social')
+    badge_Thief_of_Time = createBadge('Thief of Time', 'Awarded for attending 200 hours of events', 200, 'milestone')
+    badge_Night_Owl = createBadge('Night Owl', 'Awarded for attending 250 hours of events', 250, 'milestone')
+    badge_Enemy_of_Boredom = createBadge('Enemy of Boredom', 'Awarded for attending 300 hours of events', 300, 'milestone')
+    badge_Distinguished_Services = createBadge('Distinguished Services', 'Awarded for exceptional contributions to the campus community for over 350 hours', 350, 'milestone')
+    badge_Community_Champion = createBadge('Community Champion', 'Awarded for outstanding involvement in community service for over 400 hours', 400, 'milestone')
+    badge_Sleep_Deprived = createBadge('Sleep Deprived', 'Awarded for attending 450 hours of events', 450, 'milestone')
+    badge_Jack_of_All_Trades = createBadge('Jack of All Trades', 'Awarded for attending 500 hours of events', 500, 'milestone')
+    badge_Globetrotter = createBadge('Globetrotter', 'Awarded for attending 1000 hours of events', 1000, 'milestone')
+    badge_Master= createBadge('Master of Ceremonies', 'Awarded for attending 2000 hours of events', 2000, 'milestone')
+    badge_Grand_Master = createBadge('Grand Master', 'Awarded for attending 3000 hours of events', 3000, 'milestone')
+    badge_Immortal = createBadge('Immortal', 'Awarded for attending 4000 hours of events', 4000, 'milestone')
+    badge_Legend = createBadge('Legend', 'Awarded for attending 5000 hours of events', 5000, 'milestone')
+    badge_Rookie = createBadge('Rookie', 'Awarded for attending your first event', 1, 'milestone')
+    badge_King_of_the_Campus = createBadge('King of the Campus', 'Awarded for attending 10000 hours of events', 10000, 'milestone')
 
     # Create rewards
     from App.controllers.rewards import create_reward, redeem_reward
@@ -109,33 +90,6 @@ def initialize():
     if bob_obj:
         bob_obj.add_points(999)  # Give enough points for all badges and rewards
         db.session.commit()
-
-
-        # Award SOME badges to Bob (so the badges page shows both unlocked + locked)
-        # NOTE: We intentionally do NOT award every badge.
-        earned_badges = [
-            badge_25,
-            badge_50,
-            badge_Knight_of_Knowledge,
-            badge_Cultural_Explorer,
-            badge_Health_and_Wellness,
-            badge_Event_Participant,
-            badge_Innovator,
-            badge_Jack_of_All_Trades,
-        ]
-
-        for badge in earned_badges:
-            if badge:
-                # Use past timestamps so "history" looks normal (not future-dated)
-                awardTestBadge(
-                    bob_obj.id,
-                    badge.id,
-                    datetime.now() - timedelta(days=random.randint(1, 30))
-                )
-            else:
-                print(f"Failed to create badge: {badge}")
-
-        print(f"Bob has been awarded badges: {[b.name for b in earned_badges if b]}")
         
         # Join Bob to ALL events and log attendance
         print("Now attempting to join events and log attendance for Bob...")
