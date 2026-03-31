@@ -88,6 +88,23 @@ def awardEventTypeBadge(student_id, badge_id=None, badge_name=None):
     except IntegrityError:
         db.session.rollback()
         return False
+    
+def check_and_award_badges(student, event):
+    """
+    Called inside log attendance after points are added.
+    Decides which badges the student is eligible for.
+    """
+    # 1. Award milestone badges (points-based)
+    milestone_badges = Badge.query.filter_by(type="milestone").all()
+    for badge in milestone_badges:
+        awardBadge(student.id, badge.id)
+
+    # 2. Award event-type badges (explicit)
+    event_type_badges = Badge.query.filter_by(type="event_type").all()
+    for badge in event_type_badges:
+        # You can filter by event type/name if needed
+        if badge.name.lower() == event.type.lower():
+            awardEventTypeBadge(student.id, badge.id)
 
 
 # Controller function to view all badges in the system
