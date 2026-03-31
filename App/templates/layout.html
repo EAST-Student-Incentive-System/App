@@ -8,6 +8,38 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
+
+  <!-- Always-visible horizontal scrollbar styling for Chrome (used by .earned-scroll) -->
+  <style>
+    .earned-scroll {
+      overflow-x: scroll;          /* always show horizontal scrollbar */
+      overflow-y: hidden;
+      scrollbar-gutter: stable;    /* Chromium: reserve space for scrollbar */
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Chrome/Safari scrollbar styling (WebKit) */
+    .earned-scroll::-webkit-scrollbar {
+      height: 12px;
+    }
+    .earned-scroll::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.08);
+      border-radius: 999px;
+    }
+    .earned-scroll::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.28);
+      border-radius: 999px;
+    }
+    .earned-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(0,0,0,0.40);
+    }
+
+    /* Active menu item styling */
+    .menu li a.active {
+      background-color: #660c9e;
+      color: white;
+    }
+  </style>
 </head>
 
 <body data-theme="light" class="bg-gray-200 text-neutral flex flex-col min-h-screen">
@@ -57,29 +89,29 @@
   </div>
 
   <!-- Drawer side -->
-  <div class="drawer-side mt-[64px]">
+  <div class="drawer-side mt-[64px] z-40">
     <label for="main-drawer" class="drawer-overlay"></label>
     <div class="flex flex-col h-screen bg-[#E3E8E7] text-black">
 
       <!-- Menu items -->
       <ul class="menu flex-1 p-4 space-y-2">
         {% if user is defined and user.role == "staff" %}
-          <li><a href="{{ url_for('event_views.get_staff_events_route') }}">Events</a></li>
-          <li><a href="{{ url_for('reward_views.list_rewards_page') }}">Rewards</a></li>
-          <li><a href="{{ url_for('user_views.flagged_command') }}">Flagged Students</a></li>
-          <li><a href="{{ url_for('appeal_views.staff_appeals_page') }}">Appeals</a></li>
-          <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
+          <li><a href="{{ url_for('event_views.get_staff_events_route') }}" class="{% if request.endpoint == 'event_views.get_staff_events_route' %}active{% endif %}">Events</a></li>
+          <li><a href="{{ url_for('reward_views.list_rewards_page') }}" class="{% if request.endpoint == 'reward_views.list_rewards_page' %}active{% endif %}">Rewards</a></li>
+          <li><a href="{{ url_for('user_views.flagged_command') }}" class="{% if request.endpoint == 'user_views.flagged_command' %}active{% endif %}">Flagged Students</a></li>
+          <li><a href="{{ url_for('appeal_views.staff_appeals_page') }}" class="{% if request.endpoint == 'appeal_views.staff_appeals_page' %}active{% endif %}">Appeals</a></li>
+          <li><a href="{{ url_for('index_views.about') }}" class="{% if request.endpoint == 'index_views.about' %}active{% endif %}">About Us</a></li>
         {% elif user is defined and user.role == "student" %}
-          <li><a href="{{ url_for('event_views.get_student_events_route') }}">Events</a></li>
-          <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}">Leaderboard</a></li>
-          <li><a href="{{ url_for('event_views.scan_qr_page') }}">Scan QR</a></li>
-          <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}">Profile</a></li>
-          <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}">Rewards</a></li>
-          <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}">Badges</a></li>
+          <li><a href="{{ url_for('event_views.get_student_events_route') }}" class="{% if request.endpoint == 'event_views.get_student_events_route' %}active{% endif %}">Events</a></li>
+          <li><a href="{{ url_for('progress_views.view_leaderboard_route') }}" class="{% if request.endpoint == 'progress_views.view_leaderboard_route' %}active{% endif %}">Leaderboard</a></li>
+          <li><a href="{{ url_for('event_views.scan_qr_page') }}" class="{% if request.endpoint == 'event_views.scan_qr_page' %}active{% endif %}">Scan QR</a></li>
+          <li><a href="{{ url_for('user_views.profile_page', student_id=user.id) }}" class="{% if request.endpoint == 'user_views.profile_page' %}active{% endif %}">Profile</a></li>
+          <li><a href="{{ url_for('reward_student_views.student_rewards_page') }}" class="{% if request.endpoint == 'reward_student_views.student_rewards_page' %}active{% endif %}">Rewards</a></li>
+          <li><a href="{{ url_for('badge_views.student_badges_sections_page') }}" class="{% if request.endpoint == 'badge_views.student_badges_sections_page' %}active{% endif %}">Badges</a></li>
           {% if user.timeout_until %}
-            <li><a href="{{ url_for('appeal_views.student_appeal_page') }}">Appeals</a></li>
+            <li><a href="{{ url_for('appeal_views.student_appeal_page') }}" class="{% if request.endpoint == 'appeal_views.student_appeal_page' %}active{% endif %}">Appeals</a></li>
           {% endif %}
-          <li><a href="{{ url_for('index_views.about') }}">About Us</a></li>
+          <li><a href="{{ url_for('index_views.about') }}" class="{% if request.endpoint == 'index_views.about' %}active{% endif %}">About Us</a></li>
         {% endif %}
       </ul>
     </div>
