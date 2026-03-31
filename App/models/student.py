@@ -18,7 +18,7 @@ class Student(User):
     avatar_seed = db.Column(db.String(100), nullable=False, default=lambda: str(uuid.uuid4()))
 
     attendances = db.relationship('Attendance', back_populates='student', cascade="all, delete-orphan")
-    redeemed_rewards = db.relationship('Reward', secondary=RedeemedReward.__table__, back_populates='students')
+    redeemed_rewards = db.relationship('Reward', secondary=RedeemedReward.__table__, back_populates='students', overlaps="reward,students")
     student_badges = db.relationship('StudentBadge', back_populates='student', cascade="all, delete-orphan")
     events = db.relationship("Event", secondary=student_event, back_populates="students")
     appeal_desc = db.Column(db.Text, nullable=True)
