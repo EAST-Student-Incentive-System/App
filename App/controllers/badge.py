@@ -94,17 +94,17 @@ def check_and_award_badges(student, event):
     Called inside log attendance after points are added.
     Decides which badges the student is eligible for.
     """
+
     # 1. Award milestone badges (points-based)
-    milestone_badges = Badge.query.filter_by(type="milestone").all()
+    milestone_badges = Badge.query.filter(Badge.points_required.isnot(None)).all()
     for badge in milestone_badges:
         awardBadge(student.id, badge.id)
 
-    # 2. Award event-type badges (explicit)
-    event_type_badges = Badge.query.filter_by(type="event_type").all()
-    for badge in event_type_badges:
-        # You can filter by event type/name if needed
-        if badge.name.lower() == event.type.lower():
-            awardEventTypeBadge(student.id, badge.id)
+    # 2. Award event badges (one-time, based on event type)
+    badge = Badge.query.filter_by(name=f"Attended {event.type.title()}").first()
+    if badge and not _student_has_badge(student.id, badge.id):
+        awardEventTypeBadge(student.id, badge.id)
+
 
 
 # Controller function to view all badges in the system
@@ -120,8 +120,8 @@ def viewStudentBadges(student_id):
     return []
 
 # Controller function to create a new badge
-def createBadge(name, description, points_required):
-    new_badge = Badge(name=name, description=description, points_required=points_required)
+def createBadge(name, description, points_required, type):
+    new_badge = Badge(name=name, description=description, points_required=points_required, type=type)
     try:
         db.session.add(new_badge)
         db.session.commit()

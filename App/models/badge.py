@@ -5,7 +5,7 @@ class Badge(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False, unique=True)
     description = db.Column(db.Text, nullable=True)
-    points_required = db.Column(db.Integer, nullable=False)
+    points_required = db.Column(db.Integer, nullable=True)
 
     # NEW: badge type ("milestone" or "event_type")
     type = db.Column(db.String(32), nullable=False, default="milestone")
