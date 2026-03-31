@@ -136,3 +136,19 @@ def has_active_timeout(student):
     if student.timeout_count >= 3 and student.timeout_until is None:
         return True
     return False
+
+def update_password(user_id, current_password, new_password):
+    """
+    Verify the current password, then hash and save the new one.
+    Returns (success: bool, message: str).
+    """
+    user = User.query.get(user_id)
+    if not user:
+        return False, "User not found."
+    if not user.check_password(current_password):
+        return False, "Current password is incorrect."
+    if len(new_password) < 8:
+        return False, "New password must be at least 8 characters."
+    user.set_password(new_password)
+    db.session.commit()
+    return True, "Password updated successfully."
