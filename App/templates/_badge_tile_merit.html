@@ -85,14 +85,15 @@
 
       <progress class="progress progress-accent w-full" value="{{ b.pct }}" max="100"></progress>
 
-      <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
-        <span>{{ balance }} / {{ b.pointsRequired }}</span>
-        {% if b.earned %}
-          <span class="text-green-600 font-medium">Unlocked</span>
-        {% else %}
-          <span>Need {{ (b.pointsRequired - balance) if (b.pointsRequired - balance) > 0 else 0 }} more</span>
-        {% endif %}
-      </div>
+  <div class="mt-2 flex items-center justify-between text-xs text-gray-500">
+  {% if b.earned %}
+    <span class="text-green-600 font-medium">Unlocked</span>
+  {% else %}
+    <span>{{ balance }} / {{ b.pointsRequired }}</span>
+    <span>Need {{ (b.pointsRequired - balance) if (b.pointsRequired - balance) > 0 else 0 }} more</span>
+  {% endif %}
+</div>
+
     </div>
   </div>
 </div>

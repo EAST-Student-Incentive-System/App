@@ -59,7 +59,7 @@ def initialize():
     badge_Whale_Whisperer = createBadge('Whale Whisperer', 'Awarded for attending a marine biology event', 30)
     badge_Sleep_Deprived = createBadge('Sleep Deprived', 'Awarded for attending an event that lasts past midnight', 50)
     badge_Globetrotter = createBadge('Globetrotter', 'Awarded for attending an event that celebrates international cultures', 30)
-    badge_King_of_the_Campus = createBadge('King of the Campus', 'Awarded for attending the most events in a semester', 1000)
+    badge_King_of_the_Campus = createBadge('King of the Campus', 'Awarded for attending the most events in a semester', 10000)
     badge_Queen_of_the_Campus = createBadge('Queen of the Campus', 'Awarded for attending the second most events in a semester', 500)
     badge_Its_Been_so_Long = createBadge('It\'s Been so Long', 'Awarded for attending an event after a long absence from campus activities', 20)
     badge_Its_High_Noon = createBadge('It\'s High Noon', 'Awarded for attending an event that starts at noon', 20)
