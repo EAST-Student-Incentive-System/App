@@ -7,6 +7,8 @@ from datetime import datetime
 
 from App.utils import is_valid_username
 
+import re
+
 user = Blueprint('user', __name__)
 serializer= URLSafeTimedSerializer('your_secret_key')
 
@@ -136,3 +138,28 @@ def has_active_timeout(student):
     if student.timeout_count >= 3 and student.timeout_until is None:
         return True
     return False
+
+def update_password(user_id, current_password, new_password):
+    """
+    Verify the current password, then hash and save the new one.
+    Returns (success: bool, message: str).
+    """
+    user = User.query.get(user_id)
+    if not user:
+        return False, "User not found."
+    if not user.check_password(current_password):
+        return False, "Current password is incorrect."
+    if not validate_password_strength(new_password):
+        return False, "New password must be at least 8 characters, contain both uppercase and lowercase letters, a digit and an alphanumeric character."
+    user.set_password(new_password)
+    db.session.commit()
+    return True, "Password updated successfully."
+    
+def validate_password_strength(password):
+    # Criteria: 8+ chars, upper, lower, digit, special
+    if len(password) < 8: return False
+    if not re.search(r'[A-Z]', password): return False
+    if not re.search(r'[a-z]', password): return False
+    if not re.search(r'\d', password): return False
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password): return False
+    return True

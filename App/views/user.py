@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, jsonify, request, send_from_directory, flash, redirect, url_for
 from flask_jwt_extended import jwt_required, current_user as jwt_current_user, get_jwt_identity
-from App.controllers.user import update_username
+from App.controllers.user import update_username, update_password
 from App.models import Student, Staff
 from App.database import db
 from datetime import datetime, timedelta
@@ -80,6 +80,21 @@ def regenerate_avatar():
 def update_username_route():
     new_username = request.form.get('username', '').strip()
     success, message = update_username(jwt_current_user.id, new_username)
+    flash(message, 'success' if success else 'danger')
+    return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
+
+@user_views.route('/profile/update-password', methods=['POST'])
+@jwt_required()
+def update_password_route():
+    current_password = request.form.get('current_password', '')
+    new_password     = request.form.get('new_password', '')
+    confirm_password = request.form.get('confirm_password', '')
+
+    if new_password != confirm_password:
+        flash("New passwords do not match.", 'danger')
+        return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
+
+    success, message = update_password(jwt_current_user.id, current_password, new_password)
     flash(message, 'success' if success else 'danger')
     return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
 
