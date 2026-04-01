@@ -17,7 +17,7 @@ from App.controllers import (
     get_student_history, create_event, update_event, delete_event,
     get_event, view_upcoming_events, view_all_events,
     view_event_history, join_event, leave_event,
-    log_attendance, generate_qr, get_participant_count
+    log_attendance, generate_qr, get_participant_count, signUp, change_password
 )
 from App.models.reward import Reward
 from App.models.staff import Staff
@@ -430,3 +430,67 @@ class TestEventIntegrationTests(unittest.TestCase):
         count = get_participant_count(self.event.id, cutoff=cutoff)
 
         assert count == 1
+
+class AuthenticationIntegrationTests(unittest.TestCase):
+
+    def setUp(self):
+        # fresh test app + db
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_signUp_student(self):
+        result = signUp("student1@my.uwi.edu", "student1", "pass123")
+        assert result.get("success") is True
+        assert result["user"]["role"] == "student"
+
+    def test_signUp_staff(self):
+        result = signUp("staff1@sta.uwi.edu", "staff1", "pass123")
+        assert result.get("success") is True
+        assert result["user"]["role"] == "staff"
+
+    def test_signUp_duplicate_email(self):
+        signUp("dup@my.uwi.edu", "dupuser", "pass123")
+        result = signUp("dup@my.uwi.edu", "anotheruser", "pass123")
+        assert "error" in result
+        assert result["error"] == "Email already registered."
+
+    def test_signUp_duplicate_username(self):
+        signUp("unique@my.uwi.edu", "dupuser", "pass123")
+        result = signUp("another@my.uwi.edu", "dupuser", "pass123")
+        assert "error" in result
+        assert result["error"] == "Username already taken."
+
+    def test_login_success(self):
+        signUp("login@my.uwi.edu", "loginuser", "pass123")
+        result = login("loginuser", "pass123", device_id="DEVICE1")
+        assert "access_token" in result
+        assert result["user"]["username"] == "loginuser"
+        assert result["role"] == "student"
+
+    def test_login_failure(self):
+        signUp("fail@my.uwi.edu", "failuser", "pass123")
+        result = login("failuser", "wrongpass")
+        assert "error" in result
+        assert result["error"] == "Invalid username or password."
+
+    def test_change_password(self):
+        signUp("changepw@my.uwi.edu", "changepwuser", "oldpass")
+        result = change_password("changepw@my.uwi.edu", "oldpass", "newpass")
+        assert result.get("success") is True
+        # verify login works with new password
+        login_result = login("changepwuser", "newpass")
+        assert "access_token" in login_result
+
+    def test_change_password_old_invalid(self):
+        signUp("wrongold@my.uwi.edu", "wrongolduser", "oldpass")
+        result = change_password("wrongold@my.uwi.edu", "badold", "newpass")
+        assert "error" in result
+        assert result["error"] == "Invalid email or old password."
