@@ -4,6 +4,8 @@ from werkzeug.utils import secure_filename
 from App.database import db
 from App.models import Staff, Student
 import os
+from datetime import datetime
+from App.controllers.user import has_active_timeout
 
 appeal_views = Blueprint("appeal_views", __name__, template_folder="../templates")
 
@@ -86,6 +88,7 @@ def resolve_appeal_action(student_id):
         # Clear appeal so it disappears from staff queue (as requested)
         student.appeal_desc = None
         student.appeal_image = None
+        student.timeout_until = None  # Clear timeout so student can immediately access pages again
 
         flash(f"Approved appeal for {student.username} (timeout reduced).", "success")
 
@@ -165,7 +168,12 @@ def student_appeal_page():
         flash("Unauthorized", "error")
         return redirect(url_for("auth_views.login_page"))
     
-    if student.isFlagged == False:
+    if not has_active_timeout(student):
+        flash("You do not have anything to appeal.", "error")
+        return redirect(url_for("event_views.get_student_events_route"))
+
+    
+    if not student.timeout_until or student.timeout_until < datetime.utcnow():
         flash("You do not have anything to appeal.", "error")
         return redirect(url_for("event_views.get_student_events_route"))
 
@@ -185,9 +193,14 @@ def submit_student_appeal_action():
         flash("Unauthorized", "error")
         return redirect(url_for("auth_views.login_page"))
     
-    if student.isFlagged == False:
+    if not has_active_timeout(student):
         flash("You do not have anything to appeal.", "error")
-        return redirect(url_for("event_views.student_events_page"))
+        return redirect(url_for("event_views.get_student_events_route"))
+
+    
+    if not student.timeout_until or student.timeout_until < datetime.utcnow():
+        flash("You do not have anything to appeal.", "error")
+        return redirect(url_for("event_views.get_student_events_route"))
 
     desc = (request.form.get("appeal_desc") or "").strip()
     image = request.files.get("appeal_image")

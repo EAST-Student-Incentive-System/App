@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from datetime import datetime, timedelta
-from App.models import RedeemedReward
+from App.models import RedeemedReward, user
 
 from App.controllers.rewards import (
     create_reward, get_reward, get_all_rewards_json, get_all_rewards,
@@ -324,6 +324,9 @@ def student_rewards_page():
     """
     user_id = get_jwt_identity()
     user = Student.query.get(user_id)
+    if user.timeout_until and user.timeout_until > datetime.utcnow():
+        flash("You are currently timed out until {}. You cannot access the rewards page until this time is up or an appeal is approved.".format(user.timeout_until), "error")
+        return redirect(url_for('appeal_views.student_appeal_page'))
     if not user or user.role != 'student':
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))
@@ -334,13 +337,15 @@ def student_rewards_page():
     redeemed = view_redeemed_rewards(user.id) or []
     redeemed_json = [x.get_json() for x in redeemed]
 
-    # Progress target (simple milestone logic to match your sketch)
-    # You can swap this later for "next badge" logic if you want.
+    # Progress target bar 
     milestones = [50, 100, 150, 200, 300, 500]
     next_target = next((m for m in milestones if m > user.current_balance), None)
-    pct = 0
-    if next_target:
-        pct = int(min(100, (user.current_balance / next_target) * 100))
+
+    if next_target is None:
+        step = 500
+        next_target = ((user.current_balance // step) + 1) * step
+
+    pct = int(min(100, (user.current_balance / next_target) * 100))
 
     return render_template(
         'student_rewards.html',

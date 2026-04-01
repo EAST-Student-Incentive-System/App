@@ -9,14 +9,13 @@ class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     staffId = db.Column(db.Integer, db.ForeignKey('staff.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    type = db.Column(db.String(50), nullable=False) #Update to enum later when types are finalized
+    type = db.Column(db.String(50), nullable=False)
     description = db.Column(db.String(300), nullable=True)
     start = db.Column(db.DateTime, nullable=False)
     end = db.Column(db.DateTime, nullable=False)
     location = db.Column(db.String(200), nullable=True)
     attendances = db.relationship('Attendance', back_populates='event', cascade="all, delete-orphan")
     students = db.relationship('Student', secondary=student_event, back_populates='events')
-    #qr = db.Column(db.Text, nullable=True) #store QR code data or path here, can be generated on demand or stored after creation
     image = db.Column(db.String(200), nullable=True) #optional image for event, can be used in UI to make it more appealing
     active = db.Column(db.Boolean, default=False) #soft delete flag, set to False instead of deleting record
     latitude = db.Column(db.Float, nullable=True) #optional latitude for event location

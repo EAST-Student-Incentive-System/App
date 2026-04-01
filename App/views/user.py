@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, jsonify, request, send_from_directory, flash, redirect, url_for
 from flask_jwt_extended import jwt_required, current_user as jwt_current_user, get_jwt_identity
-from App.controllers.user import update_username
-from App.models import Student
+from App.controllers.user import update_username, update_password
+from App.models import Student, Staff
 from App.database import db
+from datetime import datetime, timedelta
 
 from.index import index_views
 
@@ -81,3 +82,83 @@ def update_username_route():
     success, message = update_username(jwt_current_user.id, new_username)
     flash(message, 'success' if success else 'danger')
     return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
+
+@user_views.route('/profile/update-password', methods=['POST'])
+@jwt_required()
+def update_password_route():
+    current_password = request.form.get('current_password', '')
+    new_password     = request.form.get('new_password', '')
+    confirm_password = request.form.get('confirm_password', '')
+
+    if new_password != confirm_password:
+        flash("New passwords do not match.", 'danger')
+        return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
+
+    success, message = update_password(jwt_current_user.id, current_password, new_password)
+    flash(message, 'success' if success else 'danger')
+    return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
+
+
+#-----------------------Staff flagging endpoints-----------------------
+@user_views.route("/staff/flagged", methods=["GET"], endpoint="flagged_command")
+@jwt_required()
+def flagged_command():
+    staff_id = get_jwt_identity()
+    staff = db.session.get(Staff, int(staff_id)) if staff_id else None
+    if not staff or staff.role != "staff":
+        flash("Unauthorized", "error")
+        return redirect(url_for("auth_views.login_page"))
+
+    # Query flagged students
+    flagged_students = db.session.scalars(
+        db.select(Student).where(Student.isFlagged == True)
+    ).all()
+
+    return render_template("staff_flagged.html", flagged_students=flagged_students, user=staff)
+
+@user_views.route("/staff/flagged/<int:student_id>/unflag", methods=["POST"])
+@jwt_required()
+def unflag_student(student_id):
+    staff_id = get_jwt_identity()
+    staff = db.session.get(Staff, int(staff_id)) if staff_id else None
+    if not staff or staff.role != "staff":
+        flash("Unauthorized", "error")
+        return redirect(url_for("auth_views.login_page"))
+
+    student = db.session.get(Student, student_id)
+    if not student:
+        flash("Student not found", "error")
+        return redirect(url_for("user_views.flagged_command"))
+
+    student.isFlagged = False
+    db.session.commit()
+
+    flash(f"{student.username} has been unflagged.", "success")
+    return redirect(url_for("user_views.flagged_command"))
+
+
+@user_views.route("/staff/flagged/<int:student_id>/timeout", methods=["POST"])
+@jwt_required()
+def timeout_student(student_id):
+    staff_id = get_jwt_identity()
+    staff = db.session.get(Staff, int(staff_id)) if staff_id else None
+    if not staff or staff.role != "staff":
+        flash("Unauthorized", "error")
+        return redirect(url_for("auth_views.login_page"))
+
+    student = db.session.get(Student, student_id)
+    if not student:
+        flash("Student not found", "error")
+        return redirect(url_for("user_views.flagged_command"))
+
+    # Apply timeout and unflag
+    student.timeout_count = int(student.timeout_count or 0) + 1
+    if student.timeout_count >= 3:
+        student.timeout_until = datetime.utcnow() + timedelta(days=365 * 100)  # Effectively permanent timeout
+    else:
+        student.timeout_until = datetime.utcnow() + timedelta(days=7)  # Example: 30 minute timeout
+    student.isFlagged = False
+    db.session.commit()
+
+    flash(f"{student.username} has been timed out and removed from flagged list.", "success")
+    return redirect(url_for("user_views.flagged_command"))

@@ -5,108 +5,242 @@
 {% block content %}
 <div class="flex flex-col items-center px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
   <div class="w-full max-w-6xl">
+
     <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Events</h1>
 
     <!-- Search + Filter -->
     <div class="flex flex-wrap items-center mb-6 gap-3">
       <div class="form-control flex-1 min-w-[200px]">
-        <input id="event-search"
-               type="text"
-               placeholder="Search..."
-               class="input input-bordered w-full"
-               oninput="filterEvents()" />
+        <input id="event-search" type="text" placeholder="Search..." class="input input-bordered w-full"
+          oninput="filterEvents()" />
       </div>
 
       <div class="dropdown dropdown-end relative z-50">
         <label tabindex="0" class="btn btn-sm btn-outline btn-accent">
           <span id="filter-label">All</span>
         </label>
-        <ul tabindex="0"
-            class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-70">
-          <li><a class="filter-option selected" data-filter="all"
-                 onclick="setFilter('all','All')">All</a></li>
-          <li><a class="filter-option" data-filter="ongoing"
-                 onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
-          <li><a class="filter-option" data-filter="upcoming"
-                 onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
-          <li><a class="filter-option" data-filter="previous"
-                 onclick="setFilter('previous','Previous')">Previous</a></li>
-          <li><a class="filter-option" data-filter="joined"
-                 onclick="setFilter('joined','Joined')">Joined</a></li>
+        <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-70">
+          <li><a class="filter-option selected" onclick="setFilter('all','All')">All</a></li>
+          <li><a class="filter-option" onclick="setFilter('ongoing','Ongoing')">Ongoing</a></li>
+          <li><a class="filter-option" onclick="setFilter('upcoming','Upcoming')">Upcoming</a></li>
+          <li><a class="filter-option" onclick="setFilter('previous','Previous')">Previous</a></li>
+          <li><a class="filter-option" onclick="setFilter('joined','Joined')">Joined</a></li>
         </ul>
       </div>
     </div>
 
     <!-- Events Grid -->
-    <div id="events-container"
-         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div id="events-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
       {% for event in events if event.active %}
-      <div class="card bg-base-100 shadow-md p-4 event-card transition-all duration-300 cursor-pointer"
-           onclick="toggleExpand(this)"
-           data-name="{{ event.name|lower }}"
-           data-description="{{ event.description|lower }}"
-           data-type="{{ event.type|lower }}"
-           data-start="{{ event.start }}"
-           data-end="{{ event.end }}"
-           data-joined="{% if event in student.events %}true{% else %}false{% endif %}">
+      <div
+  class="event-card bg-base-100 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer group flex flex-col h-full"
+  onclick="toggleExpand(this)"
+  data-id="{{ event.id }}"
+  data-name="{{ event.name|lower }}"
+  data-description="{{ event.description|lower }}"
+  data-type="{{ event.type|lower }}"
+  data-start="{{ event.start }}"
+  data-end="{{ event.end }}"
+  data-joined="{% if event in student.events %}true{% else %}false{% endif %}"
+  data-location="{{ event.location|lower }}">
 
+        <!-- Image -->
         {% if event.image %}
-          <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}"
-               alt="{{ event.name }}"
-               class="object-cover rounded-lg max-h-[150px] w-full"
-               onerror="this.replaceWith(document.createTextNode('🖼️'))">
+        <img src="{{ url_for('static', filename='uploads/' ~ event.image) }}" alt="{{ event.name }}"
+          class="object-cover h-40 w-full group-hover:scale-105 transition-transform duration-300"
+          onerror="this.replaceWith(document.createTextNode('🖼️'))">
         {% else %}
-          <div class="flex items-center justify-center h-[150px] bg-base-200 rounded-lg text-3xl">🖼️</div>
+        <div class="flex items-center justify-center h-40 bg-base-200 text-4xl">🖼️</div>
         {% endif %}
 
-        <div class="text-sm text-gray-600 mb-3 mt-2 space-y-1">
-          <p><span class="font-semibold text-gray-800">Name:</span> {{ event.name }}</p>
-          <p><span class="font-semibold text-gray-800">Type:</span> {{ event.type }}</p>
-          <p class="description hidden"><span class="font-semibold text-gray-800">Description:</span> {{ event.description }}</p>
-          <p><span class="font-semibold text-gray-800">Location:</span> {{ event.location }}</p>
-          <p><span class="font-semibold text-gray-800">Start:</span> {{ event.start.strftime("%Y-%m-%d %H:%M") }}</p>
-          <p><span class="font-semibold text-gray-800">End:</span> {{ event.end.strftime("%Y-%m-%d %H:%M") }}</p>
+        <!-- Content -->
+        <div class="p-4 space-y-3 flex-1">
+
+          <div class="flex items-start justify-between">
+            <h2 class="text-lg font-bold text-gray-800 leading-tight">
+              {{ event.name }}
+            </h2>
+
+            <span class="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+              {{ event.type }}
+            </span>
+          </div>
+
+          <p class="text-sm text-gray-600 line-clamp-2">
+            {{ event.description }}
+          </p>
+
+          <div class="flex flex-col gap-2 text-sm text-gray-700">
+            <div class="flex items-center gap-2">
+              <span>📅</span>
+              <span>
+                {{ event.start.strftime("%b %d, %Y") }}
+                • {{ event.start.strftime("%H:%M") }} - {{ event.end.strftime("%H:%M") }}
+              </span>
+            </div>
+
+                        <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <span>📍</span>
+                <span class="truncate">{{ event.location }}</span>
+              </div>
+              <p class="text-gray-600 font-medium">
+                👥{{ event.students|length }}{% if event.limit %}/{{ event.limit }}{% endif %}
+              </p>
+            </div>
+
+          </div>
+
         </div>
 
-        <div class="pt-2 border-t">
+       <!-- Footer -->
+<div class="px-4 py-3 border-t mt-auto">
+  {% set count = event.students|length %}
 
-{% set count = event.students|length %}
-<p>Joined: {{ count }}{% if event.limit %}/{{ event.limit }}{% endif %}</p>
-
-{% if student in event.students %}
-  <form action="{{ url_for('event_views.leave_event_action', event_id=event.id) }}" method="post">
-    <button class="btn btn-sm btn-error w-full">Leave</button>
-  </form>
-{% elif event.limit and count >= event.limit %}
-  <button class="btn btn-sm btn-warning w-full">Full</span>
-{% else %}
-  <form action="{{ url_for('event_views.join_event_action', event_id=event.id) }}" method="post">
+  {% if student in event.students %}
+    <!-- Greyed out Joined button -->
+    <button class="btn btn-sm btn-disabled w-full">Joined</button>
+  {% elif event.limit and count >= event.limit %}
+    <!-- Just text for Full -->
+    <span class="text-gray-400 font-medium">Full</span>
+  {% else %}
+    <!-- Normal Join button -->
     <button class="btn btn-sm btn-accent w-full">Join</button>
-  </form>
-{% endif %}
-
+  {% endif %}
 </div>
+
+
       </div>
       {% endfor %}
+
     </div>
 
     <!-- Empty State -->
     <div id="no-results" class="hidden text-center py-20">
-      <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>
+      <svg class="w-14 h-14 mx-auto mb-4 opacity-30" fill="none" stroke="currentColor" stroke-width="1.5"
+        viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7" />
+        <path stroke-linecap="round" d="M21 21l-4.35-4.35" />
       </svg>
       <p class="text-gray-500 font-medium">No events found</p>
       <p class="text-gray-400 text-sm mt-1">Try a different search or filter.</p>
     </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="event-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-lg p-6 max-w-lg w-full space-y-4">
+
+    <h2 id="modal-name" class="text-xl font-bold"></h2>
+    <p id="modal-type" class="text-sm text-gray-500"></p>
+    <p id="modal-description" class="text-gray-700"></p>
+
+    <div class="text-sm text-gray-600 space-y-1">
+      <p id="modal-location"></p>
+      <p id="modal-start"></p>
+      <p id="modal-end"></p>
+    </div>
+
+    <button id="leave-btn" class="btn btn-outline btn-error w-full">
+      Leave Event
+    </button>
+    <button id="join-btn" class="btn btn-primary w-full">
+      Join Event
+    </button>
+
   </div>
 </div>
 
 <script>
+  document.getElementById('event-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  function toggleExpand(card) {
+    const eventId = card.getAttribute('data-id');
+    const joined = card.dataset.joined === 'true';
+    document.getElementById('modal-name').textContent = card.dataset.name;
+    document.getElementById('modal-type').textContent = "Type: " + card.dataset.type;
+    document.getElementById('modal-description').textContent = "Description: " + card.dataset.description;
+    document.getElementById('modal-location').textContent = "Location: " + card.dataset.location;
+    document.getElementById('modal-start').textContent =
+      "Start: " + card.dataset.start.replace('T', ' ').split('.')[0];
+    document.getElementById('modal-end').textContent =
+      "End: " + card.dataset.end.replace('T', ' ').split('.')[0];
+
+    document.getElementById('event-modal').classList.remove('hidden');
+    const leaveBtn = document.getElementById('leave-btn');
+    const joinBtn = document.getElementById('join-btn');
+    console.log("Joined:", joined);
+    if (joined) {
+      leaveBtn.classList.remove('hidden'); // Only show leave button if student has joined the event
+      joinBtn.classList.add('hidden'); // Hide join button if student has already joined the event
+      leaveBtn.onclick = function () {
+        confirmLeave(eventId);
+      };
+    }
+    else {
+      leaveBtn.classList.add('hidden'); // Hide leave button if student has not joined the event
+      joinBtn.classList.remove('hidden'); // Show join button if student has not joined the event
+      joinBtn.onclick = function () {
+        // Send a POST request to the Flask route
+        fetch(`/events/${eventId}/join`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+          .then(response => {
+            if (response.ok) {
+              // Refresh page or redirect after successful join
+              window.location.reload(true);
+            } else {
+              alert("Something went wrong. Please try again.");
+            }
+          })
+          .catch(error => console.error("Error:", error));
+      }
+    }
+  }
+    function closeModal() {
+      document.getElementById('event-modal').classList.add('hidden');
+    }
+  function confirmLeave(eventId) {
+    if (confirm("Are you sure you want to leave this event?")) {
+      // Send a POST request to the Flask route
+      fetch(`/events/${eventId}/leave`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+        .then(response => {
+          if (response.ok) {
+            // Refresh page or redirect after successful leave
+            window.location.reload(true);
+          } else {
+            alert("Something went wrong. Please try again.");
+          }
+        })
+        .catch(error => console.error("Error:", error));
+    }
+  }
+
+
   let activeFilter = 'all';
 
   function getEventStatus(card) {
-    const now = new Date(), start = new Date(card.dataset.start), end = new Date(card.dataset.end);
+    const now = new Date();
+    const start = new Date(card.dataset.start);
+    const end = new Date(card.dataset.end);
+
     if (now < start) return 'upcoming';
     if (now > end) return 'previous';
     return 'ongoing';
@@ -115,9 +249,6 @@
   function setFilter(filter, label) {
     activeFilter = filter;
     document.getElementById('filter-label').textContent = label;
-    document.querySelectorAll('.filter-option').forEach(opt => {
-      opt.classList.toggle('selected', opt.dataset.filter === filter);
-    });
     filterEvents();
   }
 
@@ -127,7 +258,8 @@
     let visible = 0;
 
     cards.forEach(card => {
-      const matchesSearch = !query ||
+      const matchesSearch =
+        !query ||
         card.dataset.name.includes(query) ||
         card.dataset.description.includes(query) ||
         card.dataset.type.includes(query);
@@ -140,25 +272,13 @@
         status === activeFilter ||
         (activeFilter === 'joined' && joined);
 
-      card.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
-      if (matchesSearch && matchesFilter) visible++;
+      const show = matchesSearch && matchesFilter;
+      card.style.display = show ? '' : 'none';
+      if (show) visible++;
     });
 
     document.getElementById('no-results').classList.toggle('hidden', visible > 0);
   }
-
-  function toggleExpand(card) {
-    card.classList.toggle("expanded");
-    const desc = card.querySelector(".description");
-    if (desc) desc.classList.toggle("hidden");
-  }
 </script>
 
-<style>
-  .event-card.expanded {
-    transform: scale(1.05);
-    grid-column: span 2; /* expands width on larger screens */
-    z-index: 10;
-  }
-</style>
 {% endblock %}

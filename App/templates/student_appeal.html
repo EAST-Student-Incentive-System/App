@@ -10,7 +10,63 @@
     <div class="text-center pb-6">
       <h1 class="text-4xl font-bold tracking-wide text-gray-900">Appeals</h1>
     </div>
+    <!-- Button to open modal -->
+ <div class="flex justify-end mb-6">
+  <a href="javascript:void(0)" 
+     class="link link-accent" 
+     onclick="document.getElementById('activity-modal').showModal()">
+    View Activity
+  </a>
+</div>
 
+
+<!-- Modal -->
+<dialog id="activity-modal" class="modal">
+  <div class="modal-box max-w-xl">
+    <h3 class="font-bold text-lg mb-4">Suspicious Activity</h3>
+
+    {% set flagged_events = [] %}
+    {% set flagged_event_names = [] %}
+    {% for attendance in student.attendances %}
+      {% if attendance.get_overlap_events()|length > 0 %}
+        {% if attendance.event.name not in flagged_event_names %}
+          {% set _ = flagged_event_names.append(attendance.event.name) %}
+          {% set _ = flagged_events.append({"name": attendance.event.name, "timestamp": attendance.timestamp}) %}
+        {% endif %}
+        {% for ev in attendance.get_overlap_events() %}
+          {% if ev.event.name not in flagged_event_names %}
+            {% set _ = flagged_event_names.append(ev.event.name) %}
+            {% set _ = flagged_events.append({"name": ev.event.name, "timestamp": ev.timestamp}) %}
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+
+    {% if flagged_events %}
+      <p><strong>Attended multiple events within 1 hour:</strong></p>
+      <ul class="list-disc list-inside mb-4">
+        {% for e in flagged_events %}
+          <li>{{ e.name }} - {{ e.timestamp.strftime('%Y-%m-%d %H:%M') }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% set seen_devices = [] %}
+    {% for attendance in student.attendances %}
+      {% for conflict in attendance.get_device_conflicts() %}
+        {% if conflict.student.username not in seen_devices %}
+          {% set _ = seen_devices.append(conflict.student.username) %}
+          <p><strong>Device conflict:</strong> Shared device with {{ conflict.student.username }} at {{ attendance.event.name }}</p>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+
+    <div class="modal-action">
+      <form method="dialog"><button class="btn">Close</button></form>
+    </div>
+  </div>
+  <form method="dialog" class="modal-backdrop"><button>close</button></form>
+</dialog>
     <!-- Status section -->
     <div class="mb-10">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -19,7 +75,13 @@
         </div>
 
         <div class="flex items-center gap-3">
-          {% set status = (student.appeal_status or 'pending') %}
+        {% if student.appeal_status %}
+          {% set status = student.appeal_status %}
+        {% elif student.appeal_desc or student.appeal_image %}
+          {% set status = 'pending' %}
+        {% else %}
+          {% set status = None %}
+        {% endif %}
 
           {% if status == 'approved' %}
             <span class="badge badge-success badge-lg">Approved</span>
@@ -29,13 +91,18 @@
             <span class="badge badge-error badge-lg">Rejected</span>
             <span class="text-gray-600">Your appeal was rejected.</span>
 
-          {% else %}
+          {% elif status == 'pending' %}
             <span class="badge badge-warning badge-lg">Pending</span>
             <span class="text-gray-600">Your appeal is awaiting review.</span>
+
+          {% else %}
+            <span class="text-gray-500">No appeal submitted yet.</span>
           {% endif %}
         </div>
       </div>
     </div>
+
+
 
     <form
       method="POST"
@@ -110,7 +177,7 @@
       <div class="border-t border-gray-200"></div>
 
       <div class="flex justify-center pt-2">
-        <button type="submit" class="btn bg-green-500 hover:bg-green-600 text-white px-16">
+        <button type="submit" class="btn btn-primary btn-lg">
           Submit
         </button>
       </div>

@@ -8,6 +8,7 @@ from App.models.staff import Staff
 from App.models.student_event import student_event
 from App.models.attendance import Attendance
 from App.controllers import event
+from App.controllers.user import has_active_timeout
 from App.controllers.event import log_attendance  # import your controller functions
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, current_app, abort, Flask
 from App.controllers.event import join_event,get_participant_count # import your controller functions
@@ -22,6 +23,12 @@ from os import path, makedirs
 import os
 import secrets
 from geopy.distance import geodesic
+from time import time
+from flask import send_file
+import qrcode
+import io
+import time
+
 
 event_views = Blueprint("event_views", __name__)
 
@@ -265,14 +272,37 @@ def event_qr_page(event_id):
     db.session.commit()
     print("Updated event with GPS:", event.latitude, event.longitude, "radius:", event.radius)
 
-    qr = generate_qr(event_id)
+    #qr = generate_qr(event_id)
 
     return render_template(
         "attendance_qr.html",
         event=event,
-        qr=qr,
-        user=user
+        #qr=qr,
+        user=user, 
+        timestamp=int(time.time())
     )
+
+@event_views.route("/events/<int:event_id>/qr_image")
+@jwt_required()
+def qr_image(event_id):
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or user.role != 'staff':
+        return "Unauthorized", 403
+
+    # Rotate QR every 10 seconds
+    timeslot = int(time.time() // 10)
+    qr_data = f"{event_id}-{timeslot}"
+
+    qr = qrcode.QRCode(box_size=10, border=4)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return send_file(buf, mimetype="image/png")
 
 # ---------------- Student Event Actions ----------------
 @event_views.route("/events/student", methods=["GET"])
@@ -285,9 +315,14 @@ def get_student_events_route():
         print("Unauthorized access attempt by user_id:", user_id)
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))
-    if user.isFlagged:
-        flash('Your account is flagged due to suspicious activity. Please submit an appeal to resolve this issue.', 'error')
-        return redirect(url_for('appeal_views.student_appeal_page'))
+    if has_active_timeout(user):
+        print("Student", user.username, "is currently timed out until", user.timeout_until)
+        if user.timeout_count and user.timeout_count >= 3:
+            flash(f"You are currently permanently timed out due to multiple infractions. Please submit an appeal if you think you were wrongly banned.", "error")
+            return redirect(url_for('appeal_views.student_appeal_page'))
+        else:
+            flash(f"You are currently timed out until {user.timeout_until}. You cannot access the page until this time is up or an appeal is approved", "error")
+            return redirect(url_for('appeal_views.student_appeal_page'))
     student_id = user.id
     events = Event.query.filter_by(active=True).all()
     print("DEBUG: Events for student_id", student_id, "=", [e.name for e in events])
@@ -441,6 +476,9 @@ def log_attendance_qr():
 def scan_qr_page():
     user_id = get_jwt_identity()
     user = Student.query.get(user_id)
+    if user.timeout_until and user.timeout_until > datetime.utcnow():
+        flash("You are currently timed out until {}. You cannot access the QR scan page until this time is up or an appeal is approved.".format(user.timeout_until), "error")
+        return redirect(url_for('appeal_views.student_appeal_page'))
     if not user or user.role != 'student':
         flash('Unauthorized', 'error')
         return redirect(url_for('auth_views.login_page'))

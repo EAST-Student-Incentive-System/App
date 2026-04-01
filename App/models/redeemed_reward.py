@@ -8,7 +8,7 @@ class RedeemedReward(db.Model):
     reward_id = db.Column(db.Integer, db.ForeignKey('reward.id'), nullable=False)
     redeemed_at = db.Column(db.DateTime, default=datetime.now, nullable=False)
 
-    reward = db.relationship('Reward', back_populates='redeemed_rewards')
+    reward = db.relationship('Reward', back_populates='redeemed_rewards', overlaps="students,redeemed_rewards")
     isValid = db.Column(db.Boolean, default=True)
 
     def get_json(self):
