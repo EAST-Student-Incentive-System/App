@@ -2,7 +2,8 @@ import re
 import os, tempfile, pytest, logging, unittest
 from turtle import st
 from werkzeug.security import check_password_hash, generate_password_hash
-
+import base64
+import time
 from App.main import create_app
 from App.database import db, create_db
 from App.models import User
@@ -13,7 +14,10 @@ from App.controllers import (
     get_user,
     get_user_by_username,
     update_user,
-    get_student_history
+    get_student_history, create_event, update_event, delete_event,
+    get_event, view_upcoming_events, view_all_events,
+    view_event_history, join_event, leave_event,
+    log_attendance, generate_qr, get_participant_count
 )
 from App.models.reward import Reward
 from App.models.staff import Staff
@@ -173,20 +177,18 @@ class StudentUnitTests(unittest.TestCase):
 '''
     Integration Tests
 '''
-
 @pytest.fixture
-def app_context():
-    app = create_app({
-        'TESTING': True,
-        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:'
-    })
-
+def app():
+    app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
     with app.app_context():
         db.create_all()
-        yield
-        db.session.remove()
+        yield app
         db.drop_all()
 
+
+@pytest.fixture
+def app_context(app):
+        yield
 
 def test_student_history_controller(app_context):
     # ensure history returns empty arrays for a fresh student
@@ -204,14 +206,28 @@ def test_authenticate(app_context):
     user = create_user("bob2@my.uwi.edu", "bob2", "bobpass")
     assert login("bob2", "bobpass") != None
 
-class UsersIntegrationTests:
+class UsersIntegrationTests(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+        # seed the user that other tests depend on
+        create_user("bob2@my.uwi.edu", "bob2", "bobpass")
 
-    def test_create_user(self, app_context):
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_create_user(self):
         # create a student record
         user = create_user("rick2@my.uwi.edu", "rick2", "bobpass")
         assert user.username == "rick2"
 
-    def test_get_all_users_json(self, app_context):
+    def test_get_all_users_json(self):
+        create_user("rick2@my.uwi.edu", "rick2", "bobpass")
         users_json = get_all_users_json()
         # returned data now includes email/role/points - just verify expected students present
         usernames = sorted([u.get('username') for u in users_json])
@@ -219,10 +235,198 @@ class UsersIntegrationTests:
         self.assertIn('rick2', usernames)
 
     # Tests data changes in the database
-    def test_update_user(self, app_context):
+    def test_update_user(self):
         user = create_user("temp@my.uwi.edu", "temp", "pass")
         update_user(user.id, "ronnie")
         user = get_user(user.id)
         assert user.username == "ronnie"
-        
 
+
+class TestEventIntegrationTests(unittest.TestCase):
+
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+        # Create some common users
+        self.staff = create_user("staff@sta.uwi.edu", "staff1", "pass")
+        self.student = create_user("student@my.uwi.edu", "student1", "pass")
+
+        # Create a default event
+        self.event = create_event(
+            staff_id=self.staff.id,
+            name="Test Event",
+            type="Workshop",
+            description="Desc",
+            start=datetime.now() + timedelta(hours=1),
+            end=datetime.now() + timedelta(hours=2),
+            location="Room 1",
+            image=None,
+            active=True,
+            limit=10
+        )
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_create_event(self):
+        event = create_event(
+            self.staff.id, "Event", "Type", "Desc",
+            datetime.now(), datetime.now() + timedelta(hours=1),
+            "Room", None, True
+        )
+
+        assert event is not None
+        assert event.name == "Event"
+        assert event.staffId == self.staff.id
+
+    def test_update_event(self):
+        updated = update_event(
+            self.event.id,
+            staff_id=self.staff.id,
+            name="Updated Name"
+        )
+
+        assert updated is not None
+        assert updated["name"] == "Updated Name"
+
+    def test_delete_event_success(self):
+        result = delete_event(self.event.id, self.staff.id)
+        assert result is True
+        assert get_event(self.event.id) is None
+    
+    def test_view_upcoming_events(self):
+        past = create_event(
+            self.staff.id, "Past", "Type", "Desc",
+            datetime.now() - timedelta(days=1),
+            datetime.now(),
+            "Room", None, True
+        )
+
+        future = create_event(
+            self.staff.id, "Future", "Type", "Desc",
+            datetime.now() + timedelta(days=1),
+            datetime.now() + timedelta(days=2),
+            "Room", None, True
+        )
+
+        events = view_upcoming_events()
+        assert future in events
+        assert past not in events
+
+
+    def test_view_all_events(self):
+        events = view_all_events()
+        assert len(events) > 0
+
+    def test_view_event_history_staff(self):
+        e1 = create_event(self.staff.id, "E1", "T", "D",
+                        datetime.now(), datetime.now(), "R", None, True)
+        e2 = create_event(self.staff.id, "E2", "T", "D",
+                        datetime.now(), datetime.now(), "R", None, True)
+
+        history = view_event_history(staff_id=self.staff.id)
+
+        assert e1 in history
+        assert e2 in history
+
+    def test_view_event_history_student(self):
+        join_event(self.student.id, self.event.id)
+
+        self.event.start = datetime.now() - timedelta(hours=1)
+        db.session.commit()
+
+        log_attendance(self.student.id, self.event.id)
+
+        history = view_event_history(student_id=self.student.id)
+
+        assert len(history) == 1
+
+    def test_join_event(self):
+        result = join_event(self.student.id, self.event.id)
+        assert result is True
+        assert self.student in self.event.students
+
+    def test_join_event_already_joined(self):
+        join_event(self.student.id, self.event.id)
+        result = join_event(self.student.id, self.event.id)
+        assert result is False
+
+    def test_join_event_full(self):
+        event = create_event(
+            self.staff.id, "Limited", "T", "D",
+            datetime.now(), datetime.now(),
+            "Room", None, True, limit=1
+        )
+
+        s1 = create_user("s1@my.uwi.edu", "s1", "pass")
+        s2 = create_user("s2@my.uwi.edu", "s2", "pass")
+
+        join_event(s1.id, event.id)
+        result = join_event(s2.id, event.id)
+
+        assert result is False
+
+    def test_leave_event(self):
+        join_event(self.student.id, self.event.id)
+        leave_event(self.student.id, self.event.id)
+
+        assert self.student not in self.event.students
+
+    def test_log_attendance(self):
+        join_event(self.student.id, self.event.id)
+
+        self.event.start = datetime.now() - timedelta(minutes=10)
+        db.session.commit()
+
+        result = log_attendance(self.student.id, self.event.id)
+
+        assert result is not None
+
+    def test_log_attendance_not_joined(self):
+        result = log_attendance(self.student.id, self.event.id)
+        assert result is False
+
+    def test_log_attendance_outside_timeframe(self):
+        join_event(self.student.id, self.event.id)
+
+        result = log_attendance(self.student.id, self.event.id)
+        assert result is False
+
+    def test_log_attendance_duplicate(self):
+        join_event(self.student.id, self.event.id)
+
+        self.event.start = datetime.now() - timedelta(minutes=10)
+        db.session.commit()
+
+        log_attendance(self.student.id, self.event.id)
+        result = log_attendance(self.student.id, self.event.id)
+
+        assert result is False
+
+    def test_generate_qr_code(self):
+        qr = generate_qr(self.event.id)
+
+        assert isinstance(qr, str)
+
+        decoded = base64.b64decode(qr)
+        assert decoded is not None
+
+    def test_get_participant_count(self):
+        join_event(self.student.id, self.event.id)
+
+        count = get_participant_count(self.event.id)
+        assert count == 1
+
+    def test_get_participant_count_with_cutoff(self):
+        join_event(self.student.id, self.event.id)
+
+        cutoff = datetime.now() + timedelta(minutes=1)
+        count = get_participant_count(self.event.id, cutoff=cutoff)
+
+        assert count == 1
