@@ -8,8 +8,7 @@ class User(db.Model):
     username =  db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50))
-    is_verified = db.Column(db.Boolean, default=False)
-    verify_token = db.Column(db.String(256), nullable=True)
+    
     __mapper_args__ = {
         'polymorphic_identity': 'user',
         'polymorphic_on': role
