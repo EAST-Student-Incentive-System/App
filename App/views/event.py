@@ -23,6 +23,12 @@ from os import path, makedirs
 import os
 import secrets
 from geopy.distance import geodesic
+from time import time
+from flask import send_file
+import qrcode
+import io
+import time
+
 
 event_views = Blueprint("event_views", __name__)
 
@@ -266,14 +272,37 @@ def event_qr_page(event_id):
     db.session.commit()
     print("Updated event with GPS:", event.latitude, event.longitude, "radius:", event.radius)
 
-    qr = generate_qr(event_id)
+    #qr = generate_qr(event_id)
 
     return render_template(
         "attendance_qr.html",
         event=event,
-        qr=qr,
-        user=user
+        #qr=qr,
+        user=user, 
+        timestamp=int(time.time())
     )
+
+@event_views.route("/events/<int:event_id>/qr_image")
+@jwt_required()
+def qr_image(event_id):
+    user_id = get_jwt_identity()
+    user = Staff.query.get(user_id)
+    if not user or user.role != 'staff':
+        return "Unauthorized", 403
+
+    # Rotate QR every 10 seconds
+    timeslot = int(time.time() // 10)
+    qr_data = f"{event_id}-{timeslot}"
+
+    qr = qrcode.QRCode(box_size=10, border=4)
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return send_file(buf, mimetype="image/png")
 
 # ---------------- Student Event Actions ----------------
 @event_views.route("/events/student", methods=["GET"])
