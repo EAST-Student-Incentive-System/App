@@ -64,7 +64,7 @@ class Student(User):
     def __repr__(self):
         return f'<Student {self.username}> - {self.current_balance} points'
     
-    def check_enough_points(self, reward):
+    def check_enough_points(self, reward) -> bool:
         return self.current_balance >= reward.pointCost
 
     def get_avatar_url(self, style="fun-emoji"):
