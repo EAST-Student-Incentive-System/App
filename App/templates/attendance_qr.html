@@ -6,36 +6,36 @@
     {{ event.name }} Attendance
   </h1>
 
-  <img src="data:image/png;base64,{{ qr }}" 
-       alt="QR Code" 
-       class="mx-auto border rounded-lg shadow-md" 
-       width="320">
+  <img id="qr-img" 
+     src="{{ url_for('event_views.qr_image', event_id=event.id) }}?t={{ timestamp }}" 
+     alt="QR Code" 
+     class="mx-auto border rounded-lg shadow-md" 
+     width="320">
+<p id="countdown" class="text-gray-700 font-semibold mt-2">Refreshing in 10s</p>
 
   <p class="text-gray-500 mt-3">
-    QR refreshes every 30 seconds
-  </p>
-
-  <p id="countdown" class="text-gray-700 font-semibold mt-2">Refreshing in 30s</p>
+    QR refreshes every 10 seconds
+  </p> 
+  
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    let countdown = 30;
-    const countdownEl = document.getElementById("countdown");
+document.addEventListener("DOMContentLoaded", function() {
+  let countdown = 10;
+  const countdownEl = document.getElementById("countdown");
+  const qrImg = document.getElementById("qr-img");
 
-    const interval = setInterval(() => {
-      countdownEl.textContent = "Refreshing in " + countdown + "s";
-      countdown--;
+  setInterval(() => {
+    countdownEl.textContent = "Refreshing in " + countdown + "s";
+    countdown--;
 
-      if (countdown < 0) {
-        clearInterval(interval);
-        window.location.reload(true);
-      }
-    }, 1000);
-  });
-
-  
+    if (countdown < 0) {
+      countdown = 10; // reset countdown
+      qrImg.src = "{{ url_for('event_views.qr_image', event_id=event.id) }}?t=" + new Date().getTime();
+    }
+  }, 1000);
+});
 </script>
 {% endblock %}
