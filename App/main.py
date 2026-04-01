@@ -38,14 +38,14 @@ def create_app(overrides={}):
     @jwt.invalid_token_loader
     @jwt.unauthorized_loader
     def custom_unauthorized_response(error):
-        return render_template('401.html', error=error), 401
+        return render_template('login.html', error=error), 401
 
     app.app_context().push()
     
     # Root route now points to login page
     @app.route('/')
     def index():
-        return redirect(url_for('auth_views.login_page'))
+        return redirect('/login')
 
     return app
 

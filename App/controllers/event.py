@@ -9,6 +9,8 @@ import base64
 import time
 from geopy.distance import geodesic
 from datetime import datetime
+from App.utils import require_role
+from App.controllers.badge import check_and_award_badges
 
 
 
@@ -25,7 +27,7 @@ def view_all_events():
 
 def view_event_history(student_id=None, staff_id=None):
     if student_id:
-        student = db.session.get(Student, student_id)
+        student = require_role(student_id, "student")
         return student.attendances
     if staff_id:
         return Event.query.filter_by(staffId=staff_id).all()
@@ -34,14 +36,19 @@ def view_event_history(student_id=None, staff_id=None):
 # ---------------- Event CRUD ----------------
 
 def create_event(staff_id, name, type, description, start, end, location, image, active, limit=None):
+    staff = require_role(staff_id, "staff")
+    if not staff:
+        return None
     new_event = Event(staffId=staff_id, name=name, type=type, description=description, start=start, end=end, location=location, image=image, active=active, limit=limit)
     db.session.add(new_event)
     db.session.flush()
-    #new_event.qr = generate_qr_code(new_event.id)  # Generate QR code data for the event
     db.session.commit()
     return new_event
 
 def update_event(event_id, **kwargs):
+    staff = require_role(kwargs.get('staff_id'), "staff")
+    if not staff:
+        return None
     event = db.session.get(Event, event_id)
     if not event:
         return None
@@ -66,6 +73,9 @@ def update_event(event_id, **kwargs):
     return event.get_json()
 
 def delete_event(event_id, staff_id):
+    staff = require_role(staff_id, "staff")
+    if not staff:
+        return False
     event = db.session.get(Event, event_id)
 
     print("EVENT:", event)
@@ -86,7 +96,7 @@ def delete_event(event_id, staff_id):
 
 # ---------------- Student Event Actions ----------------
 def join_event(student_id, event_id):
-    student = db.session.get(Student, student_id)
+    student = require_role(student_id, "student")
     event = db.session.get(Event, event_id)
     count = db.session.query(student_event).filter_by(event_id=event_id).count()
     if not student or not event:
@@ -101,6 +111,7 @@ def join_event(student_id, event_id):
     return True  
 
 def leave_event(student_id, event_id):
+    student = require_role(student_id, "student")
     db.session.execute(
         student_event.delete().where(
             (student_event.c.student_id == student_id) &
@@ -111,7 +122,7 @@ def leave_event(student_id, event_id):
     return True
 
 def log_attendance(student_id, event_id, timestamp=None, student_lat=None, student_lon=None):
-    student = db.session.get(Student, student_id)
+    student = require_role(student_id, "student")
     print("STUDENT:", student)
     event = db.session.get(Event, event_id)
     print("EVENT:", event)
@@ -140,11 +151,25 @@ def log_attendance(student_id, event_id, timestamp=None, student_lat=None, stude
         if attendance.timestamp > datetime.now() - timedelta(hours=1):
             print ("STUDENT ATTENDED ANOTHER EVENT WITHIN THE LAST HOUR, STUDENT IS NOW FLAGGED")
             student.isFlagged = True
+    
     student.add_points(event.calculate_point_value())
+    check_and_award_badges(student, event)
+
     attendance = Attendance(student_id=student_id, event_id=event_id, timestamp=timestamp or datetime.utcnow())
     print("NEW ATTENDANCE:", attendance)
-    if not student.isFlagged:
-        print("POINTS AWARDED:", event.calculate_point_value())
+    attendance.device_info = student.temporary_device_holder
+    if attendance.device_info:
+        same_device_attendances = Attendance.query.filter(
+        Attendance.device_info == attendance.device_info,
+        Attendance.event_id == event.id,
+        Attendance.student_id != student.id
+    ).all()
+    if same_device_attendances:
+        student.isFlagged = True
+        for s_att in same_device_attendances:
+            other_student = Student.query.get(s_att.student_id)
+            other_student.isFlagged = True
+    print("POINTS AWARDED:", event.calculate_point_value())
     db.session.add(attendance)
     db.session.commit()
     return attendance.get_json()

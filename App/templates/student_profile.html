@@ -10,6 +10,18 @@
     #profile-left   { width: 18rem !important; flex-shrink: 0; }
     #profile-right  { width: auto !important; }
   }
+  
+  #profile-layout {
+    margin-left: -1rem;
+    margin-right: -1rem;
+  }
+
+  @media (min-width: 768px) {
+    #profile-layout {
+      margin-left: -2rem;
+      margin-right: -2rem;
+    }
+}
 </style>
 
 <div id="profile-layout" style="display:flex; flex-direction:column; gap:1.5rem; align-items:flex-start;">
@@ -97,6 +109,48 @@
         </div>
         <button type="submit" class="btn btn-sm rounded-xl font-semibold text-white w-full" style="background-color:#00d7c0; border:none;">
           Save Username
+        </button>
+      </form>
+      <!-- Password form -->
+      <form method="POST" action="/profile/update-password" class="flex flex-col gap-3 mt-4 pt-4" style="border-top:1px solid #f3e8ff;">
+        <h4 class="text-xs font-semibold uppercase tracking-wider" style="color:#660c9e;">Change Password</h4>
+        <div>
+          <label for="current_password" class="block text-xs font-semibold text-gray-600 mb-1">Current Password</label>
+          <input
+            type="password"
+            name="current_password"
+            id="current_password"
+            required
+            class="input input-bordered input-sm w-full rounded-lg focus:outline-none"
+            style="border-color:#d8b4fe;"
+          >
+        </div>
+        <div>
+          <label for="new_password" class="block text-xs font-semibold text-gray-600 mb-1">New Password</label>
+          <input
+            type="password"
+            name="new_password"
+            id="new_password"
+            minlength="8"
+            required
+            class="input input-bordered input-sm w-full rounded-lg focus:outline-none"
+            style="border-color:#d8b4fe;"
+          >
+        </div>
+        <div>
+          <label for="confirm_password" class="block text-xs font-semibold text-gray-600 mb-1">Confirm New Password</label>
+          <input
+            type="password"
+            name="confirm_password"
+            id="confirm_password"
+            minlength="8"
+            required
+            class="input input-bordered input-sm w-full rounded-lg focus:outline-none"
+            style="border-color:#d8b4fe;"
+          >
+        </div>
+        <button type="submit" class="btn btn-sm rounded-xl font-semibold text-white w-full" style="background-color:#660c9e; border:none;">
+          🔒 Update Password
         </button>
       </form>
     </div>
@@ -200,8 +254,7 @@
                 <thead>
                   <tr style="background-color:#f9f5ff; color:#660c9e;">
                     <th class="font-semibold py-2 px-4">Event</th>
-                    <th class="font-semibold py-2 px-4">Type</th>
-                    <th class="font-semibold py-2 px-4 whitespace-nowrap">Time</th>
+                    <th class="font-semibold py-2 px-4 w-0 whitespace-nowrap">Type</th>
                     <th class="font-semibold py-2 px-4">Location</th>
                     <th class="font-semibold py-2 px-4">Description</th>
                     <th class="font-semibold py-2 px-4 whitespace-nowrap">Attended</th>
@@ -211,16 +264,10 @@
                   {% for entry in history.events %}
                     <tr class="border-t hover:bg-purple-50 transition-colors" style="border-color:#f3e8ff;">
                       <td class="py-2 px-4 font-medium text-gray-800">{{ entry.event.name }}</td>
-                      <td class="py-2 px-4">
+                      <td class="py-2 px-4 whitespace-nowrap">
                         <span class="px-2 py-0.5 rounded-full text-xs font-semibold" style="background:#f3e8ff; color:#660c9e;">
                           {{ entry.event.type or 'N/A' }}
                         </span>
-                      </td>
-                      <td class="py-2 px-4 text-xs text-gray-500 whitespace-nowrap">
-                        {% if entry.event.start_date %}
-                          {{ entry.event.start_date[2:4] }}/{{ entry.event.start_date[5:7] }}/{{ entry.event.start_date[8:10] }}
-                          {% if entry.event.end_date %} – {{ entry.event.end_date[2:4] }}/{{ entry.event.end_date[5:7] }}/{{ entry.event.end_date[8:10] }}{% endif %}
-                        {% else %}N/A{% endif %}
                       </td>
                       <td class="py-2 px-4 text-gray-600 text-xs">{{ entry.event.location or 'N/A' }}</td>
                       <td class="py-2 px-4 text-gray-600 text-xs">
@@ -233,9 +280,10 @@
                           {{ entry.event.description or 'No description' }}
                         {% endif %}
                       </td>
-                      <td class="py-2 px-4 whitespace-nowrap text-xs text-gray-500">
-                        <span class="px-1.5 py-0.5 rounded" style="background:#f3e8ff; color:#660c9e;">{{ entry.timestamp[11:16] }}</span>
-                      </td>
+                      <td class="py-2 px-4 whitespace-nowrap text-xs text-gray-500" data-date="{{ entry.timestamp }}">
+                          {{ entry.timestamp[2:4] }}/{{ entry.timestamp[5:7] }}/{{ entry.timestamp[8:10] }}
+                          <span class="ml-1 px-1.5 py-0.5 rounded" style="background:#f3e8ff; color:#660c9e;">{{ entry.timestamp[11:16] }}</span>
+                          </td>
                     </tr>
                   {% endfor %}
                 </tbody>
@@ -279,7 +327,7 @@
                     <tr class="border-t hover:bg-purple-50 transition-colors" style="border-color:#f3e8ff;">
                       <td class="py-2 px-4 font-medium text-gray-800">{{ entry.rewardName }}</td>
                       <td class="py-2 px-4">
-                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold" style="background:#f3e8ff; color:#660c9e;">
+                        <span class="px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap" style="background:#f3e8ff; color:#660c9e;">
                           {{ entry.pointCost }} pts
                         </span>
                       </td>
@@ -304,14 +352,9 @@
 
 <!-- Description modal -->
 <dialog id="descriptionModal" class="modal">
-  <div class="modal-box rounded-2xl" style="border:1px solid #e9d5ff;">
+  <div id="modal" class="modal-box rounded-2xl" style="border:1px solid #e9d5ff;">
     <h3 class="font-bold text-lg" style="color:#660c9e;">Full Description</h3>
     <p id="descriptionContent" class="py-4 text-gray-700"></p>
-    <div class="modal-action">
-      <form method="dialog">
-        <button class="btn rounded-xl" style="background:#00d7c0; color:white; border:none;">Close</button>
-      </form>
-    </div>
   </div>
 </dialog>
 
