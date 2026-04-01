@@ -158,6 +158,7 @@ def log_attendance(student_id, event_id, timestamp=None, student_lat=None, stude
     attendance = Attendance(student_id=student_id, event_id=event_id, timestamp=timestamp or datetime.utcnow())
     print("NEW ATTENDANCE:", attendance)
     attendance.device_info = student.temporary_device_holder
+    same_device_attendances = []
     if attendance.device_info:
         same_device_attendances = Attendance.query.filter(
         Attendance.device_info == attendance.device_info,
