@@ -1,4 +1,6 @@
+import re
 import os, tempfile, pytest, logging, unittest
+from turtle import st
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from App.main import create_app
@@ -13,6 +15,9 @@ from App.controllers import (
     update_user,
     get_student_history
 )
+from App.models.reward import Reward
+from App.models.staff import Staff
+from App.models.student import Student
 
 
 LOGGER = logging.getLogger(__name__)
@@ -33,7 +38,7 @@ class AttendanceUnitTests(unittest.TestCase):
         self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
         self.ctx = self.app.app_context()
         self.ctx.push()
-        create_db()
+        db.create_all()
 
         # create a student + two events
         self.student = Student(email="bob@test.com", username="bob", password="pw")
@@ -82,9 +87,11 @@ class EventUnitTests(unittest.TestCase):
         self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
         self.ctx = self.app.app_context()
         self.ctx.push()
-        create_db()
+        db.create_all()
 
     def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
         db.drop_all()
         self.ctx.pop()
 
@@ -114,8 +121,108 @@ class EventUnitTests(unittest.TestCase):
         db.session.commit()
         self.assertEqual(event.calculate_point_value(), 1)
 
+    def test_check_password(self):
+        password = "mypass"
+        user = User("bob@example.com", "bob", password)
+        assert user.check_password(password)
+        
+class StudentUnitTests(unittest.TestCase):
+
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+    
+    def test_new_student(self):
+        student: Student = create_user("student1@my.uwi.edu", "student1", "studentpass")
+        assert student.username == "student1"
+
+    def test_student_add_points(self):
+        student: Student = create_user("student2@my.uwi.edu", "student2", "studentpass") # type: ignore
+        # Test adding points to the student
+        student.add_points(100)
+        assert student.current_balance == 100
+
+    def test_student_subtract_points(self):
+        student: Student = create_user("student3@my.uwi.edu", "student3", "studentpass") # type: ignore
+        # Test subtracting points from the student
+        student.add_points(100)
+        student.subtract_points(50)
+        assert student.current_balance == 50
+
+    def test_check_enough_points_success(self):
+        student: Student = create_user("student4@my.uwi.edu", "student4", "studentpass") # type: ignore
+        student.add_points(100)
+        reward2 = Reward("Test Reward2", 50, pointCost=50)  # reward name and cost
+        assert student.check_enough_points(reward2)
+
+    def test_check_enough_points_failure(self):
+        student: Student = create_user("student5@my.uwi.edu", "student5", "studentpass") # type: ignore
+        student.add_points(100)
+        reward = Reward("Test Reward", 150, pointCost=150)  # reward name and cost
+        assert not student.check_enough_points(reward) # This should return False since the student doesn't have enough points. Hence the assertion should be that the result is False.
+
 
 '''
     Integration Tests
 '''
+
+@pytest.fixture
+def app_context():
+    app = create_app({
+        'TESTING': True,
+        'SQLALCHEMY_DATABASE_URI': 'sqlite:///:memory:'
+    })
+
+    with app.app_context():
+        db.create_all()
+        yield
+        db.session.remove()
+        db.drop_all()
+
+
+def test_student_history_controller(app_context):
+    # ensure history returns empty arrays for a fresh student
+    student = create_user("stu2@my.uwi.edu", "stu2", "pwd")
+    history = get_student_history(student.id)
+    assert history is not None
+    assert history['student']['username'] == 'stu2'
+    assert history['badges'] == []
+    assert history['events'] == []
+    assert history['rewards'] == []
+
+
+def test_authenticate(app_context):
+    # create a student using valid email domain
+    user = create_user("bob2@my.uwi.edu", "bob2", "bobpass")
+    assert login("bob2", "bobpass") != None
+
+class UsersIntegrationTests:
+
+    def test_create_user(self, app_context):
+        # create a student record
+        user = create_user("rick2@my.uwi.edu", "rick2", "bobpass")
+        assert user.username == "rick2"
+
+    def test_get_all_users_json(self, app_context):
+        users_json = get_all_users_json()
+        # returned data now includes email/role/points - just verify expected students present
+        usernames = sorted([u.get('username') for u in users_json])
+        self.assertIn('bob2', usernames)
+        self.assertIn('rick2', usernames)
+
+    # Tests data changes in the database
+    def test_update_user(self, app_context):
+        user = create_user("temp@my.uwi.edu", "temp", "pass")
+        update_user(user.id, "ronnie")
+        user = get_user(user.id)
+        assert user.username == "ronnie"
+        
 
