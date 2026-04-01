@@ -15,7 +15,7 @@
   </div>
 
   <!-- Progress to next badge/target -->
-  <div class="card bg-base-100 shadow-md p-5 mb-6">
+  <div class="card bg-base-100 shadow-md p-5 mb-6" style="border:1px solid #e9d5ff; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);">
     <div class="flex items-center justify-between gap-3">
       <div class="min-w-0">
         <p class="text-sm font-semibold text-gray-800">Progress</p>
@@ -88,6 +88,7 @@
     {% for r in rewards %}
     <div
       class="reward-card bg-base-100 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
+      style="border:1px solid #e9d5ff; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);"
       data-name="{{ r.name|lower }}" data-points="{{ r.pointCost }}"
       data-eligible="{{ 'true' if r.redeemable else 'false' }}">
 
@@ -230,9 +231,9 @@
     </div>
     {% else %}
     <div class="overflow-x-auto bg-base-100 rounded-2xl shadow-lg">
-      <table class="table">
+      <table class="table" style="border:1px solid #e9d5ff; box-shadow:0 4px 6px -1px #e9d5ff, 0 2px 4px -2px #e9d5ff;">
 
-        <thead class="bg-base-200 text-gray-700 text-sm">
+        <thead class="bg-base-200 text-white text-sm bg-[#6b21a8]">
           <tr>
             <th>Reward</th>
             <th>Points</th>
@@ -253,15 +254,18 @@
 
             <!-- Points -->
             <td>
-              <span class="badge badge-outline">
+              <span class="badge badge-outline text-nowrap">
                 ⭐ {{ item['pointCost'] }}
               </span>
             </td>
 
             <!-- Date -->
-            <td class="text-sm text-gray-500">
-              {{ item['redeemedAt'].split('.')[0]|replace('T', ' ') }}
-            </td>
+            <td class="text-sm text-gray-500 whitespace-nowrap">
+            {{ item['redeemedAt'][2:4] }}/{{ item['redeemedAt'][5:7] }}/{{ item['redeemedAt'][8:10] }}
+            <span class="ml-1 px-1.5 py-0.5 rounded" style="background:#f3e8ff; color:#660c9e;">
+              {{ item['redeemedAt'][11:16] }}
+            </span>
+          </td>
 
             <!-- Action -->
             <td class="text-right">
@@ -272,7 +276,7 @@
                 </button>
               </form>
               {% else %}
-              <span class="badge badge-success badge-outline">
+              <span class="badge badge-success badge-outline text-nowrap">
                 ✓ Collected
               </span>
               {% endif %}
