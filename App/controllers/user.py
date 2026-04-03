@@ -6,8 +6,16 @@ from itsdangerous import URLSafeTimedSerializer
 from datetime import datetime
 
 from App.utils import is_valid_username
+from App.models import User
 
 import re
+
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import os
+from flask import current_app
+
+
 
 user = Blueprint('user', __name__)
 serializer= URLSafeTimedSerializer('your_secret_key')
@@ -163,3 +171,28 @@ def validate_password_strength(password):
     if not re.search(r'\d', password): return False
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password): return False
     return True
+
+def send_verification_email(user):
+    token = user.set_verification_token()
+    db.session.commit()
+
+    verify_link = f"{current_app.config['BASE_URL']}/verify?token={token}"
+    print(f"[DEBUG] Generated token: {token}")
+    print(f"[DEBUG] Verification link: {verify_link}")
+
+    api_key = current_app.config["SENDGRID_API_KEY"]
+    print(f"[DEBUG] SENDGRID_API_KEY loaded: {api_key is not None}")
+
+    message = Mail(
+        from_email="studentincentive6@gmail.com",
+        to_emails=user.email,
+        subject="Verify your Merit account",
+        html_content=f"<p>Welcome! Click <a href='{verify_link}'>here</a> to verify your account.</p>"
+    )
+
+    try:
+        sg = SendGridAPIClient(api_key)
+        response = sg.send(message)
+        print(f"[DEBUG] SendGrid response status: {response.status_code}")
+    except Exception as e:
+        print(f"[ERROR] Failed to send email: {e}")

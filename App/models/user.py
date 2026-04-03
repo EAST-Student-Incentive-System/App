@@ -1,6 +1,8 @@
 from werkzeug.security import check_password_hash, generate_password_hash
 from App.database import db
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime, timedelta
+import secrets
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -8,11 +10,23 @@ class User(db.Model):
     username =  db.Column(db.String(20), nullable=False, unique=True)
     password = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(50))
+    is_verified = db.Column(db.Boolean, default=False)
+    verification_token = db.Column(db.String, nullable=True)
+    token_expiry = db.Column(db.DateTime, nullable=True)
     
     __mapper_args__ = {
         'polymorphic_identity': 'user',
         'polymorphic_on': role
     }
+
+    
+
+    def set_verification_token(self):
+        token = secrets.token_urlsafe(32)
+        self.verification_token = token
+        self.token_expiry = datetime.utcnow() + timedelta(hours=1)
+        return token
+
 
     def __init__(self, email, username, password):
         self.email = email

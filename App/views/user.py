@@ -4,6 +4,11 @@ from App.controllers.user import update_username, update_password
 from App.models import Student, Staff
 from App.database import db
 from datetime import datetime, timedelta
+from flask import current_app
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from App.models import User
+
 
 from.index import index_views
 
@@ -95,7 +100,22 @@ def update_password_route():
         return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
 
     success, message = update_password(jwt_current_user.id, current_password, new_password)
-    flash(message, 'success' if success else 'danger')
+    flash(message, 'a link was sent to your email to verify password change' if success else 'danger')
+    if success:
+    # send confirmation email
+        user = User.query.get(jwt_current_user.id)
+        message = Mail(
+            from_email="no-reply@yourapp.com",
+            to_emails=user.email,
+            subject="Password Updated",
+            html_content=f"""
+                <p>Hello {user.username},</p>
+                <p>Your password was successfully updated on {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}.</p>
+                <p>If this wasn’t you, please reset your password immediately.</p>
+            """
+        )
+        sg = SendGridAPIClient(current_app.config['SENDGRID_API_KEY'])
+        sg.send(message)
     return redirect(url_for('user_views.profile_page', student_id=jwt_current_user.id))
 
 

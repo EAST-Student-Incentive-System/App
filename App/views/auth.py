@@ -7,10 +7,17 @@ from.index import index_views
 
 from App.controllers import (
     login, create_user, get_all_users_json, get_user,
-    get_user_by_username, update_user, signUp
+    get_user_by_username, update_user, signUp, change_password, send_verification_email
 )
 from flask_jwt_extended import JWTManager, get_jwt_identity, verify_jwt_in_request
 from App.models import User
+from itsdangerous import URLSafeTimedSerializer
+from datetime import datetime
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+import os
+from flask import current_app
+
 
 auth_views = Blueprint('auth_views', __name__, template_folder='../templates')
 
@@ -35,6 +42,7 @@ def signup_page():
             flash(result['error'])
         else:
             flash(f"Account created for {result['user']['username']} as {result['user']['role']}")
+            flash("Please check your email to verify your account before logging in. Email may be in junk/spam folder.")
             return redirect(url_for('auth_views.login_page'))
     return render_template('signup.html', title="Sign Up")
 
@@ -54,16 +62,6 @@ def login_page():
 
     #  Always render login form if not authenticated
     return render_template('login.html')
-
-
-@auth_views.route('/forgot-password', methods=['GET', 'POST'])
-def forgot_password_page():
-    if request.method == 'POST':
-        email = request.form.get('email')
-        flash(f"Password reset link would be sent to {email}", 'info')
-        return redirect(url_for('auth_views.login_page'))
-    return render_template('forgot_password.html', title="Forgot Password")
-
 
 
 from flask_jwt_extended import set_access_cookies
@@ -96,6 +94,75 @@ def logout_action():
     flash("Logged Out!")
     unset_jwt_cookies(response)
     return response #redirect to login page
+
+
+@auth_views.route("/verify")
+def verify_email():
+    token = request.args.get("token")
+    user = db.session.execute(db.select(User).filter_by(verification_token=token)).scalar_one_or_none()
+
+    if user and user.token_expiry > datetime.utcnow():
+        user.is_verified = True
+        user.verification_token = None
+        user.token_expiry = None
+        db.session.commit()
+        flash("Your email has been verified!", "success")
+        return redirect(url_for("auth_views.login_page"))
+    else:
+        flash("Verification link is invalid or expired.", "error")
+        return redirect(url_for("auth_views.resend_verification_page"))
+    
+
+
+@auth_views.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password_page():
+    if request.method == 'POST':
+        email = request.form.get("email")
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            flash("Email not found", "error")
+            return redirect(url_for("auth_views.forgot_password_page"))
+
+        serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        token = serializer.dumps(email, salt="password-reset-salt")
+        reset_url = f"{current_app.config['BASE_URL']}/reset-password?token={token}"
+
+        message = Mail(
+            from_email="no-reply@yourapp.com",
+            to_emails=email,
+            subject="Password Reset Request",
+            html_content=f"Click <a href='{reset_url}'>here</a> to reset your password."
+        )
+        sg = SendGridAPIClient(current_app.config['SENDGRID_API_KEY'])
+        sg.send(message)
+
+        flash("Password reset link sent to your email.", "success")
+        return redirect(url_for("auth_views.login_page"))
+
+    return render_template('forgot_password.html', title="Forgot Password")
+
+
+@auth_views.route("/reset-password", methods=["GET","POST"])
+def reset_password_page():
+    token = request.args.get("token")
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        email = serializer.loads(token, salt="password-reset-salt", max_age=3600)
+    except Exception:
+        flash("Invalid or expired token", "error")
+        return redirect(url_for("auth_views.forgot_password_page"))
+
+    if request.method == "POST":
+        new_password = request.form.get("password")
+        user = User.query.filter_by(email=email).first()
+        if user:
+            user.set_password(new_password)
+            db.session.commit()
+            flash("Password updated successfully!", "success")
+            return redirect(url_for("auth_views.login_page"))
+
+    return render_template("reset_password.html", email=email)
+
 
 '''
 API Routes
