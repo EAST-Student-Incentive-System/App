@@ -28,6 +28,11 @@ from flask import send_file
 import qrcode
 import io
 import time
+from flask import current_app
+import os, cloudinary.uploader
+from werkzeug.utils import secure_filename
+from App.utils import handle_image_upload
+
 
 
 event_views = Blueprint("event_views", __name__)
@@ -81,15 +86,10 @@ def create_event_route():
                 limit = limit 
             )
 
+            
             # Handle image upload safely
             if image and image.filename:
-                print("Received image file:", image.filename)
-                filename = secure_filename(image.filename)
-                upload_folder = os.path.join(current_app.static_folder, "uploads")
-                os.makedirs(upload_folder, exist_ok=True)  # ensure folder exists
-                filepath = os.path.join(upload_folder, filename)
-                image.save(filepath)
-                new_event.image = filename
+                new_event.image = handle_image_upload(image)
 
             
             db.session.add(new_event)
@@ -97,7 +97,6 @@ def create_event_route():
             #new_event.qr = generate_qr_code(new_event.id)
 
             print("Image file:", image)
-            print("Filename:", filename if image else None)
 
             db.session.commit()
             flash('Event created successfully!', 'success')
@@ -152,7 +151,6 @@ def update_event_route(event_id):
             event_obj.start = start_dt
             event_obj.end = end_dt
             event_obj.location = location
-            #event_obj.qr = generate_qr_code(event_obj.id)
             event_obj.active = active
             event_obj.limit = limit
             
@@ -160,18 +158,16 @@ def update_event_route(event_id):
             image_file = request.files.get("image")
             remove_flag = request.form.get("remove_image")
 
-            if image_file and image_file.filename:
-                filename = secure_filename(image_file.filename)
-                upload_folder = os.path.join(current_app.static_folder, "uploads")
-                os.makedirs(upload_folder, exist_ok=True)
-                filepath = os.path.join(upload_folder, filename)
-                image_file.save(filepath)
+            
+            image_file = request.files.get("image")
+            remove_flag = request.form.get("remove_image")
 
-                event_obj.image = filename  # replace only if new image uploaded
+            if image_file and image_file.filename:
+                event_obj.image = handle_image_upload(image_file)
             elif remove_flag:
-    # Only clear if no new file was uploaded
                 event_obj.image = None
-# else → do nothing, keep existing image
+# else → keep existing image
+
 
             print("Saved image name in DB:", event_obj.image)
             db.session.commit()

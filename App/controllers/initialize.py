@@ -3,7 +3,7 @@ from time import sleep, time
 from .user import create_user
 from .badge import awardTestBadge, createBadge
 from App.database import db
-from App.models import Student
+from App.models import Student, Staff
 import random
 
 def initialize():
@@ -18,12 +18,17 @@ def initialize():
 
     bob_obj = Student.query.filter_by(username='bob').first()
     alice_obj = Student.query.filter_by(username='alice').first()
+    jane_obj = Staff.query.filter_by(username='jane').first()
 
     if bob_obj and alice_obj:
         bob_obj.temporary_device_holder = "DEVICE123"
         alice_obj.temporary_device_holder = "DEVICE123"
         bob_obj.is_verified = True  # Mark Bob as verified for testing purposes
         alice_obj.is_verified = True  # Mark Alice as verified for testing purposes
+        db.session.commit()
+
+    if jane_obj:
+        jane_obj.is_verified = True  # Mark Jane as verified for testing purposes
         db.session.commit()
 
     # Create badges

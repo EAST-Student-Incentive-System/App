@@ -15,9 +15,12 @@ from App.database import db
 from App.models import Staff, Reward
 import os
 from flask import current_app
+import os, cloudinary.uploader
+from werkzeug.utils import secure_filename
 
 from App.models import Student
 from App.controllers.redeemedReward import view_redeemed_rewards
+from App.utils import handle_image_upload
 
 reward_views = Blueprint('reward_views', __name__, template_folder='../templates')
 
@@ -116,16 +119,10 @@ def create_reward_page():
         flash('Point cost must be a number', 'error')
         return redirect(url_for('reward_views.create_reward_page'))
 
-    filename = None
-    if image_file and image_file.filename:
-        filename = secure_filename(image_file.filename)
-        upload_folder = os.path.join(current_app.static_folder, "uploads") 
-        os.makedirs(upload_folder, exist_ok=True) 
-        filepath = os.path.join(upload_folder, filename) 
-        image_file.save(filepath)
+    image_url = handle_image_upload(image_file)
 
     # Call your controller function with image
-    create_reward(name, description, point_cost, user_id, active, image=filename,limit=limit)
+    create_reward(name, description, point_cost, user_id, active, image=image_url,limit=limit)
     flash('Reward created successfully!', 'success')
     return redirect(url_for('reward_views.list_rewards_page'))
 
@@ -175,14 +172,8 @@ def update_reward_page(reward_id):
 
             # Only update image if a new file is uploaded
             if image_file and image_file.filename:
-                filename = secure_filename(image_file.filename)
-                upload_folder = os.path.join(current_app.static_folder, "uploads")
-                os.makedirs(upload_folder, exist_ok=True)  # ensure folder exists
-                filepath = os.path.join(upload_folder, filename)
-                image_file.save(filepath)
-                reward_obj.image = filename
+                reward_obj.image = handle_image_upload(image_file)
             elif remove_flag:
-    # Only clear if no new file was uploaded
                 reward_obj.image = None
 
             db.session.commit()
