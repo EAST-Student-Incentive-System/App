@@ -19,6 +19,7 @@ from App.controllers import (
     view_event_history, join_event, leave_event,
     log_attendance, generate_qr, get_participant_count, signUp, change_password
 )
+from App.models import student
 from App.models.reward import Reward
 from App.models.staff import Staff
 from App.models.student import Student
@@ -33,7 +34,7 @@ import unittest
 from datetime import datetime, timedelta
 from App.main import create_app
 from App.database import db, create_db
-from App.models import Student, Event, Attendance
+from App.models import Student, Event, Attendance, Badge
 
 class AttendanceUnitTests(unittest.TestCase):
 
@@ -173,6 +174,39 @@ class StudentUnitTests(unittest.TestCase):
         reward = Reward("Test Reward", 150, pointCost=150)  # reward name and cost
         assert not student.check_enough_points(reward) # This should return False since the student doesn't have enough points. Hence the assertion should be that the result is False.
 
+class BadgeUnitTests(unittest.TestCase):
+
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_meets_requirements_event(self):
+        badge = Badge(name="Event Badge", type="event_type", points_required=0)
+        student = Student(email="bob@test.com", username="bob", password="pw")
+        student.points = 999  # even with plenty of points, should still be False
+        db.session.add_all([badge, student])
+        db.session.commit()
+        self.assertFalse(badge.meets_requirements(student))
+
+    def test_meets_requirements_milestone(self):
+        badge = Badge(name="Milestone Badge", type="milestone", points_required=50)
+        student_pass = Student(email="pass@test.com", username="passing", password="pw")
+        student_fail = Student(email="fail@test.com", username="failing", password="pw")
+        student_pass.points = 50   # exactly at threshold — should pass
+        student_fail.points = 49   # one below threshold — should fail
+        db.session.add_all([badge, student_pass, student_fail])
+        db.session.commit()
+        self.assertTrue(badge.meets_requirements(student_pass))
+        self.assertFalse(badge.meets_requirements(student_fail))
+        
 
 '''
     Integration Tests
