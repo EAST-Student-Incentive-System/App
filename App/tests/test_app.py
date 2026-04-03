@@ -4,9 +4,11 @@ from turtle import st
 from werkzeug.security import check_password_hash, generate_password_hash
 import base64
 import time
+from datetime import datetime, timedelta
+from typing import Optional, Dict, Any, List
 from App.main import create_app
 from App.database import db, create_db
-from App.models import User
+from App.models import User, Student, Event, Attendance, Badge
 from App.controllers import (
     create_user,
     get_all_users_json,
@@ -19,22 +21,8 @@ from App.controllers import (
     view_event_history, join_event, leave_event,
     log_attendance, generate_qr, get_participant_count, signUp, change_password
 )
-from App.models import student
-from App.models.reward import Reward
-from App.models.staff import Staff
-from App.models.student import Student
-
-
-LOGGER = logging.getLogger(__name__)
-
-'''
-   Unit Tests
-'''
-import unittest
-from datetime import datetime, timedelta
-from App.main import create_app
-from App.database import db, create_db
-from App.models import Student, Event, Attendance, Badge
+from App.controllers.user import view_profile, update_username, has_active_timeout, update_password, validate_password_strength, get_all_users
+from App.utils import is_valid_username
 
 class AttendanceUnitTests(unittest.TestCase):
 
@@ -129,7 +117,7 @@ class EventUnitTests(unittest.TestCase):
     def test_check_password(self):
         password = "mypass"
         user = User("bob@example.com", "bob", password)
-        assert user.check_password(password)
+        self.assertTrue(user.check_password(password))
         
 class StudentUnitTests(unittest.TestCase):
 
@@ -255,25 +243,96 @@ class UsersIntegrationTests(unittest.TestCase):
         db.drop_all()
         self.ctx.pop()
 
-    def test_create_user(self):
-        # create a student record
-        user = create_user("rick2@my.uwi.edu", "rick2", "bobpass")
-        assert user.username == "rick2"
+    def test_create_student_user(self):
+        user = create_user("student@my.uwi.edu", "studentuser", "pass")
+        self.assertIsNotNone(user)
+        self.assertEqual(user.username, "studentuser")
+        self.assertEqual(user.email, "student@my.uwi.edu")
+        self.assertEqual(user.role, "student")
+
+    def test_create_staff_user(self):
+        user = create_user("staff@sta.uwi.edu", "staffuser", "pass")
+        self.assertIsNotNone(user)
+        self.assertEqual(user.username, "staffuser")
+        self.assertEqual(user.email, "staff@sta.uwi.edu")
+        self.assertEqual(user.role, "staff")
+
+    def test_get_user_by_username(self):
+        create_user("get@my.uwi.edu", "getuser", "pass")
+        user = get_user_by_username("getuser")
+        self.assertIsNotNone(user)
+        self.assertEqual(user.email, "get@my.uwi.edu")
+
+    def test_get_all_users(self):
+        users = get_all_users()
+        self.assertIsInstance(users, list)
+        create_user("all1@my.uwi.edu", "all1", "pass")
+        create_user("all2@sta.uwi.edu", "all2", "pass")
+        users = get_all_users()
+        self.assertGreaterEqual(len(users), 3)
 
     def test_get_all_users_json(self):
         create_user("rick2@my.uwi.edu", "rick2", "bobpass")
         users_json = get_all_users_json()
-        # returned data now includes email/role/points - just verify expected students present
         usernames = sorted([u.get('username') for u in users_json])
         self.assertIn('bob2', usernames)
         self.assertIn('rick2', usernames)
 
-    # Tests data changes in the database
     def test_update_user(self):
         user = create_user("temp@my.uwi.edu", "temp", "pass")
-        update_user(user.id, "ronnie")
-        user = get_user(user.id)
-        assert user.username == "ronnie"
+        result = update_user(user.id, "ronnie")
+        self.assertTrue(result)
+        updated = get_user(user.id)
+        self.assertIsNotNone(updated)
+        self.assertEqual(updated.username, "ronnie")
+
+    def test_view_profile(self):
+        user = create_user("profile@my.uwi.edu", "profileuser", "pass")
+        profile = view_profile(user.id)
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile['username'], "profileuser")
+        self.assertEqual(profile['email'], "profile@my.uwi.edu")
+
+    def test_update_username_valid(self):
+        user = create_user("valid@my.uwi.edu", "validuser", "pass")
+        result, message = update_username(user.id, "newvaliduser")
+        self.assertTrue(result)
+        self.assertEqual(message, "Username updated successfully!")
+        updated = get_user(user.id)
+        self.assertIsNotNone(updated)
+        self.assertEqual(updated.username, "newvaliduser")
+
+    def test_update_username_invalid(self):
+        user = create_user("invalid@my.uwi.edu", "invaliduser", "pass")
+        result, message = update_username(user.id, "a")
+        self.assertFalse(result)
+        self.assertEqual(message, "Username must be at least 3 characters long.")
+
+    def test_has_active_timeout_true(self):
+        student: Student = create_user("timeout@my.uwi.edu", "timeoutuser", "pass")
+        student.timeout_until = datetime.utcnow() + timedelta(hours=1)
+        db.session.commit()
+        self.assertTrue(has_active_timeout(student))
+
+    def test_has_active_timeout_false(self):
+        student: Student = create_user("notimeout@my.uwi.edu", "notimeoutuser", "pass")
+        self.assertFalse(has_active_timeout(student))
+
+    def test_update_password_valid(self):
+        user = create_user("validpw@my.uwi.edu", "validpwuser", "Oldpass123!")
+        result, message = update_password(user.id, "Oldpass123!", "Newpass123!")
+        self.assertTrue(result)
+        self.assertEqual(message, "Password updated successfully.")
+        user.is_verified = True
+        db.session.commit()
+        login_result = login("validpwuser", "Newpass123!")
+        self.assertIn("access_token", login_result)
+
+    def test_update_password_invalid(self):
+        user = create_user("invalidpw@my.uwi.edu", "invalidpwuser", "Oldpass123!")
+        result, message = update_password(user.id, "Oldpass123!", "weak")
+        self.assertFalse(result)
+        self.assertIn("New password must be", message)
 
 
 class TestEventIntegrationTests(unittest.TestCase):
@@ -504,6 +563,9 @@ class AuthenticationIntegrationTests(unittest.TestCase):
 
     def test_login_success(self):
         signUp("login@my.uwi.edu", "loginuser", "pass123")
+        user = get_user_by_username("loginuser")
+        user.is_verified = True
+        db.session.commit()
         result = login("loginuser", "pass123", device_id="DEVICE1")
         assert "access_token" in result
         assert result["user"]["username"] == "loginuser"
@@ -511,12 +573,18 @@ class AuthenticationIntegrationTests(unittest.TestCase):
 
     def test_login_failure(self):
         signUp("fail@my.uwi.edu", "failuser", "pass123")
+        user = get_user_by_username("failuser")
+        user.is_verified = True
+        db.session.commit()
         result = login("failuser", "wrongpass")
         assert "error" in result
         assert result["error"] == "Invalid username or password."
 
     def test_change_password(self):
         signUp("changepw@my.uwi.edu", "changepwuser", "oldpass")
+        user = get_user_by_username("changepwuser")
+        user.is_verified = True
+        db.session.commit()
         result = change_password("changepw@my.uwi.edu", "oldpass", "newpass")
         assert result.get("success") is True
         # verify login works with new password
@@ -528,3 +596,6 @@ class AuthenticationIntegrationTests(unittest.TestCase):
         result = change_password("wrongold@my.uwi.edu", "badold", "newpass")
         assert "error" in result
         assert result["error"] == "Invalid email or old password."
+
+
+
