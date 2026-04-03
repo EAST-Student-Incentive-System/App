@@ -64,13 +64,17 @@
 
   <!-- IMAGE -->
   {% if reward.image %}
-    <img src="{{ url_for('static', filename='uploads/' ~ reward.image) }}"
+  {% if reward.image.startswith('http') %}
+    <img src="{{ reward.image }}"
          class="object-cover h-40 w-full group-hover:scale-105 transition-transform duration-300">
   {% else %}
-    <div class="flex items-center justify-center h-40 bg-base-200 text-4xl">
-      🎁
-    </div>
+    <img src="{{ url_for('static', filename='uploads/' ~ reward.image) }}"
+         class="object-cover h-40 w-full group-hover:scale-105 transition-transform duration-300">
   {% endif %}
+{% else %}
+  <div class="flex items-center justify-center h-40 bg-base-200 text-4xl">🎁</div>
+{% endif %}
+
 
   <!-- CONTENT -->
   <div class="p-4 space-y-3">
