@@ -11,6 +11,8 @@ from App.controllers import (
 )
 from flask_jwt_extended import JWTManager, get_jwt_identity, verify_jwt_in_request
 from App.models import User
+from itsdangerous import URLSafeTimedSerializer
+from datetime import datetime
 
 auth_views = Blueprint('auth_views', __name__, template_folder='../templates')
 
@@ -96,6 +98,23 @@ def logout_action():
     flash("Logged Out!")
     unset_jwt_cookies(response)
     return response #redirect to login page
+
+
+@auth_views.route("/verify")
+def verify_email():
+    token = request.args.get("token")
+    user = db.session.execute(db.select(User).filter_by(verification_token=token)).scalar_one_or_none()
+
+    if user and user.token_expiry > datetime.utcnow():
+        user.is_verified = True
+        user.verification_token = None
+        user.token_expiry = None
+        db.session.commit()
+        flash("Your email has been verified!", "success")
+        return redirect(url_for("auth_views.login_page"))
+    else:
+        flash("Verification link is invalid or expired.", "error")
+        return redirect(url_for("auth_views.resend_verification_page"))
 
 '''
 API Routes

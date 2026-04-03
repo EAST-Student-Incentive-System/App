@@ -22,6 +22,8 @@ def initialize():
     if bob_obj and alice_obj:
         bob_obj.temporary_device_holder = "DEVICE123"
         alice_obj.temporary_device_holder = "DEVICE123"
+        bob_obj.is_verified = True  # Mark Bob as verified for testing purposes
+        alice_obj.is_verified = True  # Mark Alice as verified for testing purposes
         db.session.commit()
 
     # Create badges

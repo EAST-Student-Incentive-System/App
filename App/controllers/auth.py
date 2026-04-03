@@ -3,9 +3,10 @@ from App.controllers.user import User, create_user
 from App.database import db
 from flask import request
 
+from App.controllers.user import send_verification_email
 
 from App.models import User, Staff, Student
-from App.utils import is_valid_username 
+from App.utils import is_valid_username
 
 
 def signUp(email, username, password):
@@ -32,6 +33,7 @@ def signUp(email, username, password):
     try:
         new_user = create_user(email, username, password)
         new_user.isFlagged = False  # Ensure new users are not flagged by default
+        send_verification_email(new_user)  # Send verification email with token
         db.session.commit()
         return {'success': True, 'user': new_user.get_json()}
     except Exception as e:
@@ -41,6 +43,8 @@ def signUp(email, username, password):
 def login(username, password, device_id = None): # Login function that returns JWT token upon successful authentication and the role
   result = db.session.execute(db.select(User).filter_by(username=username))
   user = result.scalar_one_or_none()
+  if not user.is_verified:
+    return {'error': 'Account not verified. Please check your email for the verification link.'}
   if user and user.check_password(password):
     if isinstance(user, Student):
       user.temporary_device_holder = device_id
