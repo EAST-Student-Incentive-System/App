@@ -1,6 +1,6 @@
 import re
 import os, tempfile, pytest, logging, unittest
-from turtle import st
+#from turtle import st
 from werkzeug.security import check_password_hash, generate_password_hash
 import base64
 import time
@@ -20,6 +20,11 @@ from App.controllers import (
     view_event_history, join_event, leave_event,
     log_attendance, generate_qr, get_participant_count, signUp, change_password,
     createBadge, awardBadge, student_has_badge, check_and_award_badges, viewBadges, viewStudentBadges
+)
+from App.controllers.rewards import (
+    create_reward, 
+    get_reward, get_all_rewards, get_all_rewards_json, get_active_rewards, 
+    update_reward, viewReward
 )
 from App.models import student
 from App.models.reward import Reward
@@ -705,4 +710,127 @@ class BadgeIntegrationTests(unittest.TestCase):
         assert len(student_badges) == 1
         assert student_badges[0].badge_id == badge14.id
 
-    
+
+class TestRewardIntegration(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+        # Seed users with roles (require_role checks DB role)
+        self.staff = create_user("rewardstaff@sta.uwi.edu", "rewardstaff", "pass123")
+        self.student = create_user("rewardstudent@my.uwi.edu", "rewardstudent", "pass123")
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_create_reward_staff_success(self):
+        r = create_reward(
+            name="Coffee",
+            description="Hot drink",
+            point_cost=50,
+            created_by=self.staff.id,
+            active=True,
+            image=None,
+            limit=None,
+        )
+        self.assertIsNotNone(r)
+        self.assertEqual(r.name, "Coffee")
+        self.assertEqual(r.pointCost, 50)
+        self.assertTrue(r.active)
+        self.assertEqual(r.created_by, self.staff.id)
+
+        # verify persisted
+        fetched = get_reward(r.id)
+        self.assertIsNotNone(fetched)
+        self.assertEqual(fetched.name, "Coffee")
+
+    def test_create_reward_student_unauthorized_raises(self):
+        with self.assertRaises(PermissionError):
+            create_reward(
+                name="Tea",
+                description="Drink",
+                point_cost=10,
+                created_by=self.student.id,
+            )
+
+    def test_get_all_rewards_and_json(self):
+        create_reward("A", "desc", 10, self.staff.id, active=True)
+        create_reward("B", "desc", 20, self.staff.id, active=False)
+
+        rewards = get_all_rewards()
+        self.assertEqual(len(rewards), 2)
+
+        rewards_json = get_all_rewards_json()
+        self.assertEqual(len(rewards_json), 2)
+        self.assertIn("name", rewards_json[0])
+        self.assertIn("pointCost", rewards_json[0])
+
+    def test_get_active_rewards_filters_only_active(self):
+        create_reward("Active1", "desc", 10, self.staff.id, active=True)
+        create_reward("Inactive1", "desc", 20, self.staff.id, active=False)
+
+        active = get_active_rewards()
+        names = [r.name for r in active]
+        self.assertIn("Active1", names)
+        self.assertNotIn("Inactive1", names)
+
+    def test_update_reward_staff_success_maps_point_cost(self):
+        r = create_reward("Old", "desc", 10, self.staff.id, active=True)
+
+        updated = update_reward(
+            r.id,
+            created_by=self.staff.id,  # required for require_role
+            name="New",
+            point_cost=99,             # maps -> pointCost
+            active=False,
+        )
+        self.assertIsNotNone(updated)
+        self.assertEqual(updated.name, "New")
+        self.assertEqual(updated.pointCost, 99)
+        self.assertFalse(updated.active)
+
+        # verify persisted
+        fetched = get_reward(r.id)
+        self.assertEqual(fetched.name, "New")
+        self.assertEqual(fetched.pointCost, 99)
+        self.assertFalse(fetched.active)
+
+    def test_update_reward_unauthorized_raises(self):
+        r = create_reward("Old", "desc", 10, self.staff.id, active=True)
+        with self.assertRaises(PermissionError):
+            update_reward(r.id, created_by=self.student.id, name="Hack")
+
+    def test_update_reward_returns_none_when_reward_missing(self):
+        res = update_reward(999999, created_by=self.staff.id, name="Nope")
+        self.assertIsNone(res)
+
+    def test_viewReward_returns_sorted_rewards_and_sets_redeemable_flag(self):
+        # Create 2 active rewards out of order by cost
+        create_reward("Expensive", "desc", 200, self.staff.id, active=True)
+        create_reward("Cheap", "desc", 50, self.staff.id, active=True)
+
+        # Give student some balance so redeemable can be True for cheap
+        self.student.current_balance = 100
+        db.session.commit()
+
+        rewards = viewReward(self.student.id)
+        self.assertIsNotNone(rewards)
+        self.assertGreaterEqual(len(rewards), 2)
+
+        # sorted ascending by pointCost
+        self.assertEqual(rewards[0].name, "Cheap")
+        self.assertEqual(rewards[1].name, "Expensive")
+
+        # controller sets attribute dynamically
+        self.assertTrue(hasattr(rewards[0], "redeemable"))
+        self.assertTrue(rewards[0].redeemable)
+        self.assertFalse(rewards[1].redeemable)
+
+    def test_viewReward_staff_unauthorized_raises(self):
+        with self.assertRaises(PermissionError):
+            viewReward(self.staff.id)  # staff is not a student
