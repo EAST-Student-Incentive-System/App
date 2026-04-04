@@ -176,6 +176,77 @@ class StudentUnitTests(unittest.TestCase):
         reward = Reward("Test Reward", 150, pointCost=150)  # reward name and cost
         assert not student.check_enough_points(reward) # This should return False since the student doesn't have enough points. Hence the assertion should be that the result is False.
 
+#Unit testing for reward
+class RewardUnitTests(unittest.TestCase):
+    def setUp(self):
+        # fresh test app + db (match your existing tests)
+        self.app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_isRedeemable_inactive_false(self):
+        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=False)
+        self.assertFalse(r.isRedeemable(999))
+
+    def test_isRedeemable_not_enough_points_false(self):
+        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
+        self.assertFalse(r.isRedeemable(49))
+
+    def test_isRedeemable_exact_points_true(self):
+        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
+        self.assertTrue(r.isRedeemable(50))
+
+    def test_get_json_fields(self):
+        r = Reward(
+            name="Coffee",
+            description="Hot drink",
+            pointCost=50,
+            active=True,
+            created_by=123,
+            image="http://example.com/image.png",
+            limit=10,
+        )
+        db.session.add(r)
+        db.session.commit()
+
+        data = r.get_json()
+        self.assertEqual(data["id"], r.id)
+        self.assertEqual(data["name"], "Coffee")
+        self.assertEqual(data["description"], "Hot drink")
+        self.assertEqual(data["pointCost"], 50)
+        self.assertEqual(data["active"], True)
+        self.assertEqual(data["createdBy"], 123)
+        self.assertEqual(data["image"], "http://example.com/image.png")
+        self.assertEqual(data["limit"], 10)
+
+    def test_toggle_flips_active_and_persists(self):
+        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
+        db.session.add(r)
+        db.session.commit()
+
+        rid = r.id
+        self.assertTrue(r.active)
+
+        # act
+        r.toggle()
+
+        # reload from DB to ensure it persisted
+        refreshed = db.session.get(Reward, rid)
+        self.assertIsNotNone(refreshed)
+        self.assertFalse(refreshed.active)
+
+        # toggle back
+        refreshed.toggle()
+        refreshed2 = db.session.get(Reward, rid)
+        self.assertTrue(refreshed2.active)
+
 
 '''
     Integration Tests
@@ -499,80 +570,3 @@ class AuthenticationIntegrationTests(unittest.TestCase):
         assert result["error"] == "Invalid email or old password."
 
 
-#Unit testing for reward
-class RewardUnitTests(unittest.TestCase):
-    def setUp(self):
-        # fresh test app + db (match your existing tests)
-        self.app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"})
-        self.ctx = self.app.app_context()
-        self.ctx.push()
-        db.create_all()
-
-    def tearDown(self):
-        db.session.rollback()
-        db.session.remove()
-        db.drop_all()
-        self.ctx.pop()
-
-    def test_isRedeemable_inactive_false(self):
-        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=False)
-        self.assertFalse(r.isRedeemable(999))
-
-    def test_isRedeemable_not_enough_points_false(self):
-        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
-        self.assertFalse(r.isRedeemable(49))
-
-    def test_isRedeemable_exact_points_true(self):
-        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
-        self.assertTrue(r.isRedeemable(50))
-
-    def test_get_json_fields(self):
-        r = Reward(
-            name="Coffee",
-            description="Hot drink",
-            pointCost=50,
-            active=True,
-            created_by=123,
-            image="http://example.com/image.png",
-            limit=10,
-        )
-        db.session.add(r)
-        db.session.commit()
-
-        data = r.get_json()
-        self.assertEqual(data["id"], r.id)
-        self.assertEqual(data["name"], "Coffee")
-        self.assertEqual(data["description"], "Hot drink")
-        self.assertEqual(data["pointCost"], 50)
-        self.assertEqual(data["active"], True)
-        self.assertEqual(data["createdBy"], 123)
-        self.assertEqual(data["image"], "http://example.com/image.png")
-        self.assertEqual(data["limit"], 10)
-
-    def test_repr_format(self):
-        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
-        s = repr(r)
-        self.assertIn("Reward", s)
-        self.assertIn("Coffee", s)
-        self.assertIn("50 points", s)
-
-    def test_toggle_flips_active_and_persists(self):
-        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
-        db.session.add(r)
-        db.session.commit()
-
-        rid = r.id
-        self.assertTrue(r.active)
-
-        # act
-        r.toggle()
-
-        # reload from DB to ensure it persisted
-        refreshed = db.session.get(Reward, rid)
-        self.assertIsNotNone(refreshed)
-        self.assertFalse(refreshed.active)
-
-        # toggle back
-        refreshed.toggle()
-        refreshed2 = db.session.get(Reward, rid)
-        self.assertTrue(refreshed2.active)
