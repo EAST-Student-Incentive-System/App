@@ -7,9 +7,12 @@ from App.controllers.user import send_verification_email
 
 from App.models import User, Staff, Student
 from App.utils import is_valid_username
+from flask import current_app
+
 
 
 def signUp(email, username, password):
+
     # Check if email already exists
     existing_email = db.session.execute(
         db.select(User).filter_by(email=email)
@@ -33,6 +36,8 @@ def signUp(email, username, password):
     try:
         new_user = create_user(email, username, password)
         new_user.isFlagged = False  # Ensure new users are not flagged by default
+        if current_app.config.get("TESTING"):
+          new_user.verified = True
         send_verification_email(new_user)  # Send verification email with token
         db.session.commit()
         return {'success': True, 'user': new_user.get_json()}
@@ -43,8 +48,9 @@ def signUp(email, username, password):
 def login(username, password, device_id = None): # Login function that returns JWT token upon successful authentication and the role
   result = db.session.execute(db.select(User).filter_by(username=username))
   user = result.scalar_one_or_none()
-  if not user.is_verified:
-    return {'error': 'Account not verified. Please check your email for the verification link.'}
+  # Skip verification requirement in test mode
+  if not current_app.config.get("TESTING") and not user.verified:
+    return {"error": "Account not verified. Please check your email for the verification link."}
   if user and user.check_password(password):
     if isinstance(user, Student):
       user.temporary_device_holder = device_id

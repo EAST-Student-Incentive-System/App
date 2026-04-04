@@ -4,6 +4,7 @@ from turtle import st
 from werkzeug.security import check_password_hash, generate_password_hash
 import base64
 import time
+from App.controllers.badge import awardEventTypeBadge
 from App.controllers.progress import viewLeaderBoard, viewProgress
 from App.main import create_app
 from App.database import db, create_db
@@ -18,7 +19,8 @@ from App.controllers import (
     get_student_history, create_event, update_event, delete_event,
     get_event, view_upcoming_events, view_all_events,
     view_event_history, join_event, leave_event,
-    log_attendance, generate_qr, get_participant_count, signUp, change_password
+    log_attendance, generate_qr, get_participant_count, signUp, change_password,
+    createBadge, awardBadge, student_has_badge, check_and_award_badges, viewBadges, viewStudentBadges
 )
 from App.models import student
 from App.models.reward import Reward
@@ -208,6 +210,77 @@ class BadgeUnitTests(unittest.TestCase):
         self.assertTrue(badge.meets_requirements(student_pass))
         self.assertFalse(badge.meets_requirements(student_fail))
         
+
+class RewardUnitTests(unittest.TestCase):
+    def setUp(self):
+        # fresh test app + db (match your existing tests)
+        self.app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_isRedeemable_inactive_false(self):
+        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=False)
+        self.assertFalse(r.isRedeemable(999))
+
+    def test_isRedeemable_not_enough_points_false(self):
+        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
+        self.assertFalse(r.isRedeemable(49))
+
+    def test_isRedeemable_exact_points_true(self):
+        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
+        self.assertTrue(r.isRedeemable(50))
+
+    def test_get_json_fields(self):
+        r = Reward(
+            name="Coffee",
+            description="Hot drink",
+            pointCost=50,
+            active=True,
+            created_by=123,
+            image="http://example.com/image.png",
+            limit=10,
+        )
+        db.session.add(r)
+        db.session.commit()
+
+        data = r.get_json()
+        self.assertEqual(data["id"], r.id)
+        self.assertEqual(data["name"], "Coffee")
+        self.assertEqual(data["description"], "Hot drink")
+        self.assertEqual(data["pointCost"], 50)
+        self.assertEqual(data["active"], True)
+        self.assertEqual(data["createdBy"], 123)
+        self.assertEqual(data["image"], "http://example.com/image.png")
+        self.assertEqual(data["limit"], 10)
+
+
+    def test_toggle_flips_active_and_persists(self):
+        r = Reward(name="Coffee", description="Hot drink", pointCost=50, active=True)
+        db.session.add(r)
+        db.session.commit()
+
+        rid = r.id
+        self.assertTrue(r.active)
+
+        # act
+        r.toggle()
+
+        # reload from DB to ensure it persisted
+        refreshed = db.session.get(Reward, rid)
+        self.assertIsNotNone(refreshed)
+        self.assertFalse(refreshed.active)
+
+        # toggle back
+        refreshed.toggle()
+        refreshed2 = db.session.get(Reward, rid)
+        self.assertTrue(refreshed2.active)
 
 '''
     Integration Tests
@@ -530,6 +603,110 @@ class AuthenticationIntegrationTests(unittest.TestCase):
         assert "error" in result
         assert result["error"] == "Invalid email or old password."
 
+class BadgeIntegrationTests(unittest.TestCase):
+
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_student_has_badge_true(self):
+        student1 = create_user("student1@my.uwi.edu", "student1", "pass")
+        badge1 = createBadge("Badge1", "Desc", 0, "milestone")
+        awarded = awardBadge(student1.id, badge1.id)
+        has_badge = student_has_badge(student1.id, badge1.id)
+        assert has_badge is True
+
+    def test_student_has_badge_false(self):
+        student2 = create_user("student2@my.uwi.edu", "student2", "pass")
+        badge2 = createBadge("Badge2", "Desc", 0, "milestone")
+        has_badge = student_has_badge(student2.id, badge2.id)
+        assert has_badge is False
+
+    def test_awardBadge_event_type_badge(self):
+        student3 = create_user("student3@my.uwi.edu", "student3", "pass")
+        badge3 = createBadge("Badge3", "Desc", 0, "event_type")
+        awarded = awardBadge(student3.id, badge3.id)
+        assert awarded is False
+
+    def test_awardBadge_sufficient_points(self):
+        student4 = create_user("student4@my.uwi.edu", "student4", "pass")
+        badge4 = createBadge("Badge4", "Desc", 50, "milestone")
+        student4.add_points(100)
+        awarded = awardBadge(student4.id, badge4.id)
+        assert awarded is True
+
+    def test_awardBadge_insufficient_points(self):
+        student5 = create_user("student5@my.uwi.edu", "student5", "pass")
+        badge5 = createBadge("Badge5", "Desc", 50, "milestone")
+        awarded = awardBadge(student5.id, badge5.id)
+        assert awarded is False
+
+    def test_awardBadge_already_earned(self):
+        student6 = create_user("student6@my.uwi.edu", "student6", "pass")
+        badge6 = createBadge("Badge6", "Desc", 50, "milestone")
+        student6.add_points(100)
+        awarded = awardBadge(student6.id, badge6.id)
+        award_again = awardBadge(student6.id, badge6.id)
+        assert award_again is False
+
+    def test_awardEventTypeBadge_non_event_type(self):
+        student7 = create_user("student7@my.uwi.edu", "student7", "pass")
+        badge7 = createBadge("Badge7", "Desc", 0, "milestone")
+        awarded = awardEventTypeBadge(student7.id, badge7.id)
+        assert awarded is False
+
+    def test_awardEventTypeBadge_success(self):
+        student8 = create_user("student8@my.uwi.edu", "student8", "pass")
+        badge8 = createBadge("Attended Workshop", "Desc", 0, "event_type")
+        awarded = awardEventTypeBadge(student8.id, badge8.id)
+        assert awarded is True
+
+    def test_awardEventTypeBadge_already_earned(self):
+        student9 = create_user("student9@my.uwi.edu", "student9", "pass")
+        badge9 = createBadge("Attended Seminar", "Desc", 0, "event_type")
+        awarded = awardEventTypeBadge(student9.id, badge9.id)
+        award_again = awardEventTypeBadge(student9.id, badge9.id)
+        assert award_again is False
+
+    def test_check_and_award_badges(self):
+        staff1 = create_user("staff1@sta.uwi.edu", "staff1", "pass")
+        event = create_event(
+            staff_id=staff1.id, name="Test Event", type="Lecture", description="Desc",
+            start=datetime.now() - timedelta(hours=1), end=datetime.now() + timedelta(hours=1),
+            location="Room", image=None, active=True
+        )
+        student10 = create_user("student10@my.uwi.edu", "student10", "pass")
+        badge10 = createBadge("Milestone Badge", "Desc", 50, "milestone")
+        badge11 = createBadge("Attended Lecture", "Desc", 0, "event_type")
+        student10.add_points(100)
+        check_and_award_badges(student10, event)
+        assert student_has_badge(student10.id, badge10.id) is True
+        assert student_has_badge(student10.id, badge11.id) is True
+
+    def test_viewBadges(self):
+        badge12 = createBadge("Badge12", "Desc", 0, "milestone")
+        badge13 = createBadge("Badge13", "Desc", 0, "milestone")
+        badges = viewBadges()
+        assert badge12 in badges
+        assert badge13 in badges
+
+    def test_viewStudentBadges(self):
+        student11 = create_user("student11@my.uwi.edu", "student11", "pass")
+        badge14 = createBadge("Badge14", "Desc", 0, "milestone")
+        awardBadge(student11.id, badge14.id)   
+        student_badges = viewStudentBadges(student11.id)
+        assert len(student_badges) == 1
+        assert student_badges[0].badge_id == badge14.id
+
+    
 class ProgressIntegrationTests(unittest.TestCase):
 
     def setUp(self):
