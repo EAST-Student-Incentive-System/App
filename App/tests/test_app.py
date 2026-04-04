@@ -597,5 +597,59 @@ class AuthenticationIntegrationTests(unittest.TestCase):
         assert "error" in result
         assert result["error"] == "Invalid email or old password."
 
+class UserIntegrationTests(unittest.TestCase):
 
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_create_user(self):
+        user = create_user("test@my.uwi.edu", "testuser", "pass")
+        self.assertIsNotNone(user)
+        self.assertEqual(user.username, "testuser")
+        self.assertEqual(user.email, "test@my.uwi.edu")
+
+    def test_login(self):
+        user = create_user("login@my.uwi.edu", "loginuser", "pass")
+        user.is_verified = True
+        db.session.commit()
+        result = login("loginuser", "pass")
+        self.assertIn("access_token", result)
+
+    def test_update_user(self):
+        user = create_user("update@my.uwi.edu", "updateuser", "pass")
+        update_user(user.id, "newusername")
+        updated = get_user(user.id)
+        self.assertEqual(updated.username, "newusername")
+
+    def test_get_user_by_username(self):
+        create_user("get@my.uwi.edu", "getuser", "pass")
+        user = get_user_by_username("getuser")
+        self.assertIsNotNone(user)
+        self.assertEqual(user.email, "get@my.uwi.edu")
+
+    def test_password_check(self):
+        user = User("check@my.uwi.edu", "checkuser", "pass")
+        db.session.add(user)
+        db.session.commit()
+        self.assertTrue(user.check_password("pass"))
+        self.assertFalse(user.check_password("wrong"))
+
+    def test_verification_token(self):
+        user = User("token@my.uwi.edu", "tokenuser", "pass")
+        db.session.add(user)
+        db.session.commit()
+        token = user.set_verification_token()
+        self.assertIsNotNone(token)
+        self.assertIsNotNone(user.verification_token)
+        self.assertIsNotNone(user.token_expiry)
+        self.assertGreater(user.token_expiry, datetime.utcnow())
 
