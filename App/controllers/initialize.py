@@ -1,7 +1,7 @@
 from time import sleep, time
 
 from .user import create_user
-from .badge import awardTestBadge, createBadge
+from .badge import createBadge
 from App.database import db
 from App.models import Student, Staff
 import random
