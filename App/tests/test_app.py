@@ -16,29 +16,62 @@ from App.controllers import (
     get_user,
     get_user_by_username,
     update_user,
-    get_student_history, create_event, update_event, delete_event,
-    get_event, view_upcoming_events, view_all_events,
-    view_event_history, join_event, leave_event,
-    log_attendance, generate_qr, get_participant_count, signUp, change_password
+    get_student_history,
+    create_event,
+    update_event,
+    delete_event,
+    get_event,
+    view_upcoming_events,
+    view_all_events,
+    view_event_history,
+    join_event,
+    leave_event,
+    log_attendance,
+    generate_qr,
+    get_participant_count,
+    signUp,
+    change_password,
+    create_reward,
 )
-from App.controllers.user import view_profile, update_username, has_active_timeout, update_password, validate_password_strength, get_all_users
+from App.controllers.user import (
+    view_profile,
+    update_username,
+    has_active_timeout,
+    update_password,
+    validate_password_strength,
+    get_all_users,
+)
 from App.utils import is_valid_username
 
-class AttendanceUnitTests(unittest.TestCase):
 
+class AttendanceUnitTests(unittest.TestCase):
     def setUp(self):
         # fresh test app + db
-        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.app = create_app(
+            {"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"}
+        )
         self.ctx = self.app.app_context()
         self.ctx.push()
         db.create_all()
 
         # create a student + two events
         self.student = Student(email="bob@test.com", username="bob", password="pw")
-        self.event1 = Event(staffId=1, name="Event1", type="Social", description="Test",
-                            start=datetime.now(), end=datetime.now()+timedelta(hours=2))
-        self.event2 = Event(staffId=1, name="Event2", type="Social", description="Test",
-                            start=datetime.now(), end=datetime.now()+timedelta(hours=2))
+        self.event1 = Event(
+            staffId=1,
+            name="Event1",
+            type="Social",
+            description="Test",
+            start=datetime.now(),
+            end=datetime.now() + timedelta(hours=2),
+        )
+        self.event2 = Event(
+            staffId=1,
+            name="Event2",
+            type="Social",
+            description="Test",
+            start=datetime.now(),
+            end=datetime.now() + timedelta(hours=2),
+        )
         db.session.add_all([self.student, self.event1, self.event2])
         db.session.commit()
 
@@ -47,8 +80,16 @@ class AttendanceUnitTests(unittest.TestCase):
         self.ctx.pop()
 
     def test_overlap_events_within_one_hour(self):
-        att1 = Attendance(student_id=self.student.id, event_id=self.event1.id, timestamp=datetime.now())
-        att2 = Attendance(student_id=self.student.id, event_id=self.event2.id, timestamp=datetime.now()+timedelta(minutes=30))
+        att1 = Attendance(
+            student_id=self.student.id,
+            event_id=self.event1.id,
+            timestamp=datetime.now(),
+        )
+        att2 = Attendance(
+            student_id=self.student.id,
+            event_id=self.event2.id,
+            timestamp=datetime.now() + timedelta(minutes=30),
+        )
         db.session.add_all([att1, att2])
         db.session.commit()
 
@@ -73,11 +114,11 @@ class AttendanceUnitTests(unittest.TestCase):
         self.assertIn(att2, conflicts)
 
 
-
 class EventUnitTests(unittest.TestCase):
-
     def setUp(self):
-        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.app = create_app(
+            {"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"}
+        )
         self.ctx = self.app.app_context()
         self.ctx.push()
         db.create_all()
@@ -90,8 +131,14 @@ class EventUnitTests(unittest.TestCase):
 
     def test_isWithinTimeFrame_true(self):
         now = datetime.now()
-        event = Event(staffId=1, name="TestEvent", type="Social", description="Test",
-                      start=now - timedelta(hours=1), end=now + timedelta(hours=1))
+        event = Event(
+            staffId=1,
+            name="TestEvent",
+            type="Social",
+            description="Test",
+            start=now - timedelta(hours=1),
+            end=now + timedelta(hours=1),
+        )
         db.session.add(event)
         db.session.commit()
         self.assertTrue(event.isWithintTimeFrame())
@@ -99,8 +146,14 @@ class EventUnitTests(unittest.TestCase):
     def test_calculate_point_value_rounding(self):
         now = datetime.now()
         # 90 minutes duration → should round up to 2 points
-        event = Event(staffId=1, name="TestEvent", type="Social", description="Test",
-                      start=now, end=now + timedelta(minutes=90))
+        event = Event(
+            staffId=1,
+            name="TestEvent",
+            type="Social",
+            description="Test",
+            start=now,
+            end=now + timedelta(minutes=90),
+        )
         db.session.add(event)
         db.session.commit()
         self.assertEqual(event.calculate_point_value(), 2)
@@ -108,8 +161,14 @@ class EventUnitTests(unittest.TestCase):
     def test_calculate_point_value_minimum(self):
         now = datetime.now()
         # 10 minutes duration → should still give minimum 1 point
-        event = Event(staffId=1, name="ShortEvent", type="Social", description="Test",
-                      start=now, end=now + timedelta(minutes=10))
+        event = Event(
+            staffId=1,
+            name="ShortEvent",
+            type="Social",
+            description="Test",
+            start=now,
+            end=now + timedelta(minutes=10),
+        )
         db.session.add(event)
         db.session.commit()
         self.assertEqual(event.calculate_point_value(), 1)
@@ -118,54 +177,61 @@ class EventUnitTests(unittest.TestCase):
         password = "mypass"
         user = User("bob@example.com", "bob", password)
         self.assertTrue(user.check_password(password))
-        
-class StudentUnitTests(unittest.TestCase):
 
+
+class StudentUnitTests(unittest.TestCase):
     def setUp(self):
-        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.app = create_app(
+            {"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"}
+        )
         self.ctx = self.app.app_context()
         self.ctx.push()
         db.create_all()
+        self.staff = create_user("staff@sta.uwi.edu", "staff", "pass")
 
     def tearDown(self):
         db.session.rollback()
         db.session.remove()
         db.drop_all()
         self.ctx.pop()
-    
+
     def test_new_student(self):
         student: Student = create_user("student1@my.uwi.edu", "student1", "studentpass")
         assert student.username == "student1"
 
     def test_student_add_points(self):
-        student: Student = create_user("student2@my.uwi.edu", "student2", "studentpass") # type: ignore
+        student: Student = create_user("student2@my.uwi.edu", "student2", "studentpass")  # type: ignore
         # Test adding points to the student
         student.add_points(100)
         assert student.current_balance == 100
 
     def test_student_subtract_points(self):
-        student: Student = create_user("student3@my.uwi.edu", "student3", "studentpass") # type: ignore
+        student: Student = create_user("student3@my.uwi.edu", "student3", "studentpass")  # type: ignore
         # Test subtracting points from the student
         student.add_points(100)
         student.subtract_points(50)
         assert student.current_balance == 50
 
     def test_check_enough_points_success(self):
-        student: Student = create_user("student4@my.uwi.edu", "student4", "studentpass") # type: ignore
+        student: Student = create_user("student4@my.uwi.edu", "student4", "studentpass")  # type: ignore
         student.add_points(100)
-        reward2 = Reward("Test Reward2", 50, pointCost=50)  # reward name and cost
+        reward2 = create_reward("Test Reward2", "A test reward", 50, self.staff.id)
         assert student.check_enough_points(reward2)
 
     def test_check_enough_points_failure(self):
-        student: Student = create_user("student5@my.uwi.edu", "student5", "studentpass") # type: ignore
+        student: Student = create_user("student5@my.uwi.edu", "student5", "studentpass")  # type: ignore
         student.add_points(100)
-        reward = Reward("Test Reward", 150, pointCost=150)  # reward name and cost
-        assert not student.check_enough_points(reward) # This should return False since the student doesn't have enough points. Hence the assertion should be that the result is False.
+        reward = create_reward("Test Reward", "Another test reward", 150, self.staff.id)
+        assert not student.check_enough_points(
+            reward
+        )  # This should return False since the student doesn't have enough points. Hence the assertion should be that the result is False.
+
 
 class BadgeUnitTests(unittest.TestCase):
-
     def setUp(self):
-        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.app = create_app(
+            {"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"}
+        )
         self.ctx = self.app.app_context()
         self.ctx.push()
         db.create_all()
@@ -188,20 +254,22 @@ class BadgeUnitTests(unittest.TestCase):
         badge = Badge(name="Milestone Badge", type="milestone", points_required=50)
         student_pass = Student(email="pass@test.com", username="passing", password="pw")
         student_fail = Student(email="fail@test.com", username="failing", password="pw")
-        student_pass.points = 50   # exactly at threshold — should pass
-        student_fail.points = 49   # one below threshold — should fail
+        student_pass.points = 50  # exactly at threshold — should pass
+        student_fail.points = 49  # one below threshold — should fail
         db.session.add_all([badge, student_pass, student_fail])
         db.session.commit()
         self.assertTrue(badge.meets_requirements(student_pass))
         self.assertFalse(badge.meets_requirements(student_fail))
-        
 
-'''
+
+"""
     Integration Tests
-'''
+"""
+
+
 @pytest.fixture
 def app():
-    app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+    app = create_app({"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"})
     with app.app_context():
         db.create_all()
         yield app
@@ -210,17 +278,18 @@ def app():
 
 @pytest.fixture
 def app_context(app):
-        yield
+    yield
+
 
 def test_student_history_controller(app_context):
     # ensure history returns empty arrays for a fresh student
     student = create_user("stu2@my.uwi.edu", "stu2", "pwd")
     history = get_student_history(student.id)
     assert history is not None
-    assert history['student']['username'] == 'stu2'
-    assert history['badges'] == []
-    assert history['events'] == []
-    assert history['rewards'] == []
+    assert history["student"]["username"] == "stu2"
+    assert history["badges"] == []
+    assert history["events"] == []
+    assert history["rewards"] == []
 
 
 def test_authenticate(app_context):
@@ -228,9 +297,12 @@ def test_authenticate(app_context):
     user = create_user("bob2@my.uwi.edu", "bob2", "bobpass")
     assert login("bob2", "bobpass") != None
 
+
 class UsersIntegrationTests(unittest.TestCase):
     def setUp(self):
-        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.app = create_app(
+            {"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"}
+        )
         self.ctx = self.app.app_context()
         self.ctx.push()
         db.create_all()
@@ -274,9 +346,9 @@ class UsersIntegrationTests(unittest.TestCase):
     def test_get_all_users_json(self):
         create_user("rick2@my.uwi.edu", "rick2", "bobpass")
         users_json = get_all_users_json()
-        usernames = sorted([u.get('username') for u in users_json])
-        self.assertIn('bob2', usernames)
-        self.assertIn('rick2', usernames)
+        usernames = sorted([u.get("username") for u in users_json])
+        self.assertIn("bob2", usernames)
+        self.assertIn("rick2", usernames)
 
     def test_update_user(self):
         user = create_user("temp@my.uwi.edu", "temp", "pass")
@@ -290,8 +362,8 @@ class UsersIntegrationTests(unittest.TestCase):
         user = create_user("profile@my.uwi.edu", "profileuser", "pass")
         profile = view_profile(user.id)
         self.assertIsNotNone(profile)
-        self.assertEqual(profile['username'], "profileuser")
-        self.assertEqual(profile['email'], "profile@my.uwi.edu")
+        self.assertEqual(profile["username"], "profileuser")
+        self.assertEqual(profile["email"], "profile@my.uwi.edu")
 
     def test_update_username_valid(self):
         user = create_user("valid@my.uwi.edu", "validuser", "pass")
@@ -334,11 +406,42 @@ class UsersIntegrationTests(unittest.TestCase):
         self.assertFalse(result)
         self.assertIn("New password must be", message)
 
+    def test_create_user(self):
+        user = create_user("test@my.uwi.edu", "testuser", "pass")
+        self.assertIsNotNone(user)
+        self.assertEqual(user.username, "testuser")
+        self.assertEqual(user.email, "test@my.uwi.edu")
+
+    def test_login(self):
+        user = create_user("login@my.uwi.edu", "loginuser", "pass")
+        user.is_verified = True
+        db.session.commit()
+        result = login("loginuser", "pass")
+        self.assertIn("access_token", result)
+
+    def test_password_check(self):
+        user = User("check@my.uwi.edu", "checkuser", "pass")
+        db.session.add(user)
+        db.session.commit()
+        self.assertTrue(user.check_password("pass"))
+        self.assertFalse(user.check_password("wrong"))
+
+    def test_verification_token(self):
+        user = User("token@my.uwi.edu", "tokenuser", "pass")
+        db.session.add(user)
+        db.session.commit()
+        token = user.set_verification_token()
+        self.assertIsNotNone(token)
+        self.assertIsNotNone(user.verification_token)
+        self.assertIsNotNone(user.token_expiry)
+        self.assertGreater(user.token_expiry, datetime.utcnow())
+
 
 class TestEventIntegrationTests(unittest.TestCase):
-
     def setUp(self):
-        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.app = create_app(
+            {"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"}
+        )
         self.ctx = self.app.app_context()
         self.ctx.push()
         db.create_all()
@@ -358,7 +461,7 @@ class TestEventIntegrationTests(unittest.TestCase):
             location="Room 1",
             image=None,
             active=True,
-            limit=10
+            limit=10,
         )
 
     def tearDown(self):
@@ -369,9 +472,15 @@ class TestEventIntegrationTests(unittest.TestCase):
 
     def test_create_event(self):
         event = create_event(
-            self.staff.id, "Event", "Type", "Desc",
-            datetime.now(), datetime.now() + timedelta(hours=1),
-            "Room", None, True
+            self.staff.id,
+            "Event",
+            "Type",
+            "Desc",
+            datetime.now(),
+            datetime.now() + timedelta(hours=1),
+            "Room",
+            None,
+            True,
         )
 
         assert event is not None
@@ -380,9 +489,7 @@ class TestEventIntegrationTests(unittest.TestCase):
 
     def test_update_event(self):
         updated = update_event(
-            self.event.id,
-            staff_id=self.staff.id,
-            name="Updated Name"
+            self.event.id, staff_id=self.staff.id, name="Updated Name"
         )
 
         assert updated is not None
@@ -392,36 +499,63 @@ class TestEventIntegrationTests(unittest.TestCase):
         result = delete_event(self.event.id, self.staff.id)
         assert result is True
         assert get_event(self.event.id) is None
-    
+
     def test_view_upcoming_events(self):
         past = create_event(
-            self.staff.id, "Past", "Type", "Desc",
+            self.staff.id,
+            "Past",
+            "Type",
+            "Desc",
             datetime.now() - timedelta(days=1),
             datetime.now(),
-            "Room", None, True
+            "Room",
+            None,
+            True,
         )
 
         future = create_event(
-            self.staff.id, "Future", "Type", "Desc",
+            self.staff.id,
+            "Future",
+            "Type",
+            "Desc",
             datetime.now() + timedelta(days=1),
             datetime.now() + timedelta(days=2),
-            "Room", None, True
+            "Room",
+            None,
+            True,
         )
 
         events = view_upcoming_events()
         assert future in events
         assert past not in events
 
-
     def test_view_all_events(self):
         events = view_all_events()
         assert len(events) > 0
 
     def test_view_event_history_staff(self):
-        e1 = create_event(self.staff.id, "E1", "T", "D",
-                        datetime.now(), datetime.now(), "R", None, True)
-        e2 = create_event(self.staff.id, "E2", "T", "D",
-                        datetime.now(), datetime.now(), "R", None, True)
+        e1 = create_event(
+            self.staff.id,
+            "E1",
+            "T",
+            "D",
+            datetime.now(),
+            datetime.now(),
+            "R",
+            None,
+            True,
+        )
+        e2 = create_event(
+            self.staff.id,
+            "E2",
+            "T",
+            "D",
+            datetime.now(),
+            datetime.now(),
+            "R",
+            None,
+            True,
+        )
 
         history = view_event_history(staff_id=self.staff.id)
 
@@ -452,9 +586,16 @@ class TestEventIntegrationTests(unittest.TestCase):
 
     def test_join_event_full(self):
         event = create_event(
-            self.staff.id, "Limited", "T", "D",
-            datetime.now(), datetime.now(),
-            "Room", None, True, limit=1
+            self.staff.id,
+            "Limited",
+            "T",
+            "D",
+            datetime.now(),
+            datetime.now(),
+            "Room",
+            None,
+            True,
+            limit=1,
         )
 
         s1 = create_user("s1@my.uwi.edu", "s1", "pass")
@@ -524,11 +665,13 @@ class TestEventIntegrationTests(unittest.TestCase):
 
         assert count == 1
 
-class AuthenticationIntegrationTests(unittest.TestCase):
 
+class AuthenticationIntegrationTests(unittest.TestCase):
     def setUp(self):
         # fresh test app + db
-        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.app = create_app(
+            {"TESTING": True, "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db"}
+        )
         self.ctx = self.app.app_context()
         self.ctx.push()
         db.create_all()
@@ -596,60 +739,3 @@ class AuthenticationIntegrationTests(unittest.TestCase):
         result = change_password("wrongold@my.uwi.edu", "badold", "newpass")
         assert "error" in result
         assert result["error"] == "Invalid email or old password."
-
-class UserIntegrationTests(unittest.TestCase):
-
-    def setUp(self):
-        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
-        self.ctx = self.app.app_context()
-        self.ctx.push()
-        db.create_all()
-
-    def tearDown(self):
-        db.session.rollback()
-        db.session.remove()
-        db.drop_all()
-        self.ctx.pop()
-
-    def test_create_user(self):
-        user = create_user("test@my.uwi.edu", "testuser", "pass")
-        self.assertIsNotNone(user)
-        self.assertEqual(user.username, "testuser")
-        self.assertEqual(user.email, "test@my.uwi.edu")
-
-    def test_login(self):
-        user = create_user("login@my.uwi.edu", "loginuser", "pass")
-        user.is_verified = True
-        db.session.commit()
-        result = login("loginuser", "pass")
-        self.assertIn("access_token", result)
-
-    def test_update_user(self):
-        user = create_user("update@my.uwi.edu", "updateuser", "pass")
-        update_user(user.id, "newusername")
-        updated = get_user(user.id)
-        self.assertEqual(updated.username, "newusername")
-
-    def test_get_user_by_username(self):
-        create_user("get@my.uwi.edu", "getuser", "pass")
-        user = get_user_by_username("getuser")
-        self.assertIsNotNone(user)
-        self.assertEqual(user.email, "get@my.uwi.edu")
-
-    def test_password_check(self):
-        user = User("check@my.uwi.edu", "checkuser", "pass")
-        db.session.add(user)
-        db.session.commit()
-        self.assertTrue(user.check_password("pass"))
-        self.assertFalse(user.check_password("wrong"))
-
-    def test_verification_token(self):
-        user = User("token@my.uwi.edu", "tokenuser", "pass")
-        db.session.add(user)
-        db.session.commit()
-        token = user.set_verification_token()
-        self.assertIsNotNone(token)
-        self.assertIsNotNone(user.verification_token)
-        self.assertIsNotNone(user.token_expiry)
-        self.assertGreater(user.token_expiry, datetime.utcnow())
-
