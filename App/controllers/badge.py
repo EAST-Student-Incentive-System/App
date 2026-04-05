@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from App.utils import require_role
 
 
-def _student_has_badge(student_id: int, badge_id: int) -> bool:
+def student_has_badge(student_id: int, badge_id: int) -> bool:
     return (
         db.session.query(StudentBadge.id)
         .filter(StudentBadge.user_id == student_id, StudentBadge.badge_id == badge_id)
@@ -27,35 +27,13 @@ def awardBadge(student_id, badge_id):
         return False
 
     if badge.points_required <= student.total_points:
-        if not _student_has_badge(student_id, badge_id):
+        if not student_has_badge(student_id, badge_id):
             link = StudentBadge(user_id=student_id, badge_id=badge_id)
             db.session.add(link)
             db.session.commit()
             return True
 
     return False
-
-
-def awardTestBadge(student_id, badge_id, earned_at):
-    student = Student.query.get(student_id)
-    badge = Badge.query.get(badge_id)
-
-    if not badge or not student:
-        return False
-
-    # NEW: don't auto-award event_type badges by points
-    if getattr(badge, "type", "milestone") != "milestone":
-        return False
-
-    if badge.points_required <= student.total_points:
-        if not _student_has_badge(student_id, badge_id):
-            link = StudentBadge(user_id=student_id, badge_id=badge_id, earned_at=earned_at)
-            db.session.add(link)
-            db.session.commit()
-            return True
-
-    return False
-
 
 # NEW: award event_type badges explicitly (call this from event check-in logic)
 def awardEventTypeBadge(student_id, badge_id=None, badge_name=None):
@@ -76,7 +54,7 @@ def awardEventTypeBadge(student_id, badge_id=None, badge_name=None):
     if getattr(badge, "type", "milestone") != "event_type":
         return False
 
-    if _student_has_badge(student_id, badge.id):
+    if student_has_badge(student_id, badge.id):
         return False
 
     link = StudentBadge(user_id=student_id, badge_id=badge.id)
@@ -102,7 +80,7 @@ def check_and_award_badges(student, event):
 
     # 2. Award event badges (one-time, based on event type)
     badge = Badge.query.filter_by(name=f"Attended {event.type.title()}").first()
-    if badge and not _student_has_badge(student.id, badge.id):
+    if badge and not student_has_badge(student.id, badge.id):
         awardEventTypeBadge(student.id, badge.id)
 
 

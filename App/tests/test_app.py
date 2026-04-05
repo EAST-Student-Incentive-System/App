@@ -1,11 +1,15 @@
 import re
+from App.models.redeemed_reward import RedeemedReward
 import os, tempfile, pytest, logging, unittest
-from turtle import st
+#from turtle import st
 from werkzeug.security import check_password_hash, generate_password_hash
 import base64
 import time
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
+from flask_jwt_extended import create_access_token, verify_jwt_in_request
+from App.controllers.badge import awardEventTypeBadge
+from App.controllers.progress import viewLeaderBoard, viewProgress
 from App.main import create_app
 from App.database import db, create_db
 from App.models import User, Student, Event, Attendance, Badge
@@ -739,3 +743,454 @@ class AuthenticationIntegrationTests(unittest.TestCase):
         result = change_password("wrongold@my.uwi.edu", "badold", "newpass")
         assert "error" in result
         assert result["error"] == "Invalid email or old password."
+
+class BadgeIntegrationTests(unittest.TestCase):
+
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_student_has_badge_true(self):
+        student1 = create_user("student1@my.uwi.edu", "student1", "pass")
+        badge1 = createBadge("Badge1", "Desc", 0, "milestone")
+        awarded = awardBadge(student1.id, badge1.id)
+        has_badge = student_has_badge(student1.id, badge1.id)
+        assert has_badge is True
+
+    def test_student_has_badge_false(self):
+        student2 = create_user("student2@my.uwi.edu", "student2", "pass")
+        badge2 = createBadge("Badge2", "Desc", 0, "milestone")
+        has_badge = student_has_badge(student2.id, badge2.id)
+        assert has_badge is False
+
+    def test_awardBadge_event_type_badge(self):
+        student3 = create_user("student3@my.uwi.edu", "student3", "pass")
+        badge3 = createBadge("Badge3", "Desc", 0, "event_type")
+        awarded = awardBadge(student3.id, badge3.id)
+        assert awarded is False
+
+    def test_awardBadge_sufficient_points(self):
+        student4 = create_user("student4@my.uwi.edu", "student4", "pass")
+        badge4 = createBadge("Badge4", "Desc", 50, "milestone")
+        student4.add_points(100)
+        awarded = awardBadge(student4.id, badge4.id)
+        assert awarded is True
+
+    def test_awardBadge_insufficient_points(self):
+        student5 = create_user("student5@my.uwi.edu", "student5", "pass")
+        badge5 = createBadge("Badge5", "Desc", 50, "milestone")
+        awarded = awardBadge(student5.id, badge5.id)
+        assert awarded is False
+
+    def test_awardBadge_already_earned(self):
+        student6 = create_user("student6@my.uwi.edu", "student6", "pass")
+        badge6 = createBadge("Badge6", "Desc", 50, "milestone")
+        student6.add_points(100)
+        awarded = awardBadge(student6.id, badge6.id)
+        award_again = awardBadge(student6.id, badge6.id)
+        assert award_again is False
+
+    def test_awardEventTypeBadge_non_event_type(self):
+        student7 = create_user("student7@my.uwi.edu", "student7", "pass")
+        badge7 = createBadge("Badge7", "Desc", 0, "milestone")
+        awarded = awardEventTypeBadge(student7.id, badge7.id)
+        assert awarded is False
+
+    def test_awardEventTypeBadge_success(self):
+        student8 = create_user("student8@my.uwi.edu", "student8", "pass")
+        badge8 = createBadge("Attended Workshop", "Desc", 0, "event_type")
+        awarded = awardEventTypeBadge(student8.id, badge8.id)
+        assert awarded is True
+
+    def test_awardEventTypeBadge_already_earned(self):
+        student9 = create_user("student9@my.uwi.edu", "student9", "pass")
+        badge9 = createBadge("Attended Seminar", "Desc", 0, "event_type")
+        awarded = awardEventTypeBadge(student9.id, badge9.id)
+        award_again = awardEventTypeBadge(student9.id, badge9.id)
+        assert award_again is False
+
+    def test_check_and_award_badges(self):
+        staff1 = create_user("staff1@sta.uwi.edu", "staff1", "pass")
+        event = create_event(
+            staff_id=staff1.id, name="Test Event", type="Lecture", description="Desc",
+            start=datetime.now() - timedelta(hours=1), end=datetime.now() + timedelta(hours=1),
+            location="Room", image=None, active=True
+        )
+        student10 = create_user("student10@my.uwi.edu", "student10", "pass")
+        badge10 = createBadge("Milestone Badge", "Desc", 50, "milestone")
+        badge11 = createBadge("Attended Lecture", "Desc", 0, "event_type")
+        student10.add_points(100)
+        check_and_award_badges(student10, event)
+        assert student_has_badge(student10.id, badge10.id) is True
+        assert student_has_badge(student10.id, badge11.id) is True
+
+    def test_viewBadges(self):
+        badge12 = createBadge("Badge12", "Desc", 0, "milestone")
+        badge13 = createBadge("Badge13", "Desc", 0, "milestone")
+        badges = viewBadges()
+        assert badge12 in badges
+        assert badge13 in badges
+
+    def test_viewStudentBadges(self):
+        student11 = create_user("student11@my.uwi.edu", "student11", "pass")
+        badge14 = createBadge("Badge14", "Desc", 0, "milestone")
+        awardBadge(student11.id, badge14.id)   
+        student_badges = viewStudentBadges(student11.id)
+        assert len(student_badges) == 1
+        assert student_badges[0].badge_id == badge14.id
+
+    
+class ProgressIntegrationTests(unittest.TestCase):
+
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_viewProgress(self):
+        student = create_user("progress@my.uwi.edu", "progressuser", "pass")
+        student.add_points(150)
+        student.subtract_points(50)
+        db.session.commit()
+        result = viewProgress(student.id)
+        assert result == (150, 100)
+
+    def test_viewLeaderBoard(self):
+        s1 = create_user("s1@my.uwi.edu", "alice", "pass")
+        s2 = create_user("s2@my.uwi.edu", "bob", "pass")
+        s3 = create_user("s3@my.uwi.edu", "charlie", "pass")
+        s1.add_points(300)
+        s2.add_points(500)
+        s3.add_points(400)
+        db.session.commit()
+
+        leaderboard = viewLeaderBoard()
+
+        # Filter to only the students created in this test
+        test_usernames = {"alice", "bob", "charlie"}
+        filtered = [e for e in leaderboard if e['username'] in test_usernames]
+
+        assert len(filtered) == 3
+        assert filtered[0]['username'] == 'bob'
+        assert filtered[1]['username'] == 'charlie'
+        assert filtered[2]['username'] == 'alice'
+
+        # Verify rank numbers are sequential and ascending across the full leaderboard
+        ranks = [e['rank'] for e in leaderboard]
+        assert ranks == list(range(1, len(leaderboard) + 1))
+
+
+class TestRewardsIntegration(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app({
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db",
+            # If your app doesn't already set this in create_app, you may need it:
+            # "JWT_SECRET_KEY": "test-secret",
+        })
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+        self.staff = create_user("rewardstaff@sta.uwi.edu", "rewardstaff", "pass123")
+        self.student = create_user("rewardstudent@my.uwi.edu", "rewardstudent", "pass123")
+
+        # JWT identity used by get_jwt_identity()
+        self.staff_token = create_access_token(identity=self.staff.id)
+        self.staff_headers = {"Authorization": f"Bearer {self.staff_token}"}
+
+        self.student.current_balance = 200
+        db.session.commit()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    # -------------------------------------------------------------------------
+    # test_create_reward()
+    # Ensures reward record is created with correct name, description, point cost and active values
+    def test_create_reward(self):
+        r = create_reward(
+            name="Coffee",
+            description="Hot drink",
+            point_cost=50,
+            created_by=self.staff.id,
+            active=True,
+            image=None,
+            limit=None,
+        )
+        self.assertIsNotNone(r)
+        self.assertEqual(r.name, "Coffee")
+        self.assertEqual(r.description, "Hot drink")
+        self.assertEqual(r.pointCost, 50)
+        self.assertTrue(r.active)
+
+        fetched = get_reward(r.id)
+        self.assertIsNotNone(fetched)
+        self.assertEqual(fetched.name, "Coffee")
+        self.assertEqual(fetched.description, "Hot drink")
+        self.assertEqual(fetched.pointCost, 50)
+        self.assertTrue(fetched.active)
+
+    # -------------------------------------------------------------------------
+    # test_get_all_rewards()
+    # Verifies that all rewards in the system can be retrieved
+    def test_get_all_rewards(self):
+        create_reward("A", "desc", 10, self.staff.id, active=True, image=None, limit=None)
+        create_reward("B", "desc", 20, self.staff.id, active=False, image=None, limit=None)
+
+        rewards = get_all_rewards()
+        self.assertIsInstance(rewards, list)
+        self.assertEqual(len(rewards), 2)
+
+    # -------------------------------------------------------------------------
+    # test_get_all_rewards_json()
+    # Verifies json data of all rewards in the system
+    def test_get_all_rewards_json(self):
+        create_reward("A", "desc", 10, self.staff.id, active=True, image=None, limit=None)
+        create_reward("B", "desc", 20, self.staff.id, active=False, image=None, limit=None)
+
+        rewards = get_all_rewards()
+        self.assertEqual(len(rewards), 2)
+
+        rewards_json = get_all_rewards_json()
+        self.assertIsInstance(rewards_json, list)
+        self.assertEqual(len(rewards_json), 2)
+
+        # Key names depend on your Reward.get_json(); these are common with your codebase
+        self.assertIn("name", rewards_json[0])
+        self.assertIn("description", rewards_json[0])
+        self.assertIn("pointCost", rewards_json[0])
+        self.assertIn("active", rewards_json[0])
+
+    # -------------------------------------------------------------------------
+    # test_get_active_rewards()
+    # Ensures only active rewards are returned
+    def test_get_active_rewards(self):
+        create_reward("Active1", "desc", 10, self.staff.id, active=True, image=None, limit=None)
+        create_reward("Inactive1", "desc", 20, self.staff.id, active=False, image=None, limit=None)
+
+        active = get_active_rewards()
+        self.assertIsInstance(active, list)
+        self.assertTrue(all(r.active for r in active))
+        names = [r.name for r in active]
+        self.assertIn("Active1", names)
+        self.assertNotIn("Inactive1", names)
+
+    # -------------------------------------------------------------------------
+    # test_update_reward()
+    # Verifies that the correct fields are updated with the correct values
+    def test_update_reward(self):
+        r = create_reward("Old", "old desc", 10, self.staff.id, active=True, image=None, limit=None)
+
+        updated = update_reward(
+            r.id,
+            created_by=self.staff.id,   # role check (staff) in your controller
+            name="New",
+            description="new desc",
+            point_cost=99,
+            active=False,
+        )
+        self.assertIsNotNone(updated)
+
+        fetched = get_reward(r.id)
+        self.assertEqual(fetched.name, "New")
+        self.assertEqual(fetched.description, "new desc")
+        self.assertEqual(fetched.pointCost, 99)
+        self.assertFalse(fetched.active)
+
+    # -------------------------------------------------------------------------
+    # test_toggle_reward()
+    # Verifies reward active state toggles between True and False
+    def test_toggle_reward(self):
+        r = create_reward("ToggleMe", "desc", 10, self.staff.id, active=True, image=None, limit=None)
+
+        with self.app.test_request_context(headers=self.staff_headers):
+            verify_jwt_in_request()
+            toggle_reward(r.id)
+
+        fetched1 = get_reward(r.id)
+        self.assertFalse(fetched1.active)
+
+        with self.app.test_request_context(headers=self.staff_headers):
+            verify_jwt_in_request()
+        toggle_reward(r.id)
+
+        fetched2 = get_reward(r.id)
+        self.assertTrue(fetched2.active)
+    # -------------------------------------------------------------------------
+    # test_redeem_reward()
+    # Verifies a student can redeem a reward when having a sufficient balance of points
+    # and a RedeemedReward record is created
+    def test_redeem_reward(self):
+        r = create_reward("Coffee", "desc", 50, self.staff.id, active=True, image=None, limit=None)
+
+        before = self.student.current_balance
+
+        result = redeem_reward(self.student.id, r.id)
+        
+        self.assertTrue(result is not False)
+
+        db.session.refresh(self.student)
+        self.assertEqual(self.student.current_balance, before - r.pointCost)
+
+        rr = RedeemedReward.query.filter_by(student_id=self.student.id, reward_id=r.id).first()
+        self.assertIsNotNone(rr)
+
+        # optional: reward limit/stock handling could change pointCost etc; we just ensure reward still exists
+        fetched_reward = get_reward(r.id)
+        self.assertIsNotNone(fetched_reward)
+
+    # -------------------------------------------------------------------------
+    # test_redeem_reward_insufficient_balance()
+    # Ensures False is returned when a student lacks sufficient points to redeem a reward
+    def test_redeem_reward_insufficient_balance(self):
+        r = create_reward("Coffee", "desc", 500, self.staff.id, active=True, image=None, limit=None)
+
+        self.student.current_balance = 10
+        db.session.commit()
+
+        result = redeem_reward(self.student.id, r.id)
+        self.assertFalse(result)
+
+        rr = RedeemedReward.query.filter_by(student_id=self.student.id, reward_id=r.id).first()
+        self.assertIsNone(rr)
+
+    # -------------------------------------------------------------------------
+    # test_redeem_reward_inactive()
+    # Verifies inactive rewards cannot be redeemed
+    def test_redeem_reward_inactive(self):
+        r = create_reward("Coffee", "desc", 50, self.staff.id, active=True, image=None, limit=None)
+
+        with self.app.test_request_context(headers=self.staff_headers):
+            verify_jwt_in_request()
+            toggle_reward(r.id)  # now inactive
+
+        fetched = get_reward(r.id)
+        self.assertFalse(fetched.active)
+
+        result = redeem_reward(self.student.id, r.id)
+        self.assertFalse(result)
+
+        rr = RedeemedReward.query.filter_by(student_id=self.student.id, reward_id=r.id).first()
+        self.assertIsNone(rr)
+
+    # -------------------------------------------------------------------------
+    # test_viewReward()
+    # Ensures all active and redeemable rewards are returned
+    def test_viewReward(self):
+        # Student balance 200 from setUp
+        create_reward("Cheap", "desc", 50, self.staff.id, active=True, image=None, limit=None)     # redeemable
+        create_reward("Expensive", "desc", 500, self.staff.id, active=True, image=None, limit=None)  # not redeemable
+        create_reward("Inactive", "desc", 10, self.staff.id, active=False, image=None, limit=None)
+
+        rewards = viewReward(self.student.id)
+        self.assertIsInstance(rewards, list)
+
+        names = [r.name for r in rewards]
+        self.assertIn("Cheap", names)
+        self.assertIn("Expensive", names)
+        self.assertNotIn("Inactive", names)  # only active rewards should appear
+
+        # If your viewReward sets a dynamic attribute `redeemable`, validate it
+        by_name = {r.name: r for r in rewards}
+        self.assertTrue(hasattr(by_name["Cheap"], "redeemable"))
+        self.assertTrue(by_name["Cheap"].redeemable)
+        self.assertFalse(by_name["Expensive"].redeemable)
+
+    # -------------------------------------------------------------------------
+    # test_viewRewardHistory()
+    # Verifies all rewards created by a specific staff member are returned
+    def test_viewRewardHistory(self):
+        staff2 = create_user("rewardstaff2@sta.uwi.edu", "rewardstaff2", "pass123")
+
+        create_reward("S1", "desc", 10, self.staff.id, active=True, image=None, limit=None)
+        create_reward("S2", "desc", 20, self.staff.id, active=True, image=None, limit=None)
+        create_reward("OtherStaff", "desc", 30, staff2.id, active=True, image=None, limit=None)
+
+        hist = viewRewardHistory(self.staff.id)
+        self.assertIsInstance(hist, list)
+
+    # viewRewardHistory returns list of dicts (Reward.get_json())
+        hist_names = [r.get("name") for r in hist]
+
+        self.assertIn("S1", hist_names)
+        self.assertIn("S2", hist_names)
+        self.assertNotIn("OtherStaff", hist_names)
+
+
+class TestRedeemedRewardIntegration(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app({
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db",
+        })
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+        # Users
+        self.staff = create_user("rewardstaff@sta.uwi.edu", "rewardstaff", "pass123")
+        self.student = create_user("rewardstudent@my.uwi.edu", "rewardstudent", "pass123")
+
+        # Give student enough points to redeem
+        self.student.current_balance = 200
+        db.session.commit()
+
+        # Reward
+        self.reward = create_reward(
+            name="Coffee",
+            description="Hot drink",
+            point_cost=50,
+            created_by=self.staff.id,
+            active=True,
+            image=None,
+            limit=None,
+        )
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    # ---------------------------------------------------------------------
+    # test_view_redeemed_rewards()
+    # Ensures all rewards redeemed by a student are returned
+    def test_view_redeemed_rewards(self):
+        redeemed_ok = redeem_reward(self.student.id, self.reward.id)
+        self.assertTrue(redeemed_ok is not False)
+
+        redeemed = view_redeemed_rewards(self.student.id)
+        self.assertIsInstance(redeemed, list)
+        self.assertEqual(len(redeemed), 1)
+
+        rr = redeemed[0]
+        self.assertEqual(rr.student_id, self.student.id)
+        self.assertEqual(rr.reward_id, self.reward.id)
+        self.assertTrue(rr.isValid)
+
+    # ---------------------------------------------------------------------
+    # test_view_redeemed_rewards_none_redeemed()
+    # Ensures empty list is returned when student hasn't redeemed any rewards
+    def test_view_redeemed_rewards_none_redeemed(self):
+        redeemed = view_redeemed_rewards(self.student.id)
+        self.assertIsInstance(redeemed, list)
+        self.assertEqual(len(redeemed), 0)

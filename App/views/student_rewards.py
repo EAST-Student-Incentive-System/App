@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from App.controllers.rewards import (
@@ -64,3 +64,27 @@ def redeem_reward_page(reward_id):
         flash("Reward redeemed successfully! 🎉", "success")
 
     return redirect(url_for("reward_student_views.student_rewards_page"))
+
+
+#------------------------------------------
+# API endpoints for Performance Testing
+#------------------------------------------
+
+# View student rewards (active + redeemed)
+@reward_student_views.route("/api/student/rewards", methods=["GET"])
+@jwt_required()
+def api_student_rewards():
+    student = _get_current_student()
+    if not student:
+        return jsonify({"error": "Student account required"}), 401
+
+    rewards = viewReward(student.id) or []
+    redeemed = view_redeemed_rewards(student.id) or []
+
+    return jsonify({
+        "student_id": student.id,
+        "balance": student.current_balance,
+        "rewards": rewards,
+        "redeemed_rewards": [r.get_json() for r in redeemed]
+    }), 200
+

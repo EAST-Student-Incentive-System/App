@@ -93,14 +93,18 @@
       data-eligible="{{ 'true' if r.redeemable else 'false' }}">
 
       <!-- IMAGE -->
-      {% if r.image %}
-      <img src="{{ url_for('static', filename='uploads/' ~ r.image) }}" alt="{{ r.name }}"
-        class="object-cover h-40 w-full group-hover:scale-105 transition-transform duration-300">
-      {% else %}
-      <div class="flex items-center justify-center h-40 bg-base-200 text-4xl">
-        🎁
-      </div>
-      {% endif %}
+     {% if r.image %}
+  {% if r.image.startswith('http') %}
+    <img src="{{ r.image }}" alt="{{ r.name }}"
+         class="object-cover h-40 w-full group-hover:scale-105 transition-transform duration-300">
+  {% else %}
+    <img src="{{ url_for('static', filename='uploads/' ~ r.image) }}" alt="{{ r.name }}"
+         class="object-cover h-40 w-full group-hover:scale-105 transition-transform duration-300">
+  {% endif %}
+{% else %}
+  <div class="flex items-center justify-center h-40 bg-base-200 text-4xl">🎁</div>
+{% endif %}
+
 
       <!-- CONTENT -->
       <div class="p-4 space-y-3">
