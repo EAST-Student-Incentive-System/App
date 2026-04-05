@@ -34,16 +34,6 @@ def create_user_action():
     create_user(data['username'], data['password'])
     return redirect(url_for('user_views.get_user_page'))
 
-@user_views.route('/api/users', methods=['GET'])
-def get_users_action():
-    users = get_all_users_json()
-    return jsonify(users)
-
-@user_views.route('/api/users', methods=['POST'])
-def create_user_endpoint():
-    data = request.json
-    user = create_user(data['username'], data['password']) # pyright: ignore[reportOptionalSubscript]
-    return jsonify({'message': f"user {user.username} created with id {user.id}"})
 
 @user_views.route('/static/users', methods=['GET'])
 def static_user_page():
@@ -54,12 +44,7 @@ def static_user_page():
 # Student history endpoints
 # --------------------------------------------------
 
-@user_views.route('/api/students/<int:student_id>/history', methods=['GET'])
-def student_history_api(student_id):
-    history = get_student_history(student_id)
-    if history is None:
-        return jsonify({'error': 'Student not found'}), 404
-    return jsonify(history)
+
 
 
 @user_views.route('/students/<int:student_id>/profile', methods=['GET'])
@@ -182,3 +167,126 @@ def timeout_student(student_id):
 
     flash(f"{student.username} has been timed out and removed from flagged list.", "success")
     return redirect(url_for("user_views.flagged_command"))
+
+
+#------------------------------------------
+# API endpoints for Performance Testing
+#------------------------------------------
+
+# Student profile history
+@user_views.route('/api/students/<int:student_id>/profile', methods=['GET'])
+@jwt_required()
+def api_student_profile(student_id):
+    history = get_student_history(student_id)
+    if history is None:
+        return jsonify({'error': 'Student not found'}), 404
+    return jsonify({'student_id': student_id, 'history': history}), 200
+
+
+# Regenerate avatar
+@user_views.route('/api/profile/regenerate-avatar', methods=['POST'])
+@jwt_required()
+def api_regenerate_avatar():
+    jwt_current_user.regenerate_avatar()
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'New profile picture generated'}), 200
+
+
+# Update username
+@user_views.route('/api/profile/update-username', methods=['POST'])
+@jwt_required()
+def api_update_username():
+    new_username = request.json.get('username', '').strip()
+    success, message = update_username(jwt_current_user.id, new_username)
+    return jsonify({'success': success, 'message': message}), (200 if success else 400)
+
+
+# Update password
+@user_views.route('/api/profile/update-password', methods=['POST'])
+@jwt_required()
+def api_update_password():
+    data = request.json
+    current_password = data.get('current_password', '')
+    new_password     = data.get('new_password', '')
+    confirm_password = data.get('confirm_password', '')
+
+    if new_password != confirm_password:
+        return jsonify({'error': 'New passwords do not match'}), 400
+
+    success, message = update_password(jwt_current_user.id, current_password, new_password)
+    return jsonify({'success': success, 'message': message}), (200 if success else 400)
+
+
+# Staff flagged students
+@user_views.route('/api/staff/flagged', methods=['GET'])
+@jwt_required()
+def api_flagged_students():
+    staff_id = get_jwt_identity()
+    staff = db.session.get(Staff, int(staff_id)) if staff_id else None
+    if not staff or staff.role != "staff":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    flagged_students = db.session.scalars(
+        db.select(Student).where(Student.isFlagged == True)
+    ).all()
+    return jsonify([s.get_json() for s in flagged_students]), 200
+
+
+# Unflag student
+@user_views.route('/api/staff/flagged/<int:student_id>/unflag', methods=['POST'])
+@jwt_required()
+def api_unflag_student(student_id):
+    staff_id = get_jwt_identity()
+    staff = db.session.get(Staff, int(staff_id)) if staff_id else None
+    if not staff or staff.role != "staff":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    student = db.session.get(Student, student_id)
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    student.isFlagged = False
+    db.session.commit()
+    return jsonify({"success": True, "message": f"{student.username} unflagged"}), 200
+
+
+# Timeout student
+@user_views.route('/api/staff/flagged/<int:student_id>/timeout', methods=['POST'])
+@jwt_required()
+def api_timeout_student(student_id):
+    staff_id = get_jwt_identity()
+    staff = db.session.get(Staff, int(staff_id)) if staff_id else None
+    if not staff or staff.role != "staff":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    student = db.session.get(Student, student_id)
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    student.timeout_count = int(student.timeout_count or 0) + 1
+    if student.timeout_count >= 3:
+        student.timeout_until = datetime.utcnow() + timedelta(days=365 * 100)
+    else:
+        student.timeout_until = datetime.utcnow() + timedelta(days=7)
+    student.isFlagged = False
+    db.session.commit()
+
+    return jsonify({"success": True, "message": f"{student.username} timed out"}), 200
+
+@user_views.route('/api/students/<int:student_id>/history', methods=['GET'])
+def student_history_api(student_id):
+    history = get_student_history(student_id)
+    if history is None:
+        return jsonify({'error': 'Student not found'}), 404
+    return jsonify(history)
+
+@user_views.route('/api/users', methods=['GET'])
+def get_users_action():
+    users = get_all_users_json()
+    return jsonify(users)
+
+@user_views.route('/api/users', methods=['POST'])
+def create_user_endpoint():
+    data = request.json
+    user = create_user(data['username'], data['password']) # pyright: ignore[reportOptionalSubscript]
+    return jsonify({'message': f"user {user.username} created with id {user.id}"})

@@ -41,3 +41,60 @@ def view_leaderboard_route():
     )
 
 
+#------------------------------------------
+# API endpoints for Performance Testing
+#------------------------------------------
+
+# View progress for a student
+@progress_views.route("/api/progress/<int:student_id>", methods=["GET"])
+@jwt_required()
+def api_view_progress(student_id):
+    progress_data = progress.viewProgress(student_id)
+    if progress_data:
+        total_points, current_balance = progress_data
+        return jsonify({
+            "student_id": student_id,
+            "total_points": total_points,
+            "current_balance": current_balance
+        }), 200
+    return jsonify({"error": "Student not found"}), 404
+
+
+# View leaderboard
+@progress_views.route("/api/progress/leaderboard", methods=["GET"])
+@jwt_required()
+def api_view_leaderboard():
+    leaderboard = progress.viewLeaderBoard()
+    user_id = get_jwt_identity()
+    user = Student.query.get(user_id)
+
+    if not user or user.role != "student":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    if user.timeout_until and user.timeout_until > datetime.utcnow():
+        return jsonify({
+            "error": f"Timed out until {user.timeout_until}. Please submit an appeal."
+        }), 403
+
+    # Attach avatar seeds for each student
+    usernames = [entry['username'] for entry in leaderboard]
+    students = Student.query.filter(Student.username.in_(usernames)).all()
+    avatar_seeds = {s.username: s.avatar_seed for s in students}
+
+    # Merge avatar seeds into leaderboard entries
+    enriched_leaderboard = []
+    for entry in leaderboard:
+        entry_copy = dict(entry)
+        entry_copy["avatar_seed"] = avatar_seeds.get(entry["username"])
+        enriched_leaderboard.append(entry_copy)
+
+    return jsonify({
+        "leaderboard": enriched_leaderboard,
+        "current_user": {
+            "id": user.id,
+            "username": user.username,
+            "avatar_seed": user.avatar_seed
+        }
+    }), 200
+
+

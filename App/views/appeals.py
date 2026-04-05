@@ -225,3 +225,108 @@ def submit_student_appeal_action():
     db.session.commit()
     flash("Appeal submitted successfully.", "success")
     return redirect(url_for("appeal_views.student_appeal_page"))
+
+
+
+#------------------------------------------
+# API endpoints for Performance Testing
+#------------------------------------------
+
+
+# STAFF: Get all pending appeals
+@appeal_views.route("/api/staff/appeals", methods=["GET"])
+@jwt_required()
+def api_get_staff_appeals():
+    staff = _get_current_staff()
+    if not staff or staff.role != "staff":
+        return {"error": "Unauthorized"}, 403
+
+    appealed_students = db.session.scalars(
+        db.select(Student).where(
+            (Student.appeal_status == "pending") |
+            ((Student.appeal_status.is_(None)) & (Student.appeal_desc.isnot(None)))
+        )
+    ).all()
+
+    appeals_json = []
+    for s in appealed_students:
+        _ensure_student_has_status(s)
+        appeals_json.append({
+            "id": s.id,
+            "username": s.username,
+            "appeal_status": s.appeal_status,
+            "appeal_desc": s.appeal_desc,
+            "appeal_image": s.appeal_image
+        })
+
+    return {"appeals": appeals_json}, 200
+
+
+# STAFF: Resolve appeal (approve or reject)
+@appeal_views.route("/api/staff/appeals/<int:student_id>/resolve", methods=["POST"])
+@jwt_required()
+def api_resolve_appeal(student_id):
+    staff = _get_current_staff()
+    if not staff or staff.role != "staff":
+        return {"error": "Unauthorized"}, 403
+
+    student = db.session.get(Student, student_id)
+    if not student:
+        return {"error": "Student not found"}, 404
+
+    action = request.json.get("action")
+    if action not in ("approve", "delete"):
+        return {"error": "Invalid action"}, 400
+
+    if action == "approve":
+        student.timeout_count = max(0, int(student.timeout_count or 0) - 1)
+        student.appeal_status = "approved"
+        student.appeal_desc = None
+        student.appeal_image = None
+        student.timeout_until = None
+    elif action == "delete":
+        student.appeal_status = "rejected"
+        student.appeal_desc = None
+        student.appeal_image = None
+
+    db.session.commit()
+    return {"success": True, "student_id": student.id, "appeal_status": student.appeal_status}, 200
+
+
+# STUDENT: Submit appeal
+@appeal_views.route("/api/student/appeal", methods=["POST"])
+@jwt_required()
+def api_submit_student_appeal():
+    student = _get_current_student()
+    if not student or student.role != "student":
+        return {"error": "Unauthorized"}, 403
+
+    if not has_active_timeout(student):
+        return {"error": "No active timeout to appeal"}, 400
+
+    desc = (request.json.get("appeal_desc") or "").strip()
+    if not desc:
+        return {"error": "Appeal description required"}, 400
+
+    student.appeal_desc = desc
+    student.appeal_status = "pending"
+    db.session.commit()
+
+    return {"success": True, "student_id": student.id, "appeal_status": student.appeal_status}, 201
+
+
+# STUDENT: View appeal status
+@appeal_views.route("/api/student/appeal", methods=["GET"])
+@jwt_required()
+def api_get_student_appeal():
+    student = _get_current_student()
+    if not student or student.role != "student":
+        return {"error": "Unauthorized"}, 403
+
+    return {
+        "student_id": student.id,
+        "username": student.username,
+        "appeal_status": student.appeal_status,
+        "appeal_desc": student.appeal_desc,
+        "appeal_image": student.appeal_image
+    }, 200

@@ -165,8 +165,35 @@ def reset_password_page():
 
 
 '''
-API Routes
+API Routes for Performance Testing
 '''
+
+# Signup API (JSON version)
+@auth_views.route('/api/signup', methods=['POST'])
+def api_signup():
+    data = request.json
+    if not data:
+        return jsonify({'error': 'Missing JSON body'}), 400
+    try:
+        result = signUp(data['email'], data['username'], data['password'])
+        if 'error' in result:
+            return jsonify({'error': result['error']}), 400
+
+        new_user = result['user']
+        # Auto-verify in testing/performance mode
+        if current_app.config.get("TESTING") or current_app.config.get("PERFORMANCE_TESTING"):
+            user_obj = User.query.get(new_user['id'])
+            user_obj.is_verified = True
+            db.session.commit()
+
+        return jsonify({
+            'message': f"Account created for {new_user['username']} as {new_user['role']}",
+            'user': new_user
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 400
+
 
 @auth_views.route('/api/login', methods=['POST'])
 def user_login_api():

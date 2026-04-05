@@ -38,7 +38,8 @@ def signUp(email, username, password):
         new_user.isFlagged = False  # Ensure new users are not flagged by default
         if current_app.config.get("TESTING"):
           new_user.verified = True
-        send_verification_email(new_user)  # Send verification email with token
+        if not new_user.is_verified:
+          send_verification_email(new_user)  # Send verification email with token
         db.session.commit()
         return {'success': True, 'user': new_user.get_json()}
     except Exception as e:
@@ -49,7 +50,7 @@ def login(username, password, device_id = None): # Login function that returns J
   result = db.session.execute(db.select(User).filter_by(username=username))
   user = result.scalar_one_or_none()
   # Skip verification requirement in test mode
-  if not current_app.config.get("TESTING") and not user.verified:
+  if not current_app.config.get("TESTING") and not user.is_verified:
     return {"error": "Account not verified. Please check your email for the verification link."}
   if user and user.check_password(password):
     if isinstance(user, Student):

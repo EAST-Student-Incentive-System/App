@@ -330,29 +330,6 @@ def view_upcoming_events_route():
     events = event.view_upcoming_events()
     return jsonify([e.get_json() for e in events]), 200
 
-@event_views.route("/api/events/student", methods=["GET"])
-@jwt_required()
-def view_all_events_route():
-    events = event.view_all_events()
-    return jsonify([e.get_json() for e in events]), 200
-
-@event_views.route("/api/events/<int:event_id>/join", methods=["POST"])
-@jwt_required()
-def join_event_route(event_id):
-
-    student_id = get_jwt_identity()
-
-    joined = event.join_event(student_id, event_id)
-
-    if joined is None:
-        return jsonify({"error": "Invalid student or event"}), 404
-
-    if joined is False:
-        return jsonify({"message": "Student already joined"}), 400
-
-    return jsonify({"message": "Student joined event"}), 200
-
-
 @event_views.route("/events/<int:event_id>/join", methods=["POST"])
 @jwt_required()
 def join_event_action(event_id):
@@ -481,8 +458,155 @@ def scan_qr_page():
     return render_template("scan_qr.html", user=user)
 
 
+#------------------------------------------
+# API endpoints for Performance Testing
+#------------------------------------------
+
+# Create event (staff only)
+@event_views.route("/api/events", methods=["POST"])
+@jwt_required()
+def api_create_event():
+    user_id = get_jwt_identity()
+    staff = Staff.query.get(user_id)
+    if not staff or staff.role != "staff":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.json
+    try:
+        start_dt = datetime.fromisoformat(data["start"])
+        end_dt = datetime.fromisoformat(data["end"])
+        new_event = Event(
+            staffId=staff.id,
+            name=data["name"],
+            type=data["type"],
+            description=data["description"],
+            start=start_dt,
+            end=end_dt,
+            location=data["location"],
+            active=data.get("active", True),
+            limit=data.get("limit")
+        )
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify(new_event.get_json()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 
+# Update event (staff only)
+@event_views.route("/api/events/<int:event_id>", methods=["PUT"])
+@jwt_required()
+def api_update_event(event_id):
+    user_id = get_jwt_identity()
+    staff = Staff.query.get(user_id)
+    if not staff or staff.role != "staff":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    event_obj = Event.query.get(event_id)
+    if not event_obj:
+        return jsonify({"error": "Event not found"}), 404
+
+    data = request.json
+    event_obj.name = data.get("name", event_obj.name)
+    event_obj.description = data.get("description", event_obj.description)
+    event_obj.type = data.get("type", event_obj.type)
+    if "start" in data:
+        event_obj.start = datetime.fromisoformat(data["start"])
+    if "end" in data:
+        event_obj.end = datetime.fromisoformat(data["end"])
+    event_obj.location = data.get("location", event_obj.location)
+    event_obj.active = data.get("active", event_obj.active)
+    event_obj.limit = data.get("limit", event_obj.limit)
+
+    db.session.commit()
+    return jsonify({"message": "Event updated", "event": event_obj.get_json()}), 200
+
+
+# Delete event (staff only)
+@event_views.route("/api/events/<int:event_id>", methods=["DELETE"])
+@jwt_required()
+def api_delete_event(event_id):
+    user_id = get_jwt_identity()
+    staff = Staff.query.get(user_id)
+    if not staff or staff.role != "staff":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    ok = event.delete_event(event_id, staff.id)
+    if not ok:
+        return jsonify({"error": "Event not found or unauthorized"}), 404
+    return jsonify({"success": True}), 200
+
+
+# View upcoming events
+@event_views.route("/api/events/upcoming", methods=["GET"])
+@jwt_required()
+def api_view_upcoming_events():
+    events = event.view_upcoming_events()
+    return jsonify([e.get_json() for e in events]), 200
+
+
+# View all events
+@event_views.route("/api/events", methods=["GET"])
+@jwt_required()
+def api_view_all_events():
+    events = event.view_all_events()
+    return jsonify([e.get_json() for e in events]), 200
+
+
+# Join event (student only)
+@event_views.route("/api/events/<int:event_id>/join", methods=["POST"])
+@jwt_required()
+def api_join_event(event_id):
+    student_id = get_jwt_identity()
+    joined = event.join_event(student_id, event_id)
+    if joined is None:
+        return jsonify({"error": "Invalid student or event"}), 404
+    if joined is False:
+        return jsonify({"message": "Already joined"}), 400
+    return jsonify({"success": True, "message": "Joined event"}), 200
+
+
+# Leave event (student only)
+@event_views.route("/api/events/<int:event_id>/leave", methods=["POST"])
+@jwt_required()
+def api_leave_event(event_id):
+    student_id = get_jwt_identity()
+    db.session.execute(
+        student_event.delete().where(
+            (student_event.c.student_id == student_id) &
+            (student_event.c.event_id == event_id)
+        )
+    )
+    db.session.commit()
+    return jsonify({"success": True, "message": "Left event"}), 200
+
+
+# Log attendance
+@event_views.route("/api/events/<int:event_id>/attendance/<int:student_id>", methods=["POST"])
+@jwt_required()
+def api_log_attendance(event_id, student_id):
+    attendance = event.log_attendance(student_id, event_id)
+    if attendance is None:
+        return jsonify({"error": "Invalid student or event"}), 404
+    if attendance is False:
+        return jsonify({"message": "Attendance not valid"}), 400
+    return jsonify(attendance), 201
+
+
+# Get participant count
+@event_views.route("/api/events/<int:event_id>/participants", methods=["GET"])
+@jwt_required()
+def api_get_participant_count(event_id):
+    cutoff_str = request.args.get("cutoff")
+    cutoff = datetime.fromisoformat(cutoff_str) if cutoff_str else None
+    count = get_participant_count(event_id, cutoff=cutoff)
+    return jsonify({"event_id": event_id, "participant_count": count}), 200
+
+@event_views.route("/api/events/student", methods=["GET"])
+@jwt_required()
+def view_all_events_route():
+    events = event.view_all_events()
+    return jsonify([e.get_json() for e in events]), 200
 
 
 

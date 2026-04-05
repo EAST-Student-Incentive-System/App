@@ -248,62 +248,6 @@ def list_rewards_page():
     rewards=Reward.query.filter_by(created_by=user.id).all()
     return render_template('staff_reward.html', rewards=rewards or [], user=user)
 
-
-''''@reward.route("/rewards", methods=["GET"])
-@jwt_required()
-def view_rewards():
-
-    search = request.args.get("search")
-    status = request.args.get("status", "all")
-
-    rewards = rewards_service.get_all_rewards(search, status)
-
-    return render_template(
-        "rewards.html",
-        rewards=rewards,
-        search=search,
-        status=status
-    )
-
-
-@reward.route("/rewards/<int:reward_id>/edit", methods=["GET"])
-@jwt_required()
-def edit_reward_page(reward_id):
-
-    reward_obj = rewards_service.get_reward(reward_id)
-
-    if not reward_obj:
-        flash("Reward not found", "error")
-        return redirect(url_for("reward.view_rewards"))
-
-    return render_template(
-        "reward_edit.html",
-        reward=reward_obj
-    )
-
-
-@reward.route("/rewards/<int:reward_id>/edit", methods=["POST"])
-@jwt_required()
-def update_reward_route(reward_id):
-
-    name = request.form.get("name")
-    description = request.form.get("description")
-    point_cost = request.form.get("point_cost")
-    active = True if request.form.get("active") == "on" else False
-
-    rewards_service.update_reward(
-        reward_id,
-        name=name,
-        description=description,
-        point_cost=point_cost,
-        active=active
-    )
-
-    flash("Reward updated successfully!", "success")
-    return redirect(url_for("reward.view_rewards"))
-
-'''
-
 # ----------------- Student Rewards Page ----------------
 
 @reward_views.route('/student/rewards', methods=['GET'])
@@ -389,3 +333,154 @@ def collect_reward_action(reward_id):
     db.session.commit()
     flash("Reward collected successfully!", "success")
     return redirect(url_for("reward_views.student_rewards_page"))
+
+
+#------------------------------------------
+# API endpoints for Performance Testing
+#------------------------------------------
+
+# Create reward (staff only)
+@reward_views.route('/api/rewards', methods=['POST'])
+@jwt_required()
+def api_create_reward():
+    user_id = get_jwt_identity()
+    staff = Staff.query.get(user_id)
+    if not staff or staff.role != 'staff':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.json
+    try:
+        reward = create_reward(
+            name=data['name'],
+            description=data['description'],
+            point_cost=int(data['point_cost']),
+            staff_id=staff.id,
+            active=data.get('active', True),
+            image=data.get('image'),
+            limit=data.get('limit')
+        )
+        return jsonify(reward.get_json()), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+# Update reward (staff only)
+@reward_views.route('/api/rewards/<int:reward_id>', methods=['PUT'])
+@jwt_required()
+def api_update_reward(reward_id):
+    user_id = get_jwt_identity()
+    staff = Staff.query.get(user_id)
+    if not staff or staff.role != 'staff':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.json
+    success = update_reward(reward_id, data)
+    if not success:
+        return jsonify({"error": "Reward not found"}), 404
+    reward_obj = Reward.query.get(reward_id)
+    return jsonify({"message": "Reward updated", "reward": reward_obj.get_json()}), 200
+
+
+# Delete reward (staff only)
+@reward_views.route('/api/rewards/<int:reward_id>', methods=['DELETE'])
+@jwt_required()
+def api_delete_reward(reward_id):
+    user_id = get_jwt_identity()
+    staff = Staff.query.get(user_id)
+    if not staff or staff.role != 'staff':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    ok = delete_reward(reward_id)
+    if not ok:
+        return jsonify({"error": "Reward not found"}), 404
+    return jsonify({"success": True}), 200
+
+
+# Toggle reward active/inactive (staff only)
+@reward_views.route('/api/rewards/<int:reward_id>/toggle', methods=['POST'])
+@jwt_required()
+def api_toggle_reward(reward_id):
+    user_id = get_jwt_identity()
+    staff = Staff.query.get(user_id)
+    if not staff or staff.role != 'staff':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    r = toggle_reward(reward_id)
+    if not r:
+        return jsonify({"error": "Reward not found"}), 404
+    return jsonify({"reward_id": r.id, "active": r.active}), 200
+
+
+# Staff reward history
+@reward_views.route('/api/staff/<int:staff_id>/rewards', methods=['GET'])
+@jwt_required()
+def api_reward_history(staff_id):
+    user_id = get_jwt_identity()
+    staff = Staff.query.get(user_id)
+    if not staff or staff.role != 'staff' or staff.id != staff_id:
+        return jsonify({"error": "Unauthorized"}), 403
+
+    res = viewRewardHistory(staff_id)
+    return jsonify(res or []), 200
+
+
+# Student rewards (balance + active + redeemed)
+@reward_views.route('/api/student/rewards', methods=['GET'])
+@jwt_required()
+def api_student_rewards():
+    user_id = get_jwt_identity()
+    student = Student.query.get(user_id)
+    if not student or student.role != 'student':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    rewards = viewReward(student.id) or []
+    redeemed = view_redeemed_rewards(student.id) or []
+    redeemed_json = [x.get_json() for x in redeemed]
+
+    milestones = [50, 100, 150, 200, 300, 500]
+    next_target = next((m for m in milestones if m > student.current_balance), None)
+    if next_target is None:
+        step = 500
+        next_target = ((student.current_balance // step) + 1) * step
+    pct = int(min(100, (student.current_balance / next_target) * 100))
+
+    return jsonify({
+        "student_id": student.id,
+        "balance": student.current_balance,
+        "rewards": rewards,
+        "redeemed": redeemed_json,
+        "next_target": next_target,
+        "pct": pct
+    }), 200
+
+
+# Student redeem reward
+@reward_views.route('/api/student/rewards/<int:reward_id>/redeem', methods=['POST'])
+@jwt_required()
+def api_student_redeem_reward(reward_id):
+    user_id = get_jwt_identity()
+    student = Student.query.get(user_id)
+    if not student or student.role != 'student':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    res = redeem_reward(student.id, reward_id)
+    if res is None:
+        return jsonify({"error": "Reward not found"}), 404
+    if res is False:
+        return jsonify({"error": "Not enough points"}), 400
+    return jsonify({"success": True, "redeemed_id": res.id}), 201
+
+
+# Student collect reward
+@reward_views.route('/api/student/rewards/<int:reward_id>/collect', methods=['POST'])
+@jwt_required()
+def api_collect_reward(reward_id):
+    user_id = get_jwt_identity()
+    reward = RedeemedReward.query.filter_by(id=reward_id, student_id=user_id).first()
+    if not reward or not reward.isValid:
+        return jsonify({"error": "Reward already collected or invalid"}), 400
+
+    reward.isValid = False
+    db.session.commit()
+    return jsonify({"success": True, "message": "Reward collected"}), 200
+

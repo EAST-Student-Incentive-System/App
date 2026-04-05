@@ -113,3 +113,91 @@ def student_badges_sections_page():
         weekly_badges=weekly_badges,
         all_badges=all_badges_data
     )
+
+#------------------------------------------
+# API endpoints for Performance Testing
+#------------------------------------------
+
+# Create a new badge
+@badge_views.route("/api/badges", methods=["POST"])
+@jwt_required()
+def api_create_badge():
+    data = request.json
+    if not data:
+        return jsonify({"error": "Missing JSON body"}), 400
+    new_badge = badge.createBadge(
+        name=data.get("name"),
+        description=data.get("description"),
+        points_required=data.get("points_required")
+    )
+    if new_badge:
+        return jsonify(new_badge.get_json()), 201
+    return jsonify({"error": "Badge with this name already exists"}), 400
+
+
+# Award a badge to the current student
+@badge_views.route("/api/badges/award", methods=["POST"])
+@jwt_required()
+def api_award_badge():
+    data = request.json
+    if not data or "badge_id" not in data:
+        return jsonify({"error": "Missing badge_id"}), 400
+    student_id = get_jwt_identity()
+    success = badge.awardBadge(student_id=student_id, badge_id=int(data["badge_id"]))
+    if success:
+        return jsonify({"success": True, "message": "Badge awarded successfully"}), 200
+    return jsonify({"error": "Failed to award badge"}), 400
+
+
+# View all badges in the system
+@badge_views.route("/api/badges", methods=["GET"])
+@jwt_required()
+def api_view_badges():
+    badges = badge.viewBadges()
+    return jsonify([b.get_json() for b in badges]), 200
+
+
+# View badges owned by a specific student
+@badge_views.route("/api/badges/student/<int:student_id>", methods=["GET"])
+@jwt_required()
+def api_view_student_badges(student_id):
+    badges = badge.viewStudentBadges(student_id)
+    return jsonify([b.get_json() for b in badges]), 200
+
+
+# View badges for the current student (earned, weekly, all)
+@badge_views.route("/api/student/badges", methods=["GET"])
+@jwt_required()
+def api_student_badges_sections():
+    user_id = get_jwt_identity()
+    student = Student.query.get(user_id)
+    if not student or student.role != "student":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    all_badges = badge.viewBadges() or []
+    earned_badge_ids = set(link.badge_id for link in (student.student_badges or []))
+
+    one_week_ago = datetime.utcnow() - timedelta(days=7)
+    weekly_badges = []
+    for link in student.student_badges:
+        if link.earned_at and link.earned_at >= one_week_ago:
+            data = link.badge.get_json()
+            data["earned"] = True
+            weekly_badges.append(data)
+
+    all_badges_data = []
+    for b in all_badges:
+        data = b.get_json()
+        data["earned"] = b.id in earned_badge_ids
+        all_badges_data.append(data)
+
+    earned_badges = [b for b in all_badges_data if b["earned"]]
+
+    return jsonify({
+        "student_id": student.id,
+        "balance": student.total_points,
+        "earned_badges": earned_badges,
+        "weekly_badges": weekly_badges,
+        "all_badges": all_badges_data
+    }), 200
+
