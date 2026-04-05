@@ -24,16 +24,18 @@ from App.controllers import (
     log_attendance, generate_qr, get_participant_count, signUp, change_password,
     createBadge, awardBadge, student_has_badge, check_and_award_badges, viewBadges, viewStudentBadges
 )
-from App.controllers.rewards import(
-    create_reward, get_reward, get_all_rewards, get_all_rewards_json,
-    toggle_reward, get_active_rewards, update_reward, redeem_reward, viewReward, viewRewardHistory
+from App.controllers.rewards import (
+    create_reward, 
+    get_reward, get_all_rewards, get_all_rewards_json, get_active_rewards, 
+    update_reward, toggle_reward, redeem_reward, viewReward, viewRewardHistory
 )
-from App.models import student
+from App.models import student, RedeemedReward
 from App.models.reward import Reward
 from App.models.staff import Staff
 from App.models.student import Student
 from App.controllers.rewards import create_reward, redeem_reward
 from App.controllers.redeemedReward import view_redeemed_rewards
+
 
 
 LOGGER = logging.getLogger(__name__)
