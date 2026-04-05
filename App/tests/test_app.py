@@ -713,6 +713,7 @@ class BadgeIntegrationTests(unittest.TestCase):
         assert len(student_badges) == 1
         assert student_badges[0].badge_id == badge14.id
 
+    
 class ProgressIntegrationTests(unittest.TestCase):
 
     def setUp(self):
