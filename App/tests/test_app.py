@@ -1,4 +1,5 @@
 import re
+from App.models.redeemed_reward import RedeemedReward
 import os, tempfile, pytest, logging, unittest
 #from turtle import st
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -32,6 +33,8 @@ from App.models import student, RedeemedReward
 from App.models.reward import Reward
 from App.models.staff import Staff
 from App.models.student import Student
+from App.controllers.rewards import create_reward, redeem_reward
+from App.controllers.redeemedReward import view_redeemed_rewards
 
 
 
@@ -760,6 +763,7 @@ class ProgressIntegrationTests(unittest.TestCase):
         ranks = [e['rank'] for e in leaderboard]
         assert ranks == list(range(1, len(leaderboard) + 1))
 
+
 class TestRewardsIntegration(unittest.TestCase):
     def setUp(self):
         self.app = create_app({
@@ -999,3 +1003,63 @@ class TestRewardsIntegration(unittest.TestCase):
         self.assertIn("S1", hist_names)
         self.assertIn("S2", hist_names)
         self.assertNotIn("OtherStaff", hist_names)
+
+
+class TestRedeemedRewardIntegration(unittest.TestCase):
+    def setUp(self):
+        self.app = create_app({
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///test.db",
+        })
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+        # Users
+        self.staff = create_user("rewardstaff@sta.uwi.edu", "rewardstaff", "pass123")
+        self.student = create_user("rewardstudent@my.uwi.edu", "rewardstudent", "pass123")
+
+        # Give student enough points to redeem
+        self.student.current_balance = 200
+        db.session.commit()
+
+        # Reward
+        self.reward = create_reward(
+            name="Coffee",
+            description="Hot drink",
+            point_cost=50,
+            created_by=self.staff.id,
+            active=True,
+            image=None,
+            limit=None,
+        )
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    # ---------------------------------------------------------------------
+    # test_view_redeemed_rewards()
+    # Ensures all rewards redeemed by a student are returned
+    def test_view_redeemed_rewards(self):
+        redeemed_ok = redeem_reward(self.student.id, self.reward.id)
+        self.assertTrue(redeemed_ok is not False)
+
+        redeemed = view_redeemed_rewards(self.student.id)
+        self.assertIsInstance(redeemed, list)
+        self.assertEqual(len(redeemed), 1)
+
+        rr = redeemed[0]
+        self.assertEqual(rr.student_id, self.student.id)
+        self.assertEqual(rr.reward_id, self.reward.id)
+        self.assertTrue(rr.isValid)
+
+    # ---------------------------------------------------------------------
+    # test_view_redeemed_rewards_none_redeemed()
+    # Ensures empty list is returned when student hasn't redeemed any rewards
+    def test_view_redeemed_rewards_none_redeemed(self):
+        redeemed = view_redeemed_rewards(self.student.id)
+        self.assertIsInstance(redeemed, list)
+        self.assertEqual(len(redeemed), 0)
