@@ -8,7 +8,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 from flask_jwt_extended import create_access_token, verify_jwt_in_request
-from App.controllers.badge import awardEventTypeBadge
+from App.controllers.badge import awardEventTypeBadge, createBadge, awardBadge, student_has_badge, check_and_award_badges, viewBadges, viewStudentBadges
 from App.controllers.progress import viewLeaderBoard, viewProgress
 from App.main import create_app
 from App.database import db, create_db
@@ -45,6 +45,8 @@ from App.controllers.user import (
     validate_password_strength,
     get_all_users,
 )
+from App.controllers.rewards import get_reward, get_all_rewards, get_all_rewards_json, get_active_rewards, update_reward, toggle_reward, redeem_reward, viewReward, viewRewardHistory
+from App.controllers.redeemedReward import view_redeemed_rewards
 from App.utils import is_valid_username
 
 
