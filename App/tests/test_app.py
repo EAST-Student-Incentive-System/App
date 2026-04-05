@@ -6,6 +6,7 @@ import base64
 import time
 from flask_jwt_extended import create_access_token, verify_jwt_in_request
 from App.controllers.badge import awardEventTypeBadge
+from App.controllers.progress import viewLeaderBoard, viewProgress
 from App.main import create_app
 from App.database import db, create_db
 from App.models import User
@@ -712,6 +713,51 @@ class BadgeIntegrationTests(unittest.TestCase):
         assert len(student_badges) == 1
         assert student_badges[0].badge_id == badge14.id
 
+class ProgressIntegrationTests(unittest.TestCase):
+
+    def setUp(self):
+        self.app = create_app({'TESTING': True, 'SQLALCHEMY_DATABASE_URI': 'sqlite:///test.db'})
+        self.ctx = self.app.app_context()
+        self.ctx.push()
+        db.create_all()
+
+    def tearDown(self):
+        db.session.rollback()
+        db.session.remove()
+        db.drop_all()
+        self.ctx.pop()
+
+    def test_viewProgress(self):
+        student = create_user("progress@my.uwi.edu", "progressuser", "pass")
+        student.add_points(150)
+        student.subtract_points(50)
+        db.session.commit()
+        result = viewProgress(student.id)
+        assert result == (150, 100)
+
+    def test_viewLeaderBoard(self):
+        s1 = create_user("s1@my.uwi.edu", "alice", "pass")
+        s2 = create_user("s2@my.uwi.edu", "bob", "pass")
+        s3 = create_user("s3@my.uwi.edu", "charlie", "pass")
+        s1.add_points(300)
+        s2.add_points(500)
+        s3.add_points(400)
+        db.session.commit()
+
+        leaderboard = viewLeaderBoard()
+
+        # Filter to only the students created in this test
+        test_usernames = {"alice", "bob", "charlie"}
+        filtered = [e for e in leaderboard if e['username'] in test_usernames]
+
+        assert len(filtered) == 3
+        assert filtered[0]['username'] == 'bob'
+        assert filtered[1]['username'] == 'charlie'
+        assert filtered[2]['username'] == 'alice'
+
+        # Verify rank numbers are sequential and ascending across the full leaderboard
+        ranks = [e['rank'] for e in leaderboard]
+        assert ranks == list(range(1, len(leaderboard) + 1))
 
 class TestRewardsIntegration(unittest.TestCase):
     def setUp(self):
