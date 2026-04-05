@@ -88,24 +88,3 @@ def api_student_rewards():
         "redeemed_rewards": [r.get_json() for r in redeemed]
     }), 200
 
-
-# Redeem a reward
-@reward_student_views.route("/api/student/rewards/<int:reward_id>/redeem", methods=["POST"])
-@jwt_required()
-def api_redeem_reward(reward_id):
-    student = _get_current_student()
-    if not student:
-        return jsonify({"error": "Student account required"}), 401
-
-    result = redeem_reward(student.id, reward_id)
-
-    if result is None:
-        return jsonify({"error": "Reward or student not found"}), 404
-    elif result is False:
-        return jsonify({"error": "Not enough points"}), 400
-    else:
-        return jsonify({
-            "success": True,
-            "message": "Reward redeemed successfully",
-            "redeemed_id": result.id
-        }), 201

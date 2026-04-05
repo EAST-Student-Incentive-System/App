@@ -459,7 +459,7 @@ def scan_qr_page():
 
 
 #------------------------------------------
-# API endpoints for Performance Testing
+# API endpoints for Performance Testing or backend use (not meant for frontend/Jinja consumption)
 #------------------------------------------
 
 # Create event (staff only)

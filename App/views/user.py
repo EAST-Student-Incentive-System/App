@@ -279,14 +279,3 @@ def student_history_api(student_id):
     if history is None:
         return jsonify({'error': 'Student not found'}), 404
     return jsonify(history)
-
-@user_views.route('/api/users', methods=['GET'])
-def get_users_action():
-    users = get_all_users_json()
-    return jsonify(users)
-
-@user_views.route('/api/users', methods=['POST'])
-def create_user_endpoint():
-    data = request.json
-    user = create_user(data['username'], data['password']) # pyright: ignore[reportOptionalSubscript]
-    return jsonify({'message': f"user {user.username} created with id {user.id}"})

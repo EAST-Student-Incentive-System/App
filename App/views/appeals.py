@@ -229,7 +229,7 @@ def submit_student_appeal_action():
 
 
 #------------------------------------------
-# API endpoints for Performance Testing
+# API endpoints for Performance Testing or backend use (not meant for frontend/Jinja consumption)
 #------------------------------------------
 
 

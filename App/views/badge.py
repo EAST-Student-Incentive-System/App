@@ -115,7 +115,7 @@ def student_badges_sections_page():
     )
 
 #------------------------------------------
-# API endpoints for Performance Testing
+# API endpoints for Performance Testing or backend use (not meant for frontend/Jinja consumption)
 #------------------------------------------
 
 # Create a new badge

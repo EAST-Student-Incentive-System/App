@@ -165,7 +165,7 @@ def reset_password_page():
 
 
 '''
-API Routes for Performance Testing
+API Routes for Performance Testing or backend use (not meant for frontend/Jinja consumption)
 '''
 
 # Signup API (JSON version)
@@ -181,10 +181,10 @@ def api_signup():
 
         new_user = result['user']
         # Auto-verify in testing/performance mode
-        if current_app.config.get("TESTING") or current_app.config.get("PERFORMANCE_TESTING"):
-            user_obj = User.query.get(new_user['id'])
-            user_obj.is_verified = True
-            db.session.commit()
+        
+        user_obj = User.query.get(new_user['id'])
+        user_obj.is_verified = True
+        db.session.commit()
 
         return jsonify({
             'message': f"Account created for {new_user['username']} as {new_user['role']}",
