@@ -192,18 +192,26 @@ def api_signup():
         }), 201
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': str(e)}), 400
+        return jsonify({'error': str(e)}), 400 #skips email verification for testing/performance mode since email sending is limited tries
 
 
 @auth_views.route('/api/login', methods=['POST'])
 def user_login_api():
-  data = request.json
-  token = login(data['username'], data['password'])
-  if not token:
-    return jsonify(message='bad username or password given'), 401
-  response = jsonify(access_token=token) 
-  set_access_cookies(response, token)
-  return response
+    data = request.json
+    result = login(data['username'], data['password'])
+
+    if 'error' in result:
+        return jsonify(message=result['error']), 401
+
+    access_token = result['access_token']
+    response = jsonify(
+        access_token=access_token,
+        user=result['user'],
+        role=result['role']
+    )
+    set_access_cookies(response, access_token)
+    return response
+
 
 @auth_views.route('/api/identify', methods=['GET'])
 @jwt_required()

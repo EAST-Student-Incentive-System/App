@@ -67,6 +67,7 @@ def initialize():
     Movie_Tickets = create_reward('Movie Tickets', 'Two tickets to the movies', 30 ,2)
     Massage_Coupon = create_reward('Massage Coupon', 'A coupon for a free massage at the campus wellness center', 40 ,2)
     Dorm_Snack_Box = create_reward('Dorm Snack Box', 'A box of snacks delivered to your dorm room', 15 ,2)
+    Ultimate_Pizza_Party = create_reward('Ultimate Pizza Party', 'A pizza party for you and 10 friends in the campus lounge', 2000 ,2)
     #//Fake_Reward = create_reward('Fake Reward', 'This reward is for testing purposes and has no point cost', 0 ,2)
 
     # Create events
@@ -92,6 +93,9 @@ def initialize():
     event11 = create_active_event(jane.id, 'Movie Night', 'Entertainment', 'Join us for a movie night under the stars with free popcorn and drinks.', 'Campus Lawn')
     event12 = create_active_event(jane.id, 'Volunteer Fair', 'Community Service', 'Learn about volunteer opportunities on and off campus and sign up to make a difference in your community.', 'Student Center Lobby')
     event13 = create_active_event(jane.id, 'Hackathon', 'Technology', 'Collaborate with fellow students to develop innovative solutions to real-world problems in our 24-hour hackathon.', 'Engineering Building, Room 101')
+    event14_start = now
+    event14_end = now + timedelta(days=7)  # Event lasts for 7 days
+    event14 = create_event(jane.id, 'Music Festival', 'Entertainment', 'Enjoy live performances from local bands and artists at our campus music festival.', event14_start, event14_end, 'Theather 1', None, True, 1)  # Example of an event with a limit
     # Give Bob some points for demo
     bob_obj = Student.query.filter_by(username='bob').first()
     if bob_obj:
@@ -100,7 +104,7 @@ def initialize():
         
         # Join Bob to ALL events and log attendance
         print("Now attempting to join events and log attendance for Bob...")
-        for event in [ event1, event2, event3, event4, event5, event6, event7, event8, event9, event10, event11, event12, event13 ]:
+        for event in [ event1, event2, event3, event4, event5, event6, event7, event8, event9, event10, event11, event12]:
             if event:
                 joined = join_event(bob_obj.id, event.id)
                 if joined:
@@ -114,11 +118,12 @@ def initialize():
     alice_obj = Student.query.filter_by(username='alice').first()
     if alice_obj and event1:  # pick Orientation or any event
         join_event(alice_obj.id, event1.id)
+        join_event(alice_obj.id, event14.id)  # Attempt to join the limited event to demonstrate limit functionality
         log_attendance(alice_obj.id, event1.id, datetime.now())
         print(f'Alice attended event: {event1.id} - {event1.name}')
 
         # Redeem ALL rewards for Bob
-        for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon, Dorm_Snack_Box]:
+        for reward in [reward_1, reward_2, reward_3, reward_4, reward_5, KFC_Bucket, Starbucks_Gift_Card, Movie_Tickets, Massage_Coupon]:
             if reward:
                 redeem_reward(bob_obj.id, reward.id, datetime.now() + timedelta(days=random.randint(1, 300)))  # Redeem with a random timestamp to demonstrate the student history page. Should be removed or modified for production use.
                 print(f'Bob redeemed reward: {reward.name} for {reward.pointCost} points')

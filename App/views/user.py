@@ -254,14 +254,18 @@ def api_unflag_student(student_id):
 @user_views.route('/api/staff/flagged/<int:student_id>/timeout', methods=['POST'])
 @jwt_required()
 def api_timeout_student(student_id):
-    staff_id = get_jwt_identity()
-    staff = db.session.get(Staff, int(staff_id)) if staff_id else None
-    if not staff or staff.role != "staff":
+    user_id = get_jwt_identity()
+    user = db.session.get(Staff, int(user_id)) if user_id else None
+    print(f"User ID from JWT: {user_id}, User Role: {user.role if user else 'N/A'}")
+    if not user or user.role != "staff":
         return jsonify({"error": "Unauthorized"}), 403
 
     student = db.session.get(Student, student_id)
     if not student:
         return jsonify({"error": "Student not found"}), 404
+    
+    if student.isFlagged == False:
+        return jsonify({"error": "Student is not flagged"}), 400
 
     student.timeout_count = int(student.timeout_count or 0) + 1
     if student.timeout_count >= 3:

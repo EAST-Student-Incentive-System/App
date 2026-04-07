@@ -354,7 +354,7 @@ def api_create_reward():
             name=data['name'],
             description=data['description'],
             point_cost=int(data['point_cost']),
-            staff_id=staff.id,
+            created_by=staff.id,
             active=data.get('active', True),
             image=data.get('image'),
             limit=data.get('limit')
@@ -373,12 +373,13 @@ def api_update_reward(reward_id):
     if not staff or staff.role != 'staff':
         return jsonify({"error": "Unauthorized"}), 403
 
-    data = request.json
-    success = update_reward(reward_id, data)
+    data = request.json or {}
+    success = update_reward(reward_id, created_by=staff.id, **data)
     if not success:
         return jsonify({"error": "Reward not found"}), 404
     reward_obj = Reward.query.get(reward_id)
     return jsonify({"message": "Reward updated", "reward": reward_obj.get_json()}), 200
+
 
 
 # Delete reward (staff only)
@@ -433,7 +434,8 @@ def api_student_rewards():
     if not student or student.role != 'student':
         return jsonify({"error": "Unauthorized"}), 403
 
-    rewards = viewReward(student.id) or []
+    # Convert rewards to JSON
+    rewards = [r.get_json() for r in (viewReward(student.id) or [])]
     redeemed = view_redeemed_rewards(student.id) or []
     redeemed_json = [x.get_json() for x in redeemed]
 
@@ -452,6 +454,7 @@ def api_student_rewards():
         "next_target": next_target,
         "pct": pct
     }), 200
+
 
 
 # Student redeem reward

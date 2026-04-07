@@ -237,8 +237,10 @@ def submit_student_appeal_action():
 @appeal_views.route("/api/staff/appeals", methods=["GET"])
 @jwt_required()
 def api_get_staff_appeals():
-    staff = _get_current_staff()
-    if not staff or staff.role != "staff":
+    user_id = get_jwt_identity()
+    user = db.session.get(Staff, user_id) or db.session.get(Student, user_id)
+
+    if not user or user.role != "staff":
         return {"error": "Unauthorized"}, 403
 
     appealed_students = db.session.scalars(
@@ -266,67 +268,63 @@ def api_get_staff_appeals():
 @appeal_views.route("/api/staff/appeals/<int:student_id>/resolve", methods=["POST"])
 @jwt_required()
 def api_resolve_appeal(student_id):
-    staff = _get_current_staff()
-    if not staff or staff.role != "staff":
+    user_id = get_jwt_identity()
+    user = db.session.get(Staff, user_id) or db.session.get(Student, user_id)
+
+    if not user or user.role != "staff":
         return {"error": "Unauthorized"}, 403
 
     student = db.session.get(Student, student_id)
     if not student:
         return {"error": "Student not found"}, 404
 
-    action = request.json.get("action")
-    if action not in ("approve", "delete"):
-        return {"error": "Invalid action"}, 400
-
-    if action == "approve":
-        student.timeout_count = max(0, int(student.timeout_count or 0) - 1)
-        student.appeal_status = "approved"
-        student.appeal_desc = None
-        student.appeal_image = None
-        student.timeout_until = None
-    elif action == "delete":
-        student.appeal_status = "rejected"
-        student.appeal_desc = None
-        student.appeal_image = None
+    student.appeal_desc = None
+    student.appeal_image = None
+    student.timeout_until = None
+    student.timeout_count = student.timeout_count - 1 if student.timeout_count and student.timeout_count > 0 else 0
+    student.appeal_status = "approved"
 
     db.session.commit()
     return {"success": True, "student_id": student.id, "appeal_status": student.appeal_status}, 200
-
 
 # STUDENT: Submit appeal
 @appeal_views.route("/api/student/appeal", methods=["POST"])
 @jwt_required()
 def api_submit_student_appeal():
-    student = _get_current_student()
-    if not student or student.role != "student":
+    user_id = get_jwt_identity()
+    user = db.session.get(Student, user_id)
+
+    if not user or user.role != "student":
         return {"error": "Unauthorized"}, 403
 
-    if not has_active_timeout(student):
+    if not has_active_timeout(user):
         return {"error": "No active timeout to appeal"}, 400
 
     desc = (request.json.get("appeal_desc") or "").strip()
     if not desc:
         return {"error": "Appeal description required"}, 400
 
-    student.appeal_desc = desc
-    student.appeal_status = "pending"
+    user.appeal_desc = desc
+    user.appeal_status = "pending"
     db.session.commit()
 
-    return {"success": True, "student_id": student.id, "appeal_status": student.appeal_status}, 201
-
+    return {"success": True, "student_id": user.id, "appeal_status": user.appeal_status}, 201
 
 # STUDENT: View appeal status
 @appeal_views.route("/api/student/appeal", methods=["GET"])
+@appeal_views.route("/api/student/appeal", methods=["GET"])
 @jwt_required()
 def api_get_student_appeal():
-    student = _get_current_student()
-    if not student or student.role != "student":
+    user_id = get_jwt_identity()
+    user = db.session.get(Student, user_id)
+
+    if not user or user.role != "student":
         return {"error": "Unauthorized"}, 403
 
     return {
-        "student_id": student.id,
-        "username": student.username,
-        "appeal_status": student.appeal_status,
-        "appeal_desc": student.appeal_desc,
-        "appeal_image": student.appeal_image
+        "student_id": user.id,
+        "username": user.username,
+        "appeal_status": user.appeal_status,
+        "appeal_desc": user.appeal_desc,
+        "appeal_image": user.appeal_image
     }, 200

@@ -562,7 +562,7 @@ def api_join_event(event_id):
     if joined is None:
         return jsonify({"error": "Invalid student or event"}), 404
     if joined is False:
-        return jsonify({"message": "Already joined"}), 400
+        return jsonify({"message": "Full"}), 400
     return jsonify({"success": True, "message": "Joined event"}), 200
 
 

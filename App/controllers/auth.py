@@ -12,7 +12,10 @@ from flask import current_app
 
 
 def signUp(email, username, password):
-
+    
+    if not email.endswith("@sta.uwi.edu") and not email.endswith("@my.uwi.edu"):
+        return {'error': 'Email must be a valid UWI email address.'}
+       
     # Check if email already exists
     existing_email = db.session.execute(
         db.select(User).filter_by(email=email)
@@ -49,6 +52,7 @@ def signUp(email, username, password):
 def login(username, password, device_id = None): # Login function that returns JWT token upon successful authentication and the role
   result = db.session.execute(db.select(User).filter_by(username=username))
   user = result.scalar_one_or_none()
+  print(f"Attempting login for username: {username}, device_id: {device_id}, role: {user.role if user else 'N/A'}")
   # Skip verification requirement in test mode
   if not current_app.config.get("TESTING") and not user.is_verified:
     return {"error": "Account not verified. Please check your email for the verification link."}
