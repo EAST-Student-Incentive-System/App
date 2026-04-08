@@ -40,7 +40,7 @@ def signUp(email, username, password):
         new_user = create_user(email, username, password)
         new_user.isFlagged = False  # Ensure new users are not flagged by default
         if current_app.config.get("TESTING"):
-          new_user.verified = True
+          new_user.is_verified = True
         if not new_user.is_verified:
           send_verification_email(new_user)  # Send verification email with token
         db.session.commit()
@@ -52,8 +52,8 @@ def signUp(email, username, password):
 def login(username, password, device_id = None): # Login function that returns JWT token upon successful authentication and the role
   result = db.session.execute(db.select(User).filter_by(username=username))
   user = result.scalar_one_or_none()
-  print(f"Attempting login for username: {username}, device_id: {device_id}, role: {user.role if user else 'N/A'}")
-  # Skip verification requirement in test mode
+  if not user:
+    return {'error': 'Invalid username or password.'}
   if not current_app.config.get("TESTING") and not user.is_verified:
     return {"error": "Account not verified. Please check your email for the verification link."}
   if user and user.check_password(password):
