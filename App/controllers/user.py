@@ -199,10 +199,10 @@ def send_verification_email(user):
         print(f"[ERROR] Failed to send email: {e}")
 
 def timeout_student(student):
-    student.isFlagged = False  # Unflag the student when applying timeout
     student.timeout_count += 1
     if student.timeout_count <3:
         student.timeout_until = datetime.utcnow() + timedelta(days=7)
     else:
         student.timeout_until = datetime.utcnow() + timedelta(days=365*100)  # effectively permanent
+    student.isFlagged = False  # Unflag the student when they are timed out
     db.session.commit()
