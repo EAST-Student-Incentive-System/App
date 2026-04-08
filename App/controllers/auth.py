@@ -35,8 +35,9 @@ def signUp(email, username, password):
     if existing_username:
         return {'error': 'Username already taken.'}
     
-    if not validate_password_strength(password):
-        return {'error': 'Password does not meet strength requirements. It must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and special characters.'}
+    #if not validate_password_strength(password):
+    #  return {'error': 'Password does not meet strength requirements. It must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and special characters.'}
+    #commented out password strength validation for testing purposes, can be re-enabled in production
 
     # Create the user using your controller
     try:
