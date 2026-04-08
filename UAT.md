@@ -1,6 +1,7 @@
 # User Acceptance Test (UAT) - Merit System
 
 ## Overview
+
 This UAT document validates core user-facing features of the Merit system, including navigation, user authentication, event management, rewards, and visual feedback mechanisms.
 
 ---
@@ -8,6 +9,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 1. Navigation & Navbar Functionality
 
 ### Test Case: Navbar Hamburger Menu Expansion (Student)
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-NAV-001: Hamburger menu toggle opens and closes sidebar navigation |
@@ -16,6 +18,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Hamburger icon is visible<br>✓ Sidebar drawer appears with smooth animation<br>✓ Sidebar contains all expected student menu links (Events, Leaderboard, Scan QR, Profile, Rewards, Badges, About Us)<br>✓ Drawer closes when toggled or overlay is clicked<br>✓ Page content remains accessible and not blocked |
 
 ### Test Case: Navbar Menu Links Navigation
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-NAV-002: Navbar menu links navigate to correct pages |
@@ -24,6 +27,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ All links navigate to correct pages<br>✓ Active menu item is highlighted with purple background (#660c9e)<br>✓ Page title updates appropriately<br>✓ No 404 errors occur<br>✓ Content loads within 2 seconds |
 
 ### Test Case: Navbar Active Link Indication
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-NAV-003: Active menu item is visually highlighted |
@@ -32,6 +36,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Only the current page's menu item is highlighted<br>✓ Highlight color is purple (#660c9e)<br>✓ Highlight changes when navigating between pages<br>✓ Highlight is applied consistently across all menu items |
 
 ### Test Case: Logout Functionality
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-NAV-004: Logout button ends user session |
@@ -44,6 +49,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 2. Authentication & Login
 
 ### Test Case: User Login - Valid Credentials
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-AUTH-001: User can log in with valid username and password |
@@ -52,6 +58,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Login form accepts input<br>✓ Login button is clickable<br>✓ User is authenticated and logged in<br>✓ Redirect occurs to correct dashboard within 2 seconds<br>✓ Navbar displays user's role-specific menu items<br>✓ No error messages appear |
 
 ### Test Case: User Login - Invalid Credentials
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-AUTH-002: User cannot log in with invalid credentials; error message displayed |
@@ -60,6 +67,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Login fails with invalid credentials<br>✓ Clear error message appears (e.g., "Invalid username or password")<br>✓ Error message is visible and readable<br>✓ User remains on login page<br>✓ User can retry login |
 
 ### Test Case: Signup New User
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-AUTH-003: New user can sign up with valid information |
@@ -72,6 +80,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 3. Flash Notifications & Visual Feedback
 
 ### Test Case: Flash Message Display & Auto-Dismiss
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-FEEDBACK-001: Flash messages appear and automatically dismiss after timeout |
@@ -80,6 +89,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Flash message appears immediately after action<br>✓ Message is positioned in top-right corner<br>✓ Message text is clear and readable<br>✓ Message color indicates category (success=green, error=red, info=blue)<br>✓ Message auto-dismisses after 3 seconds<br>✓ Message can be manually closed with close button (×)<br>✓ Multiple messages stack vertically<br>✓ Page content remains accessible |
 
 ### Test Case: Flash Message Manual Dismiss
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-FEEDBACK-002: User can manually close flash notifications |
@@ -88,6 +98,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Close button is visible and clickable<br>✓ Message disappears on click<br>✓ No animation glitches occur<br>✓ Other messages (if present) remain unaffected |
 
 ### Test Case: Error Notification Display
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-FEEDBACK-003: Error messages display with appropriate styling and content |
@@ -96,6 +107,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Error message appears prominently<br>✓ Error message text is descriptive and actionable<br>✓ Error styling is clearly distinct from success/info messages<br>✓ No sensitive information is exposed in error messages<br>✓ User can dismiss error and continue |
 
 ### Test Case: Success Notification Display
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-FEEDBACK-004: Success messages display with appropriate styling |
@@ -108,6 +120,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 4. Student Dashboard & Events
 
 ### Test Case: Student View Upcoming Events
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-EVENTS-001: Student can view list of upcoming events with details |
@@ -116,6 +129,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Events page loads without errors<br>✓ Event cards are displayed in list view<br>✓ Each card shows key information clearly<br>✓ Events are chronologically ordered<br>✓ Event detail view is accessible<br>✓ Page is responsive on mobile and desktop |
 
 ### Test Case: Student Join Event
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-EVENTS-002: Student can join an event |
@@ -124,6 +138,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Join button is visible and clickable<br>✓ Join action completes without errors<br>✓ Success message confirms enrollment<br>✓ Event now appears in student's event list<br>✓ Join button is disabled or shows "Joined" status<br>✓ Student count for event increases |
 
 ### Test Case: Student Leave Event
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-EVENTS-003: Student can leave a joined event |
@@ -136,6 +151,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 5. Rewards & Redemption
 
 ### Test Case: Student View Available Rewards
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-REWARDS-001: Student can view list of available rewards |
@@ -144,6 +160,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Rewards page loads without errors<br>✓ Reward cards display clearly with readable text<br>✓ Reward cost/point value is visible<br>✓ Available/unavailable status is clear<br>✓ Page is responsive on mobile and desktop<br>✓ Rewards can be searched or filtered (if implemented) |
 
 ### Test Case: Student Redeem Available Reward
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-REWARDS-002: Student can redeem an available reward with sufficient balance |
@@ -152,6 +169,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Redeem button is visible and clickable<br>✓ Confirmation dialog is clear and informative<br>✓ Redemption completes successfully<br>✓ Success message confirms redemption with reward details<br>✓ Reward status changes to "Redeemed" or "Claimed"<br>✓ Student balance updates immediately<br>✓ Redeemed reward appears in redemption history |
 
 ### Test Case: Student Cannot Redeem Reward with Insufficient Balance
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-REWARDS-003: System prevents redeeming reward with insufficient points |
@@ -164,6 +182,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 6. Badges & Achievements
 
 ### Test Case: Student View Earned Badges
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-BADGES-001: Student can view earned badges with details |
@@ -172,6 +191,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Badges page loads without errors<br>✓ Earned badges are displayed and visually distinct<br>✓ Badge information is complete and accurate<br>✓ Badge icons/images load and display correctly<br>✓ Badges are organized logically (by category, date, etc.)<br>✓ Page is responsive on mobile and desktop |
 
 ### Test Case: Horizontal Scroll for Earned Badges
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-BADGES-002: Earned badges can be scrolled horizontally when exceeding viewport |
@@ -184,6 +204,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 7. Leaderboard & Progress
 
 ### Test Case: Student View Leaderboard
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-LEADERBOARD-001: Student can view ranked leaderboard of all students |
@@ -192,6 +213,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Leaderboard page loads without errors<br>✓ Students are correctly ranked by points (descending)<br>✓ Current user is highlighted or clearly indicated<br>✓ All required columns are visible and readable<br>✓ Ranking updates when points change<br>✓ Page is responsive on mobile and desktop |
 
 ### Test Case: Student View Personal Progress
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-PROGRESS-001: Student can view personal progress and achievement metrics |
@@ -204,6 +226,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 8. QR Code Scanning
 
 ### Test Case: Student Access QR Scan Page
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-QR-001: Student can access QR code scanning page |
@@ -212,6 +235,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ QR scan page loads without errors<br>✓ Camera permission dialog appears (if needed)<br>✓ Camera feed displays when permission granted<br>✓ Instructions are clear for user<br>✓ Interface is responsive and accessible<br>✓ No console errors appear |
 
 ### Test Case: Student Scan Valid QR Code
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-QR-002: Student can scan QR code to check in to event |
@@ -224,6 +248,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 9. Staff Dashboard - Events Management
 
 ### Test Case: Staff Create New Event
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-STAFF-EVENTS-001: Staff can create a new event with required details |
@@ -232,6 +257,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Event creation form is accessible<br>✓ Form accepts all required inputs<br>✓ Form validation works for required fields<br>✓ Event is successfully created and saved<br>✓ Success message confirms creation<br>✓ New event is visible in event list immediately<br>✓ Event can be edited after creation |
 
 ### Test Case: Staff Generate QR Code for Event
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-STAFF-EVENTS-002: Staff can generate QR code for event attendance tracking |
@@ -244,6 +270,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 10. Staff Dashboard - Rewards Management
 
 ### Test Case: Staff Create New Reward
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-STAFF-REWARDS-001: Staff can create and configure new reward offerings |
@@ -252,6 +279,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Reward creation form is accessible<br>✓ All fields accept input correctly<br>✓ Form validation enforces required fields<br>✓ Reward is successfully created<br>✓ Success message confirms creation<br>✓ New reward is visible in list<br>✓ Reward settings are saved correctly |
 
 ### Test Case: Staff Toggle Reward Availability
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-STAFF-REWARDS-002: Staff can enable/disable reward availability to students |
@@ -264,6 +292,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 11. Responsive Design & Layout
 
 ### Test Case: Mobile Responsive Layout - Navbar
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-RESPONSIVE-001: Navbar is fully functional on mobile devices |
@@ -272,6 +301,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Hamburger menu is visible at mobile width<br>✓ Logo is visible and properly sized<br>✓ Logout button is accessible<br>✓ Drawer opens and closes properly<br>✓ All menu items are readable and tappable<br>✓ Navbar does not overflow or cause horizontal scroll<br>✓ Touch interactions work smoothly |
 
 ### Test Case: Mobile Responsive Layout - Content
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-RESPONSIVE-002: Page content is readable and usable on mobile |
@@ -280,6 +310,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Content stacks properly at mobile width<br>✓ Text is readable (no 12pt or smaller)<br>✓ Buttons and inputs are tap-friendly (44x44px minimum)<br>✓ No horizontal scrolling required<br>✓ Images scale responsively<br>✓ Tables are scrollable or reorganized for mobile<br>✓ Page loads and functions smoothly |
 
 ### Test Case: Tablet & Desktop Layout
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-RESPONSIVE-003: Page layout adapts for tablet and desktop viewports |
@@ -292,6 +323,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 12. Performance & Loading
 
 ### Test Case: Page Load Time
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-PERF-001: Pages load in acceptable time (< 3 seconds) |
@@ -304,6 +336,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 13. Accessibility
 
 ### Test Case: Keyboard Navigation
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-A11Y-001: All interactive elements are accessible via keyboard |
@@ -312,6 +345,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ All buttons and links are focusable via Tab<br>✓ Focus indicator is visible and clear<br>✓ Buttons activate with Enter/Space<br>✓ Links navigate with Enter<br>✓ Modals can be closed with Escape<br>✓ Form can be submitted with Enter<br>✓ Tab order is logical and follows visual flow |
 
 ### Test Case: Color Contrast
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-A11Y-002: Text has sufficient color contrast for readability |
@@ -324,6 +358,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 14. Error Handling & Edge Cases
 
 ### Test Case: 404 Page Not Found
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-ERROR-001: Accessing invalid URL displays helpful 404 error page |
@@ -332,6 +367,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ 404 page is displayed instead of blank screen<br>✓ Error message is clear and user-friendly<br>✓ Navigation options are provided<br>✓ Navbar is functional and accessible<br>✓ No console errors appear |
 
 ### Test Case: Unauthorized Access Attempt
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-ERROR-002: Attempting to access protected pages without login redirects appropriately |
@@ -340,6 +376,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Access is denied to protected pages<br>✓ User is redirected to login page<br>✓ Original page context is preserved (optional redirect after login)<br>✓ No sensitive information is leaked<br>✓ Error is handled gracefully |
 
 ### Test Case: Network Error Handling
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-ERROR-003: Application handles network errors gracefully |
@@ -352,6 +389,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 15. Cross-Browser Compatibility
 
 ### Test Case: Compatibility - Chrome/Edge
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-COMPAT-001: Application functions correctly in Chrome and Edge browsers |
@@ -360,6 +398,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ All features work identically in Chrome and Edge<br>✓ Visual styling is consistent<br>✓ No browser-specific bugs or issues<br>✓ Flash messages work in both browsers<br>✓ Navigation is smooth in both browsers<br>✓ No console errors |
 
 ### Test Case: Compatibility - Firefox & Safari
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-COMPAT-002: Application functions correctly in Firefox and Safari browsers |
@@ -372,6 +411,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 16. Data Validation & Security
 
 ### Test Case: Form Input Validation
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-VALIDATE-001: Form inputs are validated before submission |
@@ -380,6 +420,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Required field errors display<br>✓ Format validation works (email, URL, etc.)<br>✓ Error messages are clear and specific<br>✓ Form is not submitted with invalid data<br>✓ Errors are displayed near the problematic field<br>✓ User can correct and resubmit |
 
 ### Test Case: Password Strength Requirements
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-VALIDATE-002: Password must meet minimum strength requirements |
@@ -388,6 +429,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Password strength requirements are enforced<br>✓ Requirements are clearly communicated<br>✓ Weak passwords are rejected with message<br>✓ Strong passwords are accepted<br>✓ Password field has confirmation match validation<br>✓ Mismatch is caught before submission |
 
 ### Test Case: XSS Protection
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-SECURITY-001: HTML/script injection is prevented |
@@ -400,6 +442,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 ## 17. Modals & Dialogs
 
 ### Test Case: Modal Dialog Opens and Closes
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-MODAL-001: Modal dialogs open, close, and handle user interactions |
@@ -408,6 +451,7 @@ This UAT document validates core user-facing features of the Merit system, inclu
 | **Test Criteria** | ✓ Modal appears with overlay<br>✓ Modal is centered and readable<br>✓ Cancel button closes without action<br>✓ Confirm button executes action and closes<br>✓ Escape key closes modal<br>✓ Overlay outside modal can close it (optional)<br>✓ Page content is not accessible while modal is open |
 
 ### Test Case: Modal Does Not Lose Focus
+
 | **Category** | **Details** |
 |---|---|
 | **Test case** | TC-MODAL-002: Keyboard focus is trapped within modal for accessibility |
@@ -419,24 +463,15 @@ This UAT document validates core user-facing features of the Merit system, inclu
 
 ## Test Execution Notes
 
-**Priority Levels:**
-- **Critical**: Navigation, login, core workflows (events, rewards)
-- **High**: Visual feedback, responsive design, error handling
-- **Medium**: Cross-browser, accessibility, edge cases
-- **Low**: Performance optimization, advanced features
+### Priority Levels
 
-**Test Environment:**
-- Browser: Chrome, Firefox, Safari, Edge (latest versions)
-- Devices: Desktop, Tablet (iPad), Mobile (iPhone 12, Android)
-- Network: Standard broadband (3 Mbps down), Mobile 4G
+- Critical: Navigation, login, core workflows (events, rewards)
+- High: Visual feedback, responsive design, error handling
+- Medium: Cross-browser, accessibility, edge cases
+- Low: Performance optimization, advanced features
+
+### Test Environment
+
+- Browser: Chrome
+- Devices: Desktop. Used devtools to emulate iPhones
 - Database: Test environment with sample data
-
-**Sign-off:**
-- **Tester Name**: ________________
-- **Date**: ________________
-- **Overall Result**: ☐ PASS   ☐ FAIL
-- **Comments/Issues**: _______________________________________________
-
----
-
-*End of User Acceptance Test Document*
