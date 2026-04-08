@@ -3,7 +3,7 @@ from App.controllers.user import User, create_user
 from App.database import db
 from flask import request
 
-from App.controllers.user import send_verification_email
+from App.controllers.user import send_verification_email, validate_password_strength
 
 from App.models import User, Staff, Student
 from App.utils import is_valid_username
@@ -34,6 +34,9 @@ def signUp(email, username, password):
     ).scalar_one_or_none()
     if existing_username:
         return {'error': 'Username already taken.'}
+    
+    if not validate_password_strength(password):
+        return {'error': 'Password does not meet strength requirements. It must be at least 8 characters long and include uppercase letters, lowercase letters, numbers, and special characters.'}
 
     # Create the user using your controller
     try:
