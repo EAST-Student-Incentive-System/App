@@ -14,6 +14,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 import os
 from flask import current_app
+from datetime import timedelta
 
 
 
@@ -196,3 +197,12 @@ def send_verification_email(user):
         print(f"[DEBUG] SendGrid response status: {response.status_code}")
     except Exception as e:
         print(f"[ERROR] Failed to send email: {e}")
+
+def timeout_student(student):
+    student.isFlagged = False  # Unflag the student when applying timeout
+    student.timeout_count += 1
+    if student.timeout_count <3:
+        student.timeout_until = datetime.utcnow() + timedelta(days=7)
+    else:
+        student.timeout_until = datetime.utcnow() + timedelta(years=100)
+    db.session.commit()
