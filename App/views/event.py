@@ -288,7 +288,8 @@ def qr_image(event_id):
 
     # Rotate QR every 10 seconds
     timeslot = int(time.time() // 10)
-    qr_data = f"{event_id}-{timeslot}"
+    qr_data = f"event:{event_id}|t:{timeslot}"
+
 
     qr = qrcode.QRCode(box_size=10, border=4)
     qr.add_data(qr_data)
