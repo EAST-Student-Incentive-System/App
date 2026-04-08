@@ -84,6 +84,7 @@ def login_action():
         response = redirect(url_for('event_views.get_student_events_route'))
     else:
         response = redirect(url_for('index_views.index_page')) 
+    unset_jwt_cookies(response)  # Clear any existing tokens
     set_access_cookies(response, token)   # <-- attach JWT to cookie
     return response
 
