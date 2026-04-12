@@ -1,0 +1,2568 @@
+{
+  "info": {
+    "_postman_id": "c337a407-8cab-495d-8013-d95e0ce47114",
+    "name": "Merit",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "42602843"
+  },
+  "item": [
+    {
+      "name": "Signup- bad email",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Signup should fail with bad email domain\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 401, 422]); // depending on your API\r",
+              "});\r",
+              "pm.test(\"Error message should be present\", function () {\r",
+              "    pm.expect(res).to.have.property(\"error\");\r",
+              "});\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"bob@gmail.com\",\r\n  \"username\": \"bob\",\r\n  \"password\": \"bobpass\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/signup",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "signup"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Weak Username",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Signup fails with weak username\", function () {\r",
+              "    pm.response.to.have.status(400); // or 422 depending on your API\r",
+              "    var jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.have.property(\"error\");\r",
+              "    pm.expect(jsonData.error).to.include(\"Username must be at least 3 characters long.\");\r",
+              "});\r",
+              "\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"weakuser@my.uwi.edu\",\r\n  \"username\": \"a\",\r\n  \"password\": \"StrongPass123!\"\r\n}\r\n"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/signup",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "signup"
+          ],
+          "query": [
+            {
+              "key": "",
+              "value": null,
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Signup-Student",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Signup should succeed for student with valid domain\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([200, 201]); // depending on your API\r",
+              "});\r",
+              "pm.test(\"Response should contain a success message or token\", function () {\r",
+              "    pm.expect(res).to.have.property(\"message\");\r",
+              "    pm.expect(res.message).to.include(\"Account created\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"john@my.uwi.edu\",\r\n  \"username\": \"john\",\r\n  \"password\": \"johnpass\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/signup",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "signup"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Signup-Staff",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Signup should succeed for staff with valid domain\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(201); // or 200 depending on your API\r",
+              "});\r",
+              "pm.test(\"Response should contain a success message or token\", function () {\r",
+              "    pm.expect(res).to.have.property(\"message\");\r",
+              "    pm.expect(res.message).to.include(\"Account created\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"james@sta.uwi.edu\",\r\n  \"username\": \"james\",\r\n  \"password\": \"jamespass\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/signup",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "signup"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login-(bad)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Login should fail with bad credentials\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([400, 401]);\r",
+              "});\r",
+              "pm.test(\"Error message should be present\", function () {\r",
+              "    pm.expect(res.message).to.include(\"Invalid\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"bob\",\r\n  \"password\": \"wrongpass\"\r\n}\r\n"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Staff Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Staff login should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "pm.test(\"Response should contain access_token\", function () {\r",
+              "    pm.expect(res).to.have.property(\"access_token\");\r",
+              "    pm.environment.set(\"jane_token\", res.access_token); // save token for later requests\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"jane\",\r\n  \"password\": \"janepass\"\r\n}\r\n"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Event",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Create event should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(201);\r",
+              "    pm.expect(res).to.have.property(\"id\");\r",
+              "    pm.expect(res).to.have.property(\"name\");\r",
+              "    pm.expect(res.name).to.eql(\"Tech Talk\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jane_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Tech Talk\",\r\n  \"type\": \"Technology\",\r\n  \"description\": \"A seminar on backend APIs\",\r\n  \"start\": \"2026-04-10T09:00:00\",\r\n  \"end\": \"2026-04-10T11:00:00\",\r\n  \"location\": \"Engineering Building, Room 202\",\r\n  \"active\": true,\r\n  \"limit\": 50\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Event",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Update event should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "    pm.expect(res).to.have.property(\"message\");\r",
+              "    pm.expect(res.message).to.include(\"Event updated\");\r",
+              "    pm.expect(res).to.have.property(\"event\");\r",
+              "    pm.expect(res.event.name).to.eql(\"Tech Talk Updated\");\r",
+              "});\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jane_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Tech Talk Updated\",\r\n  \"description\": \"Updated seminar description\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/events/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Event",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Delete event should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "    pm.expect(res).to.have.property(\"success\");\r",
+              "    pm.expect(res.success).to.eql(true);\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jane_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/events/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "1"
+          ],
+          "query": [
+            {
+              "key": "",
+              "value": null,
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Rewards History-Staff",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Reward history should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "    pm.expect(res).to.be.an(\"array\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/staff/2/rewards",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "staff",
+            "2",
+            "rewards"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Reward",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Create reward should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(201);\r",
+              "    pm.expect(res).to.have.property(\"id\");\r",
+              "    pm.expect(res).to.have.property(\"name\");\r",
+              "    pm.expect(res.name).to.eql(\"Library Voucher\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jane_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"Library Voucher\",\r\n  \"description\": \"Redeemable for library services\",\r\n  \"point_cost\": 100,\r\n  \"active\": true,\r\n  \"image\": \"voucher.png\",\r\n  \"limit\": 10\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/rewards",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "rewards"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Reward",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Update reward should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "    pm.expect(res).to.have.property(\"message\");\r",
+              "    pm.expect(res.message).to.include(\"Reward updated\");\r",
+              "    pm.expect(res).to.have.property(\"reward\");\r",
+              "    pm.expect(res.reward.name).to.eql(\"New Reward\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jane_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"New Reward\",\r\n  \"description\": \"Updated description\",\r\n  \"point_cost\": 120,\r\n  \"active\": true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/rewards/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "rewards",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Timeout",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Jane should be able to timeout Bob\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "pm.test(\"Response should confirm timeout\", function () {\r",
+              "    pm.expect(res).to.have.property(\"message\");\r",
+              "    pm.expect(res.message.toLowerCase()).to.include(\"timed out\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jane_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/staff/flagged/3/timeout",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "staff",
+            "flagged",
+            "3",
+            "timeout"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Timeout not flagged",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"John should not be flagged\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(400);\r",
+              "    pm.expect(res.error).to.eql(\"Student is not flagged\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jane_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/staff/flagged/5/timeout",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "staff",
+            "flagged",
+            "5",
+            "timeout"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Appeals",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Jane should be able to view all pending appeals\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "    pm.expect(res).to.have.property(\"appeals\");\r",
+              "    pm.expect(res.appeals).to.be.an(\"array\");\r",
+              "});\r",
+              "pm.test(\"Appeals should include Bob's pending appeal\", function () {\r",
+              "    let bobAppeal = res.appeals.find(a => a.username === \"bob\");\r",
+              "    pm.expect(bobAppeal).to.not.be.undefined;\r",
+              "    pm.expect(bobAppeal.appeal_status).to.eql(\"pending\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jane_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/staff/appeals",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "staff",
+            "appeals"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Resolve Appeal",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Appeal resolved successfully by staff\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "    const jsonData = pm.response.json();\r",
+              "    pm.expect(jsonData).to.have.property(\"success\", true);\r",
+              "    pm.expect(jsonData).to.have.property(\"student_id\");\r",
+              "    pm.expect(jsonData).to.have.property(\"appeal_status\", \"approved\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jane_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/staff/appeals/4/resolve",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "staff",
+            "appeals",
+            "4",
+            "resolve"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Student Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Student login should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "pm.test(\"Response should contain access_token\", function () {\r",
+              "    pm.expect(res).to.have.property(\"access_token\");\r",
+              "    pm.environment.set(\"bob_token\", res.access_token); // save token for later requests\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"bob\",\r\n  \"password\": \"bobpass\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Unflag-Unauthorized",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Bob should not be able to unflag himself\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]); // unauthorized/forbidden\r",
+              "});\r",
+              "pm.test(\"Error message should indicate unauthorized action\", function () {\r",
+              "    pm.expect(res).to.have.property(\"error\");\r",
+              "    pm.expect(res.error).to.equal(\"Unauthorized\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/staff/flagged/1/unflag",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "staff",
+            "flagged",
+            "1",
+            "unflag"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Submit appeal",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Bob should be able to submit an appeal\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(201);\r",
+              "    pm.expect(res).to.have.property(\"success\");\r",
+              "    pm.expect(res.success).to.eql(true);\r",
+              "});\r",
+              "pm.test(\"Appeal status should be pending\", function () {\r",
+              "    pm.expect(res).to.have.property(\"appeal_status\");\r",
+              "    pm.expect(res.appeal_status).to.eql(\"pending\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"appeal_desc\": \"I believe the timeout was unfair\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/student/appeal",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "student",
+            "appeal"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Resolve Appeal-unauthorized",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "pm.test(\"Bob should NOT be able to resolve his own appeal\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([401, 403]); // unauthorized/forbidden\r",
+              "});\r",
+              "pm.test(\"Error message should indicate unauthorized action\", function () {\r",
+              "    pm.expect(res).to.have.property(\"error\");\r",
+              "    pm.expect(res.error.toLowerCase()).to.include(\"unauthorized\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"action\": \"approve\"\r\n}\r\n",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/api/staff/appeals/1/resolve",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "staff",
+            "appeals",
+            "1",
+            "resolve"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Profile-Student",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Profile request should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain student_id and history\", function () {\r",
+              "    pm.expect(res).to.have.property(\"student_id\");\r",
+              "    pm.expect(res.student_id).to.eql(1); // adjust ID if testing another student\r",
+              "    pm.expect(res).to.have.property(\"history\");\r",
+              "    pm.expect(res.history).to.be.an(\"object\"); // history is an object, not an array\r",
+              "});\r",
+              "\r",
+              "pm.test(\"History object should have content\", function () {\r",
+              "    pm.expect(Object.keys(res.history).length).to.be.greaterThan(0);\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/students/1/profile",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "students",
+            "1",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View All Badges-Student",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Badge request should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should be an array of badges\", function () {\r",
+              "    pm.expect(res).to.be.an(\"array\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Each badge should contain expected fields\", function () {\r",
+              "    if (res.length > 0) {\r",
+              "        let badge = res[0];\r",
+              "        pm.expect(badge).to.have.property(\"id\");\r",
+              "        pm.expect(badge).to.have.property(\"name\");\r",
+              "        pm.expect(badge).to.have.property(\"description\");\r",
+              "    }\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/badges",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "badges"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Student badges",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Badge sections request should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain student_id and balance\", function () {\r",
+              "    pm.expect(res).to.have.property(\"student_id\");\r",
+              "    pm.expect(res.student_id).to.eql(1); // adjust if testing another student\r",
+              "    pm.expect(res).to.have.property(\"balance\");\r",
+              "    pm.expect(res.balance).to.be.a(\"number\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain earned_badges, weekly_badges, and all_badges arrays\", function () {\r",
+              "    pm.expect(res).to.have.property(\"earned_badges\");\r",
+              "    pm.expect(res.earned_badges).to.be.an(\"array\");\r",
+              "\r",
+              "    pm.expect(res).to.have.property(\"weekly_badges\");\r",
+              "    pm.expect(res.weekly_badges).to.be.an(\"array\");\r",
+              "\r",
+              "    pm.expect(res).to.have.property(\"all_badges\");\r",
+              "    pm.expect(res.all_badges).to.be.an(\"array\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"All badges should include earned flag\", function () {\r",
+              "    if (res.all_badges.length > 0) {\r",
+              "        res.all_badges.forEach(badge => {\r",
+              "            pm.expect(badge).to.have.property(\"earned\");\r",
+              "            pm.expect(badge.earned).to.be.a(\"boolean\");\r",
+              "        });\r",
+              "    }\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/student/badges",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "student",
+            "badges"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Upcoming Events",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Upcoming events request should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should be an array of events\", function () {\r",
+              "    pm.expect(res).to.be.an(\"array\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Each event should contain expected fields\", function () {\r",
+              "    if (res.length > 0) {\r",
+              "        res.forEach(event => {\r",
+              "            pm.expect(event).to.have.property(\"id\");\r",
+              "            pm.expect(event).to.have.property(\"name\");\r",
+              "            pm.expect(event).to.have.property(\"start_time\");\r",
+              "            pm.expect(event).to.have.property(\"end_time\");\r",
+              "        });\r",
+              "    }\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/events/upcoming",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "upcoming"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View all events",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"All events request should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should be an array of events\", function () {\r",
+              "    pm.expect(res).to.be.an(\"array\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Each event should contain expected fields\", function () {\r",
+              "    if (res.length > 0) {\r",
+              "        res.forEach(event => {\r",
+              "            pm.expect(event).to.have.property(\"id\");\r",
+              "            pm.expect(event).to.have.property(\"name\");\r",
+              "            pm.expect(event).to.have.property(\"start\");\r",
+              "            pm.expect(event).to.have.property(\"end\");\r",
+              "        });\r",
+              "    }\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Log Attendance-Not joined",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Attendance request should fail if student not joined\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(400);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain error message\", function () {\r",
+              "    pm.expect(res).to.have.property(\"message\");\r",
+              "    pm.expect(res.message.toLowerCase()).to.include(\"attendance not valid\");\r",
+              "});\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer{{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/events/14/attendance/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "14",
+            "attendance",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Join Event-Full",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Join event should fail if event is full\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(400);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain error message\", function () {\r",
+              "    pm.expect(res).to.have.property(\"message\");\r",
+              "    pm.expect(res.message.toLowerCase()).to.include(\"full\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/events/14/join",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "14",
+            "join"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Leave Event",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Leave event should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200); // or 302 if redirect is returned\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should confirm success\", function () {\r",
+              "    // If your route returns JSON\r",
+              "    if (res && typeof res === \"object\") {\r",
+              "        pm.expect(res).to.have.property(\"message\");\r",
+              "        pm.expect(res.message.toLowerCase()).to.include(\"left\");\r",
+              "    }\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/events/4/leave",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "4",
+            "leave"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Join Event",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Join event should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should confirm success\", function () {\r",
+              "    pm.expect(res).to.have.property(\"success\");\r",
+              "    pm.expect(res.success).to.eql(true);\r",
+              "    pm.expect(res).to.have.property(\"message\");\r",
+              "    pm.expect(res.message.toLowerCase()).to.include(\"joined event\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/events/13/join",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "13",
+            "join"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Log Attendance",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Attendance request should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(201);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain attendance details\", function () {\r",
+              "    pm.expect(res).to.have.property(\"id\");          // attendance record id\r",
+              "    pm.expect(res).to.have.property(\"studentId\");   // student who attended\r",
+              "    pm.expect(res).to.have.property(\"eventId\");     // event attended\r",
+              "    pm.expect(res).to.have.property(\"timestamp\");   // when attendance was logged\r",
+              "    pm.expect(res).to.have.property(\"event\");       // nested event details\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Nested event should contain expected fields\", function () {\r",
+              "    pm.expect(res.event).to.have.property(\"id\");\r",
+              "    pm.expect(res.event).to.have.property(\"name\");\r",
+              "    pm.expect(res.event).to.have.property(\"description\");\r",
+              "    pm.expect(res.event).to.have.property(\"start\");\r",
+              "    pm.expect(res.event).to.have.property(\"end\");\r",
+              "    pm.expect(res.event).to.have.property(\"location\");\r",
+              "    pm.expect(res.event).to.have.property(\"type\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer{{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/events/13/attendance/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "events",
+            "13",
+            "attendance",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Leaderboard",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Leaderboard request should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain leaderboard and current_user\", function () {\r",
+              "    pm.expect(res).to.have.property(\"leaderboard\");\r",
+              "    pm.expect(res.leaderboard).to.be.an(\"array\");\r",
+              "\r",
+              "    pm.expect(res).to.have.property(\"current_user\");\r",
+              "    pm.expect(res.current_user).to.be.an(\"object\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Each leaderboard entry should contain expected fields\", function () {\r",
+              "    if (res.leaderboard.length > 0) {\r",
+              "        res.leaderboard.forEach(entry => {\r",
+              "            pm.expect(entry).to.have.property(\"username\");\r",
+              "            pm.expect(entry).to.have.property(\"total_points\"); // assuming your leaderboard includes points\r",
+              "            pm.expect(entry).to.have.property(\"avatar_seed\");\r",
+              "        });\r",
+              "    }\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Current user should contain id, username, and avatar_seed\", function () {\r",
+              "    pm.expect(res.current_user).to.have.property(\"id\");\r",
+              "    pm.expect(res.current_user).to.have.property(\"username\");\r",
+              "    pm.expect(res.current_user).to.have.property(\"avatar_seed\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/progress/leaderboard",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "progress",
+            "leaderboard"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Progress",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Progress request should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain student_id, total_points, and current_balance\", function () {\r",
+              "    pm.expect(res).to.have.property(\"student_id\");\r",
+              "    pm.expect(res.student_id).to.eql(1); // adjust if testing another student\r",
+              "\r",
+              "    pm.expect(res).to.have.property(\"total_points\");\r",
+              "    pm.expect(res.total_points).to.be.a(\"number\");\r",
+              "\r",
+              "    pm.expect(res).to.have.property(\"current_balance\");\r",
+              "    pm.expect(res.current_balance).to.be.a(\"number\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/progress/1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "progress",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "View Rewards-Student",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Rewards request should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain student_id and balance\", function () {\r",
+              "    pm.expect(res).to.have.property(\"student_id\");\r",
+              "    pm.expect(res).to.have.property(\"balance\");\r",
+              "    pm.expect(res.balance).to.be.a(\"number\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain rewards and redeemed arrays\", function () {\r",
+              "    pm.expect(res).to.have.property(\"rewards\");\r",
+              "    pm.expect(res.rewards).to.be.an(\"array\");\r",
+              "\r",
+              "    pm.expect(res).to.have.property(\"redeemed\");\r",
+              "    pm.expect(res.redeemed).to.be.an(\"array\");\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain next_target and pct\", function () {\r",
+              "    pm.expect(res).to.have.property(\"next_target\");\r",
+              "    pm.expect(res.next_target).to.be.a(\"number\");\r",
+              "\r",
+              "    pm.expect(res).to.have.property(\"pct\");\r",
+              "    pm.expect(res.pct).to.be.a(\"number\");\r",
+              "    pm.expect(res.pct).to.be.within(0, 100);\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/student/rewards",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "student",
+            "rewards"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Redeem Reward-Not enough points",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Redeem reward should fail if not enough points\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(400);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain error message\", function () {\r",
+              "    pm.expect(res).to.have.property(\"error\");\r",
+              "    pm.expect(res.error.toLowerCase()).to.include(\"not enough points\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/student/rewards/11/redeem",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "student",
+            "rewards",
+            "11",
+            "redeem"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Collect Reward- Not Redeemed",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Collect reward should fail if not redeemed yet\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(400);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should contain error message\", function () {\r",
+              "    pm.expect(res).to.have.property(\"error\");\r",
+              "    pm.expect(res.error.toLowerCase()).to.include(\"invalid\");\r",
+              "    pm.expect(res.error.toLowerCase()).to.include(\"collected\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/student/rewards/11/collect",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "student",
+            "rewards",
+            "11",
+            "collect"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Redeem Reward",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Redeem reward should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(201);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should confirm success and include redeemed_id\", function () {\r",
+              "    pm.expect(res).to.have.property(\"success\");\r",
+              "    pm.expect(res.success).to.eql(true);\r",
+              "\r",
+              "    pm.expect(res).to.have.property(\"redeemed_id\");\r",
+              "    pm.expect(res.redeemed_id).to.be.a(\"number\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/student/rewards/10/redeem",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "student",
+            "rewards",
+            "10",
+            "redeem"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Collect Reward",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let res = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Collect reward should succeed\", function () {\r",
+              "    pm.expect(pm.response.code).to.eql(200);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Response should confirm success and include message\", function () {\r",
+              "    pm.expect(res).to.have.property(\"success\");\r",
+              "    pm.expect(res.success).to.eql(true);\r",
+              "\r",
+              "    pm.expect(res).to.have.property(\"message\");\r",
+              "    pm.expect(res.message.toLowerCase()).to.include(\"reward collected\");\r",
+              "});\r",
+              "\r",
+              "// Performance: response time\r",
+              "pm.test(\"Response time is under 1500ms\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(1500);\r",
+              "});\r",
+              "\r",
+              "// Performance: payload size\r",
+              "pm.test(\"Response size is under 100KB\", function () {\r",
+              "    pm.expect(pm.response.responseSize).to.be.below(100000);\r",
+              "});\r",
+              "\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bob_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/student/rewards/10/collect",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "student",
+            "rewards",
+            "10",
+            "collect"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
