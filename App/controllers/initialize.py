@@ -14,13 +14,11 @@ def initialize():
     bob = create_user('bob@my.uwi.edu', 'bob', 'bobpass')
     jane = create_user('jane@sta.uwi.edu', 'jane', 'janepass')
     alice = create_user('alice@my.uwi.edu', 'alice', 'alicepass')
-    amy = create_user('amy@my.uwi.edu', 'amy', 'amypass')
     print (f'Created users: {bob}, {jane}, {alice}')
 
     bob_obj = Student.query.filter_by(username='bob').first()
     alice_obj = Student.query.filter_by(username='alice').first()
     jane_obj = Staff.query.filter_by(username='jane').first()
-    amy_obj = Student.query.filter_by(username='amy').first()
 
     if bob_obj and alice_obj:
         bob_obj.temporary_device_holder = "DEVICE123"
@@ -31,10 +29,6 @@ def initialize():
 
     if jane_obj:
         jane_obj.is_verified = True  # Mark Jane as verified for testing purposes
-        db.session.commit()
-
-    if amy_obj:
-        amy_obj.is_verified = True  # Mark Amy as verified for testing purposes
         db.session.commit()
 
     # Create badges
@@ -136,16 +130,3 @@ def initialize():
             else:
                 print(f'Failed to create reward: {reward}')
         db.session.commit()
-
-    amy_obj = Student.query.filter_by(username='amy').first()
-    if amy_obj:
-        join_event(amy_obj.id, event1.id)
-        join_event(amy_obj.id, event2.id)
-        log_attendance(amy_obj.id, event1.id, datetime.now())
-        log_attendance(amy_obj.id, event2.id, datetime.now())
-        timeout_student(amy_obj)  # Apply timeout to demonstrate timeout functionality
-        print(f'Amy attended events: {event1.name}, {event2.name} and has been timed out until {amy_obj.timeout_until}')
-        amy_obj.appeal_desc = "I was unfairly timed out. Those event took attendance close together but i stayed for both and should not be penalized for that."
-        db.session.commit()
-    else:
-        print('Failed to create user Bob. Please check the user creation process.')
