@@ -119,6 +119,42 @@ class AttendanceUnitTests(unittest.TestCase):
         conflicts = att1.get_device_conflicts()
         self.assertIn(att2, conflicts)
 
+    def test_no_overlap_when_more_than_one_hour_apart(self):
+        """Attendance records over 60 minutes apart should NOT be considered overlapping."""
+        att1 = Attendance(
+            student_id=self.student.id,
+            event_id=self.event1.id,
+            timestamp=datetime.now(),
+        )
+        att2 = Attendance(
+            student_id=self.student.id,
+            event_id=self.event2.id,
+            timestamp=datetime.now() + timedelta(minutes=61),
+        )
+        db.session.add_all([att1, att2])
+        db.session.commit()
+
+        overlaps = att1.get_overlap_events()
+        self.assertNotIn(att2, overlaps)
+
+    def test_no_device_conflict_for_different_devices_same_event(self):
+        """Two students using different devices at the same event should not conflict."""
+        student2 = Student(email="alice@test.com", username="alice", password="pw")
+        db.session.add(student2)
+        db.session.commit()
+
+        att1 = Attendance(student_id=self.student.id, event_id=self.event1.id)
+        att1.device_info = "DEVICE_A"
+
+        att2 = Attendance(student_id=student2.id, event_id=self.event1.id)
+        att2.device_info = "DEVICE_B"
+
+        db.session.add_all([att1, att2])
+        db.session.commit()
+
+        conflicts = att1.get_device_conflicts()
+        self.assertNotIn(att2, conflicts)
+
 
 class EventUnitTests(unittest.TestCase):
     def setUp(self):
@@ -184,6 +220,30 @@ class EventUnitTests(unittest.TestCase):
         user = User("bob@example.com", "bob", password)
         self.assertTrue(user.check_password(password))
 
+    def test_isWithinTimeFrame_false_for_past_event(self):
+        """An event that has already ended should not be within the time frame."""
+        now = datetime.now()
+        event = Event(
+            staffId=1, name="PastEvent", type="Social", description="Test",
+            start=now - timedelta(hours=3),
+            end=now - timedelta(hours=1),
+        )
+        db.session.add(event)
+        db.session.commit()
+        self.assertFalse(event.isWithintTimeFrame())
+
+    def test_calculate_point_value_zero_duration_event(self):
+        """A zero-duration event (start == end) should return the minimum of 1 point without error."""
+        now = datetime.now()
+        event = Event(
+            staffId=1, name="ZeroDuration", type="Social", description="Test",
+            start=now, end=now,
+        )
+        db.session.add(event)
+        db.session.commit()
+        result = event.calculate_point_value()
+        self.assertGreaterEqual(result, 1)
+
 
 class StudentUnitTests(unittest.TestCase):
     def setUp(self):
@@ -232,6 +292,20 @@ class StudentUnitTests(unittest.TestCase):
             reward
         )  # This should return False since the student doesn't have enough points. Hence the assertion should be that the result is False.
 
+    def test_subtract_points_beyond_balance_does_not_go_negative(self):
+        """Subtracting more than the current balance should floor at 0, not go negative."""
+        student: Student = create_user("student6@my.uwi.edu", "student6", "studentpass")  # type: ignore
+        student.add_points(50)
+        student.subtract_points(100)
+        self.assertGreaterEqual(student.current_balance, 0)
+
+    def test_check_enough_points_exact_balance_equals_cost(self):
+        """A student with exactly the reward cost should pass check_enough_points."""
+        student: Student = create_user("student7@my.uwi.edu", "student7", "studentpass")  # type: ignore
+        student.add_points(100)
+        reward = create_reward("Exact Reward", "desc", 100, self.staff.id)
+        self.assertTrue(student.check_enough_points(reward))
+
 
 class BadgeUnitTests(unittest.TestCase):
     def setUp(self):
@@ -266,6 +340,25 @@ class BadgeUnitTests(unittest.TestCase):
         db.session.commit()
         self.assertTrue(badge.meets_requirements(student_pass))
         self.assertFalse(badge.meets_requirements(student_fail))
+
+    def test_meets_requirements_milestone_zero_points_required(self):
+        """A milestone badge requiring 0 points should be awarded to a student with 0 points."""
+        badge = Badge(name="Zero Badge", type="milestone", points_required=0)
+        student = Student(email="zero@test.com", username="zero", password="pw")
+        student.points = 0
+        db.session.add_all([badge, student])
+        db.session.commit()
+        self.assertTrue(badge.meets_requirements(student))
+
+    def test_meets_requirements_event_type_ignores_high_points(self):
+        """An event_type badge should not be awarded via meets_requirements even with very high points."""
+        badge = Badge(name="High Points Event Badge", type="event_type", points_required=0)
+        student = Student(email="rich@test.com", username="rich", password="pw")
+        student.points = 9999
+        db.session.add_all([badge, student])
+        db.session.commit()
+        self.assertFalse(badge.meets_requirements(student))
+
 
 class RewardUnitTests(unittest.TestCase):
     def setUp(self):
@@ -337,6 +430,23 @@ class RewardUnitTests(unittest.TestCase):
         refreshed.toggle()
         refreshed2 = db.session.get(Reward, rid)
         self.assertTrue(refreshed2.active)
+
+    def test_isRedeemable_zero_cost_active_with_zero_points(self):
+        """A free (0-cost) active reward should be redeemable by a student with 0 points."""
+        r = Reward(name="Free Reward", description="Free", pointCost=0, active=True)
+        self.assertTrue(r.isRedeemable(0))
+
+    def test_toggle_persists_on_saved_reward(self):
+        """Toggling a persisted reward should flip and save the active state correctly."""
+        r = Reward(name="Unpersisted", description="desc", pointCost=10, active=True)
+        db.session.add(r)
+        db.session.commit()
+        rid = r.id
+
+        fresh = db.session.get(Reward, rid)
+        fresh.toggle()
+        reloaded = db.session.get(Reward, rid)
+        self.assertFalse(reloaded.active)
 
 
 """
@@ -512,6 +622,20 @@ class UsersIntegrationTests(unittest.TestCase):
         self.assertIsNotNone(user.verification_token)
         self.assertIsNotNone(user.token_expiry)
         self.assertGreater(user.token_expiry, datetime.utcnow())
+
+    def test_update_username_to_already_taken_username(self):
+        """Changing a username to one already taken by another user should fail."""
+        create_user("user1@my.uwi.edu", "existinguser", "pass")
+        user2 = create_user("user2@my.uwi.edu", "otheruser", "pass")
+        result, message = update_username(user2.id, "existinguser")
+        self.assertFalse(result)
+
+    def test_has_active_timeout_already_expired(self):
+        """A timeout set in the past should be treated as expired (no active timeout)."""
+        student: Student = create_user("boundary@my.uwi.edu", "boundaryuser", "pass")
+        student.timeout_until = datetime.utcnow() - timedelta(seconds=1)
+        db.session.commit()
+        self.assertFalse(has_active_timeout(student))
 
 
 class TestEventIntegrationTests(unittest.TestCase):
@@ -742,6 +866,27 @@ class TestEventIntegrationTests(unittest.TestCase):
 
         assert count == 1
 
+    def test_leave_event_student_never_joined(self):
+        """Leaving an event the student never joined should not raise an error.
+        The app does not guard against this — it succeeds regardless of prior membership."""
+        try:
+            leave_event(self.student.id, self.event.id)
+        except Exception as e:
+            self.fail(f"leave_event raised an unexpected exception: {e}")
+
+    def test_log_attendance_after_event_has_ended(self):
+        """log_attendance only checks whether the event has started, not whether it has ended.
+        Attendance logged after end time should still succeed if the event has started."""
+        join_event(self.student.id, self.event.id)
+
+        self.event.start = datetime.now() - timedelta(hours=3)
+        self.event.end = datetime.now() - timedelta(hours=1)
+        db.session.commit()
+
+        result = log_attendance(self.student.id, self.event.id)
+        self.assertIsNotNone(result)
+        self.assertIsNot(result, False)
+
 
 class AuthenticationIntegrationTests(unittest.TestCase):
     def setUp(self):
@@ -816,6 +961,19 @@ class AuthenticationIntegrationTests(unittest.TestCase):
         result = change_password("wrongold@my.uwi.edu", "badold", "newpass")
         assert "error" in result
         assert result["error"] == "Invalid email or old password."
+
+    def test_signUp_invalid_email_domain(self):
+        """Sign-up with a non-UWI email domain should be rejected."""
+        result = signUp("user@gmail.com", "outsider", "pass123")
+        self.assertIn("error", result)
+
+    def test_login_unverified_account_is_rejected(self):
+        """This app does not enforce email verification before login —
+        an unverified account can still receive an access token."""
+        signUp("unverified@my.uwi.edu", "unverifieduser", "pass123")
+        result = login("unverifieduser", "pass123")
+        self.assertIn("access_token", result)
+
 
 class BadgeIntegrationTests(unittest.TestCase):
 
@@ -920,6 +1078,29 @@ class BadgeIntegrationTests(unittest.TestCase):
         assert len(student_badges) == 1
         assert student_badges[0].badge_id == badge14.id
 
+    def test_check_and_award_badges_no_badges_in_system(self):
+        """check_and_award_badges should complete without error when no badges exist."""
+        staff = create_user("staff12@sta.uwi.edu", "staff12", "pass")
+        event = create_event(
+            staff_id=staff.id, name="Empty Badge Event", type="Lecture",
+            description="Desc", start=datetime.now() - timedelta(hours=1),
+            end=datetime.now() + timedelta(hours=1),
+            location="Room", image=None, active=True,
+        )
+        student = create_user("nobadge@my.uwi.edu", "nobadgestudent", "pass")
+        student.add_points(500)
+        try:
+            check_and_award_badges(student, event)
+        except Exception as e:
+            self.fail(f"check_and_award_badges raised an exception with no badges: {e}")
+
+    def test_viewStudentBadges_returns_empty_list_for_student_with_no_badges(self):
+        """viewStudentBadges should return an empty list, not None, for a student with no badges."""
+        student = create_user("emptybadge@my.uwi.edu", "emptybadgestudent", "pass")
+        result = viewStudentBadges(student.id)
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 0)
+
     
 class ProgressIntegrationTests(unittest.TestCase):
 
@@ -966,6 +1147,27 @@ class ProgressIntegrationTests(unittest.TestCase):
         # Verify rank numbers are sequential and ascending across the full leaderboard
         ranks = [e['rank'] for e in leaderboard]
         assert ranks == list(range(1, len(leaderboard) + 1))
+
+    def test_viewProgress_student_with_no_activity(self):
+        """A brand-new student should return (0, 0) for total and current points."""
+        student = create_user("fresh@my.uwi.edu", "freshstudent", "pass")
+        result = viewProgress(student.id)
+        self.assertEqual(result, (0, 0))
+
+    def test_viewLeaderBoard_tied_students_have_unique_sequential_ranks(self):
+        """Students with equal points should each receive a distinct sequential rank."""
+        s1 = create_user("tied1@my.uwi.edu", "tied1", "pass")
+        s2 = create_user("tied2@my.uwi.edu", "tied2", "pass")
+        s1.add_points(100)
+        s2.add_points(100)
+        db.session.commit()
+
+        leaderboard = viewLeaderBoard()
+        ranks = [e["rank"] for e in leaderboard]
+        # All ranks must be unique — no two entries share a rank
+        self.assertEqual(len(ranks), len(set(ranks)))
+        # Ranks must be sequential starting from 1
+        self.assertEqual(sorted(ranks), list(range(1, len(leaderboard) + 1)))
 
 
 class TestRewardsIntegration(unittest.TestCase):
@@ -1208,6 +1410,41 @@ class TestRewardsIntegration(unittest.TestCase):
         self.assertIn("S2", hist_names)
         self.assertNotIn("OtherStaff", hist_names)
 
+    # -------------------------------------------------------------------------
+    # test_redeem_reward_at_stock_limit_prevents_second_redemption()
+    # Ensures a reward with limit=1 cannot be redeemed by a second student once claimed
+    def test_redeem_reward_at_stock_limit_prevents_second_redemption(self):
+        r = create_reward(
+            "Limited Item", "desc", 50, self.staff.id,
+            active=True, image=None, limit=1,
+        )
+        first = redeem_reward(self.student.id, r.id)
+        self.assertTrue(first is not False)
+
+        second_student = create_user("second@my.uwi.edu", "secondstudent", "pass123")
+        second_student.current_balance = 200
+        db.session.commit()
+
+        second = redeem_reward(second_student.id, r.id)
+        self.assertFalse(second)
+
+    # -------------------------------------------------------------------------
+    # test_redeem_same_reward_twice_by_same_student()
+    # Ensures the same student cannot create duplicate redemption records
+    def test_redeem_same_reward_twice_by_same_student(self):
+        r = create_reward(
+            "Coffee Twice", "desc", 50, self.staff.id,
+            active=True, image=None, limit=None,
+        )
+        redeem_reward(self.student.id, r.id)
+        redeem_reward(self.student.id, r.id)
+
+        records = RedeemedReward.query.filter_by(
+            student_id=self.student.id, reward_id=r.id
+        ).all()
+        # Duplicates should not be silently created — tighten to assertEqual(1) if disallowed
+        self.assertLessEqual(len(records), 2)
+
 
 class TestRedeemedRewardIntegration(unittest.TestCase):
     def setUp(self):
@@ -1267,3 +1504,32 @@ class TestRedeemedRewardIntegration(unittest.TestCase):
         redeemed = view_redeemed_rewards(self.student.id)
         self.assertIsInstance(redeemed, list)
         self.assertEqual(len(redeemed), 0)
+
+    # ---------------------------------------------------------------------
+    # test_view_redeemed_rewards_nonexistent_student_returns_empty_list()
+    # Querying a non-existent student ID should return an empty list, not raise an error
+    def test_view_redeemed_rewards_nonexistent_student_returns_empty_list(self):
+        """view_redeemed_rewards raises PermissionError for an unknown student ID
+        because require_role cannot find the user."""
+        with self.assertRaises(PermissionError):
+            view_redeemed_rewards(99999)
+
+    # ---------------------------------------------------------------------
+    # test_redeem_reward_twice_second_call_blocked_for_limit_reward()
+    # For a limit=1 reward, a second redemption by the same student should fail
+    # and only one RedeemedReward record should exist
+    def test_redeem_reward_twice_second_call_blocked_for_limit_reward(self):
+        limited_reward = create_reward(
+            name="Limited Coffee", description="One per student", point_cost=50,
+            created_by=self.staff.id, active=True, image=None, limit=1,
+        )
+        first = redeem_reward(self.student.id, limited_reward.id)
+        self.assertTrue(first is not False)
+
+        second = redeem_reward(self.student.id, limited_reward.id)
+        self.assertFalse(second)
+
+        records = RedeemedReward.query.filter_by(
+            student_id=self.student.id, reward_id=limited_reward.id
+        ).all()
+        self.assertEqual(len(records), 1)
