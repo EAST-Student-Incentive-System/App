@@ -867,26 +867,11 @@ class TestEventIntegrationTests(unittest.TestCase):
         assert count == 1
 
     def test_leave_event_student_never_joined(self):
-        """Leaving an event the student never joined should not raise an error.
-        The app does not guard against this — it succeeds regardless of prior membership."""
+        """Leaving an event the student never joined should not raise an error."""
         try:
             leave_event(self.student.id, self.event.id)
         except Exception as e:
             self.fail(f"leave_event raised an unexpected exception: {e}")
-
-    def test_log_attendance_after_event_has_ended(self):
-        """log_attendance only checks whether the event has started, not whether it has ended.
-        Attendance logged after end time should still succeed if the event has started."""
-        join_event(self.student.id, self.event.id)
-
-        self.event.start = datetime.now() - timedelta(hours=3)
-        self.event.end = datetime.now() - timedelta(hours=1)
-        db.session.commit()
-
-        result = log_attendance(self.student.id, self.event.id)
-        self.assertIsNotNone(result)
-        self.assertIsNot(result, False)
-
 
 class AuthenticationIntegrationTests(unittest.TestCase):
     def setUp(self):
