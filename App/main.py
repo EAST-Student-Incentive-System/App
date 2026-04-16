@@ -4,6 +4,8 @@ from flask_uploads import DOCUMENTS, IMAGES, TEXT, UploadSet, configure_uploads
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import  FileStorage
+from App.models import User
+from App.controllers import initialize
 
 
 
@@ -46,6 +48,13 @@ def create_app(overrides={}):
     @app.route('/')
     def index():
         return redirect('/login')
+    
+    @app.before_request
+    def auto_initialize_if_empty():
+    # Run only if no users exist (DB is fresh)
+        if not User.query.first():
+            initialize()
+            print("Database was empty, initialized with demo data.")
 
     return app
 
