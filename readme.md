@@ -12,6 +12,24 @@ A template for flask applications structured in the Model View Controller patter
 ```bash
 $ pip install -r requirements.txt
 ```
+Local Setup
+# Navigate to your project folder
+$ cd ~/Downloads/flaskmvc
+
+# Create and activate a virtual environment
+$ python3 -m venv venv
+$ source venv/bin/activate   # On Linux/Mac
+$ venv\Scripts\activate      # On Windows PowerShell
+
+# Install dependencies
+(venv) $ pip install -r requirements.txt
+
+# Initialize the database (first time only)
+(venv) $ flask init
+
+# Run the development server
+(venv) $ flask run
+
 
 # Configuration Management
 
